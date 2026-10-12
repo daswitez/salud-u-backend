@@ -38,6 +38,9 @@ public class AvailabilityController {
         @AuthenticationPrincipal SessionPrincipal principal
     ) {
         if (manage) {
+            if (!(principal.roles().contains("REVIEW_DOCTOR") || principal.roles().contains("SPECIALIST"))) {
+                throw new AvailabilityException(403, "La agenda de disponibilidad pertenece al médico.");
+            }
             LocalDate first = from == null ? LocalDate.now(java.time.ZoneId.of("America/La_Paz")) : from;
             LocalDate last = to == null ? first : to;
             if (last.isBefore(first)) throw new AvailabilityException(400, "El rango de fechas no es válido.");

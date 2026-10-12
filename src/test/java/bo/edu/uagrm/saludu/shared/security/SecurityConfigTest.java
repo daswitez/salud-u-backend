@@ -1,8 +1,12 @@
 package bo.edu.uagrm.saludu.shared.security;
 
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
+import bo.edu.uagrm.saludu.shared.api.ApiSecurityErrorWriter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +19,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = SecurityConfigTest.ProbeController.class)
-@Import({SecurityConfig.class, SecurityConfigTest.ProbeController.class})
+@Import({SecurityConfig.class, ApiSecurityErrorWriter.class, SecurityConfigTest.ProbeController.class})
 class SecurityConfigTest {
     @Autowired MockMvc mvc;
+    @MockBean AuthenticationService authenticationService;
+    @MockBean SessionCookieService sessionCookieService;
 
     @Test
     void healthIsPublic() throws Exception {
@@ -31,15 +37,15 @@ class SecurityConfigTest {
 
     @Test
     void authenticatedBusinessRequestIsStillDenied() throws Exception {
-        mvc.perform(get("/api/patients").with(user("test")))
+        mvc.perform(get("/api/private").with(user("test")))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void writesRequireCsrfAndRemainDeniedWithToken() throws Exception {
-        mvc.perform(post("/api/patients").with(user("test")))
+        mvc.perform(post("/api/private").with(user("test")))
                 .andExpect(status().isForbidden());
-        mvc.perform(post("/api/patients").with(user("test")).with(csrf()))
+        mvc.perform(post("/api/private").with(user("test")).with(csrf()))
                 .andExpect(status().isForbidden());
     }
 

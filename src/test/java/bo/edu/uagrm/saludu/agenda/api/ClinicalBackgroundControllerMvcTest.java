@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bo.edu.uagrm.saludu.governance.application.AuditWriter;
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
 import bo.edu.uagrm.saludu.shared.api.ApiExceptionHandler;
 import bo.edu.uagrm.saludu.shared.api.ApiSecurityErrorWriter;
@@ -35,6 +37,8 @@ class ClinicalBackgroundControllerMvcTest {
     @MockBean JdbcTemplate jdbcTemplate;
     @MockBean DatabaseActorContext actorContext;
     @MockBean AuditWriter auditWriter;
+    @MockBean AuthenticationService authenticationService;
+    @MockBean SessionCookieService sessionCookieService;
 
     @Test
     void changeReasonIsRequiredBeforeAnyPersistence() throws Exception {

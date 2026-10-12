@@ -103,26 +103,26 @@ class DatabaseActorContextIntegrationTest {
         patientCareerId = UUID.randomUUID();
         availabilityClinicianId = UUID.randomUUID();
         availabilityStaffId = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.carrera(id, code, name) values (?, ?, ?)", patientCareerId, "MED", "Medicina");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", clinicianId, "clinician@example.invalid", "Clínico sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", auditorId, "auditor@example.invalid", "Auditor sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", studentId, "student@example.invalid", "Estudiante sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", lockedStudentId, "locked@example.invalid", "Estudiante limitado");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", concurrentStudentId, "concurrent@example.invalid", "Estudiante concurrente");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", administratorId, "administrator@example.invalid", "Administrativo sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", profileStudentId, "profile@example.invalid", "Perfil sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, display_name) values (?, ?, ?)", availabilityClinicianId, "availability-doctor@example.invalid", "Médico disponibilidad");
-        migratorJdbc.update("insert into salud_u.rol_principal(principal_id, role_code) values (?, cast(? as salud_u.codigo_rol_aplicacion))", studentId, "STUDENT");
-        migratorJdbc.update("insert into salud_u.rol_principal(principal_id, role_code) values (?, cast(? as salud_u.codigo_rol_aplicacion))", lockedStudentId, "STUDENT");
-        migratorJdbc.update("insert into salud_u.rol_principal(principal_id, role_code) values (?, cast(? as salud_u.codigo_rol_aplicacion))", concurrentStudentId, "STUDENT");
-        migratorJdbc.update("insert into salud_u.rol_principal(principal_id, role_code) values (?, cast(? as salud_u.codigo_rol_aplicacion))", administratorId, "ADMINISTRATIVE");
-        migratorJdbc.update("insert into salud_u.rol_principal(principal_id, role_code) values (?, cast(? as salud_u.codigo_rol_aplicacion))", profileStudentId, "STUDENT");
-        migratorJdbc.update("insert into salud_u.rol_principal(principal_id, role_code) values (?, cast(? as salud_u.codigo_rol_aplicacion))", availabilityClinicianId, "REVIEW_DOCTOR");
-        migratorJdbc.update("insert into salud_u.personal(id, principal_id, staff_code) values (?, ?, ?)", availabilityStaffId, availabilityClinicianId, "AVAIL-DOCTOR");
-        migratorJdbc.update("insert into salud_u.credencial_principal(principal_id, password_hash) values (?, crypt(?, gen_salt('bf', 10)))", studentId, "student-password");
-        migratorJdbc.update("insert into salud_u.credencial_principal(principal_id, password_hash) values (?, crypt(?, gen_salt('bf', 10)))", lockedStudentId, "locked-password");
-        migratorJdbc.update("insert into salud_u.credencial_principal(principal_id, password_hash) values (?, crypt(?, gen_salt('bf', 10)))", concurrentStudentId, "concurrent-password");
-        migratorJdbc.update("insert into salud_u.credencial_principal(principal_id, password_hash) values (?, crypt(?, gen_salt('bf', 10)))", profileStudentId, "profile-current-password");
+        migratorJdbc.update("insert into salud_u.carrera(id, codigo, nombre) values (?, ?, ?)", patientCareerId, "MED", "Medicina");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", clinicianId, "clinician@example.invalid", "Clínico sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", auditorId, "auditor@example.invalid", "Auditor sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", studentId, "student@example.invalid", "Estudiante sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", lockedStudentId, "locked@example.invalid", "Estudiante limitado");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", concurrentStudentId, "concurrent@example.invalid", "Estudiante concurrente");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", administratorId, "administrator@example.invalid", "Administrativo sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", profileStudentId, "profile@example.invalid", "Perfil sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", availabilityClinicianId, "availability-doctor@example.invalid", "Médico disponibilidad");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(? as salud_u.codigo_rol_aplicacion))", studentId, "STUDENT");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(? as salud_u.codigo_rol_aplicacion))", lockedStudentId, "STUDENT");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(? as salud_u.codigo_rol_aplicacion))", concurrentStudentId, "STUDENT");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(? as salud_u.codigo_rol_aplicacion))", administratorId, "ADMINISTRATIVE");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(? as salud_u.codigo_rol_aplicacion))", profileStudentId, "STUDENT");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(? as salud_u.codigo_rol_aplicacion))", availabilityClinicianId, "REVIEW_DOCTOR");
+        migratorJdbc.update("insert into salud_u.personal(id, id_principal, codigo_personal) values (?, ?, ?)", availabilityStaffId, availabilityClinicianId, "AVAIL-DOCTOR");
+        migratorJdbc.update("insert into salud_u.credencial_principal(id_principal, hash_contrasena) values (?, crypt(?, gen_salt('bf', 10)))", studentId, "student-password");
+        migratorJdbc.update("insert into salud_u.credencial_principal(id_principal, hash_contrasena) values (?, crypt(?, gen_salt('bf', 10)))", lockedStudentId, "locked-password");
+        migratorJdbc.update("insert into salud_u.credencial_principal(id_principal, hash_contrasena) values (?, crypt(?, gen_salt('bf', 10)))", concurrentStudentId, "concurrent-password");
+        migratorJdbc.update("insert into salud_u.credencial_principal(id_principal, hash_contrasena) values (?, crypt(?, gen_salt('bf', 10)))", profileStudentId, "profile-current-password");
     }
 
     @AfterAll
@@ -247,8 +247,13 @@ class DatabaseActorContextIntegrationTest {
             for (int attempt = 0; attempt < 5; attempt++) {
                 attempts.add(executor.submit(() -> {
                     ready.countDown();
-                    if (!start.await(5, TimeUnit.SECONDS)) {
-                        throw new IllegalStateException("No se inició la prueba concurrente de login.");
+                    try {
+                        if (!start.await(5, TimeUnit.SECONDS)) {
+                            throw new IllegalStateException("No se inició la prueba concurrente de login.");
+                        }
+                    } catch (InterruptedException exception) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("La prueba concurrente fue interrumpida.", exception);
                     }
                     assertThrows(bo.edu.uagrm.saludu.identity.application.InvalidCredentialsException.class,
                         () -> authenticationService.login("concurrent@example.invalid", "wrong-password"));

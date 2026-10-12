@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
 import bo.edu.uagrm.saludu.patients.application.DuplicatePatientIdentifierException;
 import bo.edu.uagrm.saludu.patients.application.PatientService;
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
 import bo.edu.uagrm.saludu.patients.application.PatientSummary;
 import bo.edu.uagrm.saludu.shared.api.ApiExceptionHandler;
 import bo.edu.uagrm.saludu.shared.api.ApiSecurityErrorWriter;
@@ -42,6 +44,8 @@ class PatientControllerMvcTest {
 
     @Autowired MockMvc mvc;
     @MockBean PatientService patientService;
+    @MockBean AuthenticationService authenticationService;
+    @MockBean SessionCookieService sessionCookieService;
 
     @Test
     void administrativeListPreservesLegacyPatientFieldsAndOrder() throws Exception {

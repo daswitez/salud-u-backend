@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bo.edu.uagrm.saludu.agenda.application.AvailabilityService;
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
 import bo.edu.uagrm.saludu.shared.api.ApiExceptionHandler;
 import bo.edu.uagrm.saludu.shared.api.ApiSecurityErrorWriter;
@@ -36,6 +38,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class AvailabilityControllerMvcTest {
     @Autowired MockMvc mvc;
     @MockBean AvailabilityService availabilityService;
+    @MockBean AuthenticationService authenticationService;
+    @MockBean SessionCookieService sessionCookieService;
 
     @Test
     void scheduleReplacementRequiresCsrf() throws Exception {

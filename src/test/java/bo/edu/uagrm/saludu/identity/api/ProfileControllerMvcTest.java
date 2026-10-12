@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bo.edu.uagrm.saludu.identity.application.EmailAlreadyUsedException;
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
 import bo.edu.uagrm.saludu.identity.application.InvalidCredentialsException;
 import bo.edu.uagrm.saludu.identity.application.ProfileService;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
@@ -37,11 +38,12 @@ class ProfileControllerMvcTest {
 
     @Autowired MockMvc mvc;
     @MockBean ProfileService profileService;
+    @MockBean AuthenticationService authenticationService;
 
     @Test
     void profileUpdateRequiresCsrf() throws Exception {
         mvc.perform(patch("/api/v1/profile")
-                .with(authentication(authentication()))
+                .with(authentication(token()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(profileBody()))
             .andExpect(status().isForbidden())
@@ -51,7 +53,7 @@ class ProfileControllerMvcTest {
     @Test
     void profileUpdateRevokesCookieWithoutReturningCredentials() throws Exception {
         mvc.perform(patch("/api/v1/profile")
-                .with(authentication(authentication()))
+                .with(authentication(token()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(profileBody()))
@@ -72,7 +74,7 @@ class ProfileControllerMvcTest {
             .changePassword(principal(), "wrong-password", "new-password-123");
 
         mvc.perform(post("/api/v1/profile/password")
-                .with(authentication(authentication()))
+                .with(authentication(token()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"currentPassword\":\"wrong-password\",\"newPassword\":\"new-password-123\"}"))
@@ -86,7 +88,7 @@ class ProfileControllerMvcTest {
             .updateProfile(principal(), "Nuevo nombre", "used@example.invalid", "current-password");
 
         mvc.perform(patch("/api/v1/profile")
-                .with(authentication(authentication()))
+                .with(authentication(token()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"displayName\":\"Nuevo nombre\",\"email\":\"used@example.invalid\",\"currentPassword\":\"current-password\"}"))
@@ -97,7 +99,7 @@ class ProfileControllerMvcTest {
     @Test
     void passwordChangeRevokesCookie() throws Exception {
         mvc.perform(post("/api/v1/profile/password")
-                .with(authentication(authentication()))
+                .with(authentication(token()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"currentPassword\":\"current-password\",\"newPassword\":\"new-password-123\"}"))
@@ -114,7 +116,7 @@ class ProfileControllerMvcTest {
         return new SessionPrincipal(PRINCIPAL_ID, "student@example.invalid", "Estudiante", List.of("STUDENT"));
     }
 
-    private static UsernamePasswordAuthenticationToken authentication() {
+    private static UsernamePasswordAuthenticationToken token() {
         return new UsernamePasswordAuthenticationToken(principal(), null, List.of());
     }
 }

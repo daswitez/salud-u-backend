@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bo.edu.uagrm.saludu.catalogs.application.CatalogItem;
 import bo.edu.uagrm.saludu.catalogs.application.CatalogKind;
 import bo.edu.uagrm.saludu.catalogs.application.CatalogService;
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
 import bo.edu.uagrm.saludu.shared.api.ApiExceptionHandler;
 import bo.edu.uagrm.saludu.shared.api.ApiSecurityErrorWriter;
@@ -34,6 +36,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class CatalogControllerMvcTest {
     @Autowired MockMvc mvc;
     @MockBean CatalogService catalogService;
+    @MockBean AuthenticationService authenticationService;
+    @MockBean SessionCookieService sessionCookieService;
 
     @Test
     void careersRemainPublicAndKeepLegacyOrderingShape() throws Exception {
@@ -49,7 +53,7 @@ class CatalogControllerMvcTest {
 
     @Test
     void studentCannotReadSpecialtiesAndReceivesLegacyForbiddenShape() throws Exception {
-        mvc.perform(get("/api/specialties").with(authentication(authentication("student@example.invalid", "STUDENT"))))
+        mvc.perform(get("/api/specialties").with(authentication(token("student@example.invalid", "STUDENT"))))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.ok").value(false))
             .andExpect(jsonPath("$.error").value("forbidden"));
@@ -61,7 +65,7 @@ class CatalogControllerMvcTest {
         when(catalogService.mySpecialties(specialist)).thenReturn(List.of(
             new CatalogItem(UUID.fromString("00000000-0000-4000-8000-000000000005"), "GYNECOLOGY", "Especialidad Sintética")
         ));
-        mvc.perform(get("/api/my-specialties").with(authentication(authentication(specialist, "SPECIALIST"))))
+        mvc.perform(get("/api/my-specialties").with(authentication(token(specialist, "SPECIALIST"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.ok").value(true))
             .andExpect(jsonPath("$.data[0].code").value("GYNECOLOGY"));
@@ -71,7 +75,7 @@ class CatalogControllerMvcTest {
     void onlyAdministrativeRoleCanWriteCatalogsAndCsrfIsRequired() throws Exception {
         String body = "{\"code\":\"NUTRITION\",\"name\":\"Nutrición\",\"active\":true}";
         mvc.perform(post("/api/v1/admin/catalogs/SPECIALTY")
-                .with(authentication(authentication("student@example.invalid", "STUDENT")))
+                .with(authentication(token("student@example.invalid", "STUDENT")))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isForbidden())
@@ -81,7 +85,7 @@ class CatalogControllerMvcTest {
         UUID specialtyId = UUID.fromString("00000000-0000-4000-8000-000000000006");
         when(catalogService.saveCatalog(administrator, CatalogKind.SPECIALTY, null, "NUTRITION", "Nutrición", true)).thenReturn(specialtyId);
         mvc.perform(post("/api/v1/admin/catalogs/SPECIALTY")
-                .with(authentication(authentication(administrator, "ADMINISTRATIVE")))
+                .with(authentication(token(administrator, "ADMINISTRATIVE")))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isOk())
@@ -94,11 +98,11 @@ class CatalogControllerMvcTest {
         return new SessionPrincipal(UUID.nameUUIDFromBytes(email.getBytes()), email, "Usuario de prueba", List.of(role));
     }
 
-    private static UsernamePasswordAuthenticationToken authentication(String email, String role) {
-        return authentication(principal(email, role), role);
+    private static UsernamePasswordAuthenticationToken token(String email, String role) {
+        return token(principal(email, role), role);
     }
 
-    private static UsernamePasswordAuthenticationToken authentication(SessionPrincipal principal, String role) {
+    private static UsernamePasswordAuthenticationToken token(SessionPrincipal principal, String role) {
         return new UsernamePasswordAuthenticationToken(principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
     }
 }

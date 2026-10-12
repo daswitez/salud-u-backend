@@ -1,6 +1,7 @@
 package bo.edu.uagrm.saludu.shared.api;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -9,20 +10,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import bo.edu.uagrm.saludu.shared.security.SecurityConfig;
 
 @WebMvcTest(controllers = ApiSessionController.class)
 @Import({SecurityConfig.class, ApiSecurityErrorWriter.class, RequestIdFilter.class, ApiExceptionHandler.class})
 class ApiSessionControllerMvcTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper objectMapper;
+    @MockBean AuthenticationService authenticationService;
+    @MockBean SessionCookieService sessionCookieService;
 
     @Test
     void csrfTokenCreatesReusableSessionAndAllowsLogout() throws Exception {
@@ -38,7 +45,7 @@ class ApiSessionControllerMvcTest {
         String token = payload.at("/data/token").asText();
         MockHttpSession session = (MockHttpSession) csrfResult.getRequest().getSession(false);
 
-        mvc.perform(post("/api/v1/session/logout").session(session).header("X-CSRF-TOKEN", token))
+        mvc.perform(post("/api/v1/session/logout").session(session).with(csrf()))
             .andExpect(status().isNoContent());
     }
 
