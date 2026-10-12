@@ -1,0 +1,9 @@
+{
+  "name": "salud-u-reference-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"test": "node scripts/check-reference.mjs"},
+  "devDependencies": {"typescript": "5.9.3"},
+  "engines": {"node": ">=22"}
+}

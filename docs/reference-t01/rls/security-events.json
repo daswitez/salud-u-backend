@@ -1,0 +1,426 @@
+[
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "create table if not exists public.document_access_grant (\n  id uuid primary key default gen_random_uuid(), document_id uuid not null references public.clinical_document(id) on delete restrict,\n  profile_id uuid references public.profile(id) on delete restrict, role_code public.app_role_code references public.app_role(code) on delete restrict,\n  purpose text not null, expires_at timestamptz, granted_by uuid not null references public.profile(id) on delete restrict,\n  created_at timestamptz not null default now(), check(profile_id is not null or role_code is not null)\n);"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "select 1 from public.document_access_grant g\n        where g.document_id=d.id and (g.expires_at is null or g.expires_at > now())\n          and (g.profile_id=(select auth.uid()) or (g.role_code is not null and private.has_active_role(g.role_code)))\n      )\n    )\n  );"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.profile enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.profile_role enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.staff_member enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.staff_specialty enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.specialty enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.career enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.patient enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.patient_contact enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.emergency_contact enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.academic_enrollment enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.clinical_history enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.history_intake_version enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.clinical_condition_catalog enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.measurement_type enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.tag_catalog enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.document_type enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.availability_slot enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.appointment enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.appointment_status_event enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.clinical_encounter enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.clinical_amendment enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.encounter_diagnosis enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.clinical_measurement enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.encounter_tag enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.specialty_form_template enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.encounter_specialty_data enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.clinical_document enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.document_tag enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.document_access_grant enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.referral enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.referral_diagnosis enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.referral_document enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.referral_status_event enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.referral_follow_up enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.exception_authorization enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.consent enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.audit_event enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "alter table public.report_export enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "create policy document_grant_auditor_select on public.document_access_grant for select to authenticated using(profile_id=(select auth.uid()) or private.has_active_role('AUDITOR'));"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "revoke all on table public.profile,public.profile_role,public.staff_member,public.staff_specialty,public.specialty,public.career,\n  public.patient,public.patient_contact,public.emergency_contact,public.academic_enrollment,public.clinical_history,public.history_intake_version,\n  public.clinical_condition_catalog,public.measurement_type,public.tag_catalog,public.document_type,public.availability_slot,public.appointment,\n  public.appointment_status_event,public.clinical_encounter,public.clinical_amendment,public.encounter_diagnosis,public.clinical_measurement,\n  public.encounter_tag,public.specialty_form_template,public.encounter_specialty_data,public.clinical_document,public.document_tag,\n  public.document_access_grant,public.referral,public.referral_diagnosis,public.referral_document,public.referral_status_event,\n  public.referral_follow_up,public.exception_authorization,public.consent,public.audit_event,public.report_export,public.integration_outbox\nfrom anon,authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "grant select on table public.profile,public.profile_role,public.staff_member,public.staff_specialty,public.specialty,public.career,\n  public.patient,public.patient_contact,public.emergency_contact,public.academic_enrollment,public.clinical_history,public.history_intake_version,\n  public.clinical_condition_catalog,public.measurement_type,public.tag_catalog,public.document_type,public.availability_slot,public.appointment,\n  public.appointment_status_event,public.clinical_encounter,public.clinical_amendment,public.encounter_diagnosis,public.clinical_measurement,\n  public.encounter_tag,public.specialty_form_template,public.encounter_specialty_data,public.clinical_document,public.document_tag,\n  public.document_access_grant,public.referral,public.referral_diagnosis,public.referral_document,public.referral_status_event,\n  public.referral_follow_up,public.exception_authorization,public.consent,public.audit_event,public.report_export to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "revoke all on schema private from public,anon,authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "grant usage on schema private to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "revoke all on function public.set_updated_at(),public.normalize_patient_identifiers(),public.handle_new_auth_user() from public,anon,authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "revoke all on function private.current_staff_id(),private.has_active_role(public.app_role_code),private.is_any_staff(),private.can_read_patient(uuid),\n  private.can_read_clinical_patient(uuid),private.can_write_encounter(uuid,uuid,uuid),private.can_read_document(uuid),\n  private.can_upload_document_by_path(text),private.can_read_document_by_path(text),private.write_audit(text,text,uuid,uuid,text,jsonb) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "grant execute on function private.current_staff_id(),private.has_active_role(public.app_role_code),private.is_any_staff(),private.can_read_patient(uuid),\n  private.can_read_clinical_patient(uuid),private.can_write_encounter(uuid,uuid,uuid),private.can_read_document(uuid),\n  private.can_upload_document_by_path(text),private.can_read_document_by_path(text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "revoke all on function public.rpc_register_or_update_patient(uuid,text,text,text,text,date,text,text,uuid,uuid,text,date),\n  public.rpc_book_appointment(uuid,uuid,public.appointment_type_code,uuid),public.rpc_check_in_appointment(uuid),public.rpc_open_encounter(uuid,uuid,uuid,text),\n  public.rpc_add_diagnosis(uuid,uuid,text,text,boolean),public.rpc_add_measurement(uuid,text,numeric,text,text,timestamptz),\n  public.rpc_create_document_upload(uuid,uuid,text,text,text,date,text),public.rpc_finalize_document_upload(uuid),\n  public.rpc_close_encounter(uuid,text,text,text,text),public.rpc_add_encounter_amendment(uuid,text,text),\n  public.rpc_create_referral(uuid,uuid,text,text,public.referral_priority_code,uuid[],uuid[]),public.rpc_assign_referral(uuid,uuid),\n  public.rpc_close_referral(uuid,text),public.rpc_request_report_export(text,text,jsonb,jsonb,text),public.rpc_daily_activity(date,date),public.rpc_compliance_report(uuid)\nfrom public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "sql": "grant execute on function public.rpc_register_or_update_patient(uuid,text,text,text,text,date,text,text,uuid,uuid,text,date),\n  public.rpc_book_appointment(uuid,uuid,public.appointment_type_code,uuid),public.rpc_check_in_appointment(uuid),public.rpc_open_encounter(uuid,uuid,uuid,text),\n  public.rpc_add_diagnosis(uuid,uuid,text,text,boolean),public.rpc_add_measurement(uuid,text,numeric,text,text,timestamptz),\n  public.rpc_create_document_upload(uuid,uuid,text,text,text,date,text),public.rpc_finalize_document_upload(uuid),\n  public.rpc_close_encounter(uuid,text,text,text,text),public.rpc_add_encounter_amendment(uuid,text,text),\n  public.rpc_create_referral(uuid,uuid,text,text,public.referral_priority_code,uuid[],uuid[]),public.rpc_assign_referral(uuid,uuid),\n  public.rpc_close_referral(uuid,text),public.rpc_request_report_export(text,text,jsonb,jsonb,text),public.rpc_daily_activity(date,date),public.rpc_compliance_report(uuid)\nto authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "sql": "alter table public.appointment_request enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "sql": "revoke all on table public.appointment_request from anon, authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "sql": "grant select on table public.appointment_request to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "sql": "revoke all on function public.rpc_create_initial_appointment_request(),\n  public.rpc_publish_availability_slot(timestamptz,timestamptz,integer,uuid),\n  public.rpc_assign_appointment_request(uuid,uuid), public.rpc_cancel_appointment_request(uuid,text),\n  public.rpc_mark_appointment_no_show(uuid,text) from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "sql": "grant execute on function public.rpc_create_initial_appointment_request(),\n  public.rpc_publish_availability_slot(timestamptz,timestamptz,integer,uuid),\n  public.rpc_assign_appointment_request(uuid,uuid), public.rpc_cancel_appointment_request(uuid,text),\n  public.rpc_mark_appointment_no_show(uuid,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920100000_initial_history_admission.sql",
+    "sql": "revoke all on function public.rpc_get_initial_history_intake(uuid),\n  public.rpc_record_initial_history_intake(uuid,text,text,text,text,text) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920100000_initial_history_admission.sql",
+    "sql": "grant execute on function public.rpc_get_initial_history_intake(uuid),\n  public.rpc_record_initial_history_intake(uuid,text,text,text,text,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920110000_administrative_initial_appointment_request.sql",
+    "sql": "revoke all on function public.rpc_create_initial_appointment_request_for_patient(uuid) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920110000_administrative_initial_appointment_request.sql",
+    "sql": "grant execute on function public.rpc_create_initial_appointment_request_for_patient(uuid) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920120000_clinical_review_workflow.sql",
+    "sql": "revoke all on function public.rpc_finalize_initial_encounter(uuid,text,text,text,text,text,text,uuid,text,text,public.referral_priority_code) from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920120000_clinical_review_workflow.sql",
+    "sql": "grant execute on function public.rpc_finalize_initial_encounter(uuid,text,text,text,text,text,text,uuid,text,text,public.referral_priority_code) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "sql": "alter table public.availability_schedule enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "sql": "alter table public.availability_block enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "sql": "alter table public.availability_recurring_block enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "sql": "revoke all on function public.rpc_replace_my_availability_schedule(jsonb,jsonb),\n  public.rpc_create_my_availability_block(date,time,time,text), public.rpc_delete_my_availability_block(uuid) from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "sql": "grant execute on function public.rpc_replace_my_availability_schedule(jsonb,jsonb),\n  public.rpc_create_my_availability_block(date,time,time,text), public.rpc_delete_my_availability_block(uuid) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920140000_administrative_referral_appointments.sql",
+    "sql": "revoke all on function public.rpc_list_patient_referrals_for_appointment(uuid),\n  public.rpc_create_appointment_request_for_patient(uuid,public.appointment_type_code,uuid),\n  public.rpc_assign_appointment_request(uuid,uuid) from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920140000_administrative_referral_appointments.sql",
+    "sql": "grant execute on function public.rpc_list_patient_referrals_for_appointment(uuid),\n  public.rpc_create_appointment_request_for_patient(uuid,public.appointment_type_code,uuid),\n  public.rpc_assign_appointment_request(uuid,uuid) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "sql": "alter table public.specialty_clinical_history enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "sql": "alter table public.specialty_history_intake_version enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "sql": "revoke all on function public.rpc_create_appointment_request_for_patient(uuid,public.appointment_type_code,uuid,uuid) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "sql": "grant execute on function public.rpc_create_appointment_request_for_patient(uuid,public.appointment_type_code,uuid,uuid) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "sql": "revoke all on function public.rpc_record_specialty_history_intake(uuid,jsonb,uuid),public.rpc_finalize_specialty_encounter(uuid,text,text,text,text,text) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "sql": "grant execute on function public.rpc_record_specialty_history_intake(uuid,jsonb,uuid),public.rpc_finalize_specialty_encounter(uuid,text,text,text,text,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260920150200_administrative_referral_inbox.sql",
+    "sql": "revoke all on function public.rpc_list_referrals_for_administration() from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260920150200_administrative_referral_inbox.sql",
+    "sql": "grant execute on function public.rpc_list_referrals_for_administration() to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "alter table public.review_history_version enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "revoke all on table public.review_history_version from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "grant select on table public.review_history_version to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "revoke all on function public.rpc_get_initial_history_intake(uuid), public.rpc_record_initial_history_intake(uuid,text,text,text,text,text) from public, anon, authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "revoke all on function public.rpc_finalize_initial_encounter(uuid,text,text,text,text,text,text,uuid,text,text,public.referral_priority_code,jsonb) from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "grant execute on function public.rpc_finalize_initial_encounter(uuid,text,text,text,text,text,text,uuid,text,text,public.referral_priority_code,jsonb) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "revoke all on function public.rpc_record_specialty_history_intake(uuid,jsonb,uuid) from public, anon;"
+  },
+  {
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "sql": "grant execute on function public.rpc_record_specialty_history_intake(uuid,jsonb,uuid) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260930190000_atomic_specialty_history_finalize.sql",
+    "sql": "revoke all on function public.rpc_finalize_specialty_encounter(uuid,text,text,text,text,text,jsonb) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260930190000_atomic_specialty_history_finalize.sql",
+    "sql": "grant execute on function public.rpc_finalize_specialty_encounter(uuid,text,text,text,text,text,jsonb) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20260930200000_flexible_clinical_reports.sql",
+    "sql": "revoke all on function public.rpc_clinical_report(jsonb), public.rpc_log_clinical_report_export(jsonb,text,integer,text) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20260930200000_flexible_clinical_reports.sql",
+    "sql": "grant execute on function public.rpc_clinical_report(jsonb), public.rpc_log_clinical_report_export(jsonb,text,integer,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "sql": "alter table public.clinical_background_version enable row level security;"
+  },
+  {
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "sql": "revoke all on table public.clinical_background_version from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "sql": "grant select on table public.clinical_background_version to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "sql": "revoke all on function public.rpc_get_clinical_background(uuid,uuid),public.rpc_save_clinical_background(uuid,jsonb,integer,uuid,text) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "sql": "grant execute on function public.rpc_get_clinical_background(uuid,uuid),public.rpc_save_clinical_background(uuid,jsonb,integer,uuid,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006110000_listed_clinical_background_items.sql",
+    "sql": "revoke all on function public.rpc_save_clinical_background(uuid,jsonb,integer,uuid,text) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006110000_listed_clinical_background_items.sql",
+    "sql": "grant execute on function public.rpc_save_clinical_background(uuid,jsonb,integer,uuid,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "sql": "select 1 from public.document_access_grant g\n        where g.document_id=d.id and (g.expires_at is null or g.expires_at>now())\n          and (g.profile_id=(select auth.uid()) or (g.role_code is not null and private.has_active_role(g.role_code)))\n      )\n    )\n  );"
+  },
+  {
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "sql": "revoke all on function private.can_read_clinical_encounter(uuid),private.can_read_referral(uuid) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "sql": "grant execute on function private.can_read_clinical_encounter(uuid),private.can_read_referral(uuid) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "sql": "revoke all on function private.clinical_background_items(jsonb,text) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "sql": "revoke all on function private.clinical_habits_search_text(jsonb) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "sql": "grant execute on function private.clinical_background_items(jsonb,text) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "sql": "grant execute on function private.clinical_habits_search_text(jsonb) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "sql": "revoke all on function public.rpc_clinical_report(jsonb) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "sql": "grant execute on function public.rpc_clinical_report(jsonb) to authenticated;"
+  },
+  {
+    "source": "supabase/migrations/20261007100000_multi_criteria_clinical_reports.sql",
+    "sql": "revoke all on function public.rpc_clinical_report(jsonb) from public,anon;"
+  },
+  {
+    "source": "supabase/migrations/20261007100000_multi_criteria_clinical_reports.sql",
+    "sql": "grant execute on function public.rpc_clinical_report(jsonb) to authenticated;"
+  }
+]

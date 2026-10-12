@@ -1,0 +1,956 @@
+[
+  {
+    "path": "/api/administrative/referrals",
+    "method": "GET",
+    "source": "src/app/api/administrative/referrals/route.ts",
+    "line": 8,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_list_referrals_for_administration"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/appointment-requests/[requestId]/assign",
+    "method": "POST",
+    "source": "src/app/api/appointment-requests/[requestId]/assign/route.ts",
+    "line": 8,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "slotId"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_assign_appointment_request"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "Selecciona un cupo."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/appointment-requests/[requestId]",
+    "method": "PATCH",
+    "source": "src/app/api/appointment-requests/[requestId]/route.ts",
+    "line": 8,
+    "roles": [
+      "STUDENT",
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "action",
+      "reason"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_cancel_appointment_request"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "Acción no válida."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/appointment-requests",
+    "method": "GET",
+    "source": "src/app/api/appointment-requests/route.ts",
+    "line": 19,
+    "roles": [
+      "STUDENT",
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "appointment_request"
+    ],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/appointment-requests",
+    "method": "POST",
+    "source": "src/app/api/appointment-requests/route.ts",
+    "line": 42,
+    "roles": [
+      "STUDENT",
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "appointmentType",
+      "patientId",
+      "referralId",
+      "specialtyId"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_create_appointment_request_for_patient",
+      "rpc_create_initial_appointment_request"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      201,
+      400,
+      403
+    ],
+    "localErrors": [
+      "Selecciona un estudiante para crear la solicitud.",
+      "Una estudiante sólo puede solicitar su propia atención.",
+      "La estudiante sólo puede solicitar una revisión inicial."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/appointments/[appointmentId]/check-in",
+    "method": "POST",
+    "source": "src/app/api/appointments/[appointmentId]/check-in/route.ts",
+    "line": 8,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_check_in_appointment"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/appointments/[appointmentId]/no-show",
+    "method": "POST",
+    "source": "src/app/api/appointments/[appointmentId]/no-show/route.ts",
+    "line": 8,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "reason"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_mark_appointment_no_show"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/availability-slots",
+    "method": "GET",
+    "source": "src/app/api/availability-slots/route.ts",
+    "line": 18,
+    "roles": [
+      "ADMINISTRATIVE",
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "blockId",
+      "from",
+      "initial",
+      "manage",
+      "to"
+    ],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "appointment",
+      "availability_block",
+      "availability_recurring_block",
+      "availability_schedule",
+      "availability_slot",
+      "staff_member"
+    ],
+    "statusLiterals": [
+      200,
+      400,
+      403,
+      404
+    ],
+    "localErrors": [
+      "La agenda de disponibilidad pertenece al médico.",
+      "El rango de fechas no es válido.",
+      "No existe una ficha de personal activa para esta cuenta.",
+      "No existe una ficha de personal para esta cuenta."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/availability-slots",
+    "method": "POST",
+    "source": "src/app/api/availability-slots/route.ts",
+    "line": 70,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "blockId",
+      "from",
+      "initial",
+      "manage",
+      "to"
+    ],
+    "bodyFields": [
+      "blockDate",
+      "capacity",
+      "dateBlock",
+      "endsAt",
+      "label",
+      "recurringBlocks",
+      "rules",
+      "specialtyId",
+      "startsAt"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_create_my_availability_block",
+      "rpc_publish_availability_slot",
+      "rpc_replace_my_availability_schedule"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      201,
+      400
+    ],
+    "localErrors": [
+      "Completa fecha, motivo y ambas horas si el bloqueo no es de todo el día.",
+      "Fecha, hora y capacidad son obligatorias."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/availability-slots",
+    "method": "DELETE",
+    "source": "src/app/api/availability-slots/route.ts",
+    "line": 104,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "blockId",
+      "from",
+      "initial",
+      "manage",
+      "to"
+    ],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_delete_my_availability_block"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "Indica el bloqueo a eliminar."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/careers",
+    "method": "GET",
+    "source": "src/app/api/careers/route.ts",
+    "line": 7,
+    "roles": [],
+    "authorization": "no-explicit-route-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "career"
+    ],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": null
+  },
+  {
+    "path": "/api/health/supabase",
+    "method": "GET",
+    "source": "src/app/api/health/supabase/route.ts",
+    "line": 12,
+    "roles": [],
+    "authorization": "no-explicit-route-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "specialty"
+    ],
+    "statusLiterals": [
+      200,
+      500,
+      503
+    ],
+    "localErrors": [
+      "database_unavailable",
+      "configuration_error"
+    ],
+    "sqlErrorsVia": null
+  },
+  {
+    "path": "/api/me",
+    "method": "GET",
+    "source": "src/app/api/me/route.ts",
+    "line": 9,
+    "roles": [],
+    "authorization": "session-only",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      401
+    ],
+    "localErrors": [
+      "unauthenticated"
+    ],
+    "sqlErrorsVia": null
+  },
+  {
+    "path": "/api/medical/appointments/[appointmentId]/start",
+    "method": "POST",
+    "source": "src/app/api/medical/appointments/[appointmentId]/start/route.ts",
+    "line": 8,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_open_encounter"
+    ],
+    "tables": [
+      "appointment",
+      "clinical_encounter",
+      "staff_member"
+    ],
+    "statusLiterals": [
+      200,
+      201,
+      404,
+      409
+    ],
+    "localErrors": [
+      "No existe una ficha de personal activa.",
+      "La cita no pertenece a este profesional.",
+      "Esta cita ya no puede iniciarse."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/appointments",
+    "method": "GET",
+    "source": "src/app/api/medical/appointments/route.ts",
+    "line": 35,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "appointment",
+      "staff_member"
+    ],
+    "statusLiterals": [
+      200,
+      404
+    ],
+    "localErrors": [
+      "Esta cuenta no tiene una ficha de personal activa."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/documents/[documentId]/download",
+    "method": "GET",
+    "source": "src/app/api/medical/documents/[documentId]/download/route.ts",
+    "line": 8,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "clinical_document"
+    ],
+    "statusLiterals": [
+      200,
+      404
+    ],
+    "localErrors": [
+      "El archivo no está disponible."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/documents",
+    "method": "POST",
+    "source": "src/app/api/medical/documents/route.ts",
+    "line": 11,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [
+      "description",
+      "documentType",
+      "encounterId",
+      "file",
+      "patientId",
+      "studyDate"
+    ],
+    "rpcs": [
+      "rpc_create_document_upload",
+      "rpc_finalize_document_upload"
+    ],
+    "tables": [
+      "clinical-documents"
+    ],
+    "statusLiterals": [
+      200,
+      201,
+      400,
+      500
+    ],
+    "localErrors": [
+      "Archivo, paciente, atención y tipo de documento son obligatorios.",
+      "El archivo debe ser PDF, JPG, PNG o WEBP y pesar hasta 15 MiB.",
+      "La fecha del estudio no es válida.",
+      "No se pudo preparar la carga del archivo."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/encounters/[encounterId]/finalize",
+    "method": "POST",
+    "source": "src/app/api/medical/encounters/[encounterId]/finalize/route.ts",
+    "line": 48,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "assessment",
+      "bloodChemistryStatus",
+      "chiefComplaint",
+      "diagnosisText",
+      "followUpText",
+      "instructions",
+      "referralComment",
+      "referralPriority",
+      "referralReason",
+      "referralSpecialtyId",
+      "reviewHistory",
+      "specialtyHistory"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_finalize_initial_encounter",
+      "rpc_finalize_specialty_encounter"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "El motivo de consulta y la evaluación son obligatorios.",
+      "Estado de química sanguínea inválido.",
+      "Completa el motivo y el resumen para el especialista.",
+      "Prioridad de derivación inválida."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/patients/[patientId]/clinical-background",
+    "method": "GET",
+    "source": "src/app/api/medical/patients/[patientId]/clinical-background/route.ts",
+    "line": 9,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_get_clinical_background"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/patients/[patientId]/clinical-background",
+    "method": "PATCH",
+    "source": "src/app/api/medical/patients/[patientId]/clinical-background/route.ts",
+    "line": 19,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "changeReason",
+      "data",
+      "encounterId",
+      "expectedVersion"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_save_clinical_background"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "Solicitud inválida.",
+      "Indica el motivo de actualización."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/medical/patients/[patientId]",
+    "method": "GET",
+    "source": "src/app/api/medical/patients/[patientId]/route.ts",
+    "line": 11,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_get_clinical_background"
+    ],
+    "tables": [
+      "appointment",
+      "clinical_background_version",
+      "clinical_document",
+      "clinical_encounter",
+      "encounter_diagnosis",
+      "patient",
+      "referral",
+      "review_history_version",
+      "specialty_history_intake_version",
+      "staff_member"
+    ],
+    "statusLiterals": [
+      200,
+      404
+    ],
+    "localErrors": [
+      "No existe una ficha de personal activa.",
+      "No tienes acceso clínico a este paciente."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/my-specialties",
+    "method": "GET",
+    "source": "src/app/api/my-specialties/route.ts",
+    "line": 8,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "staff_member"
+    ],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/patients/[patientId]/initial-history",
+    "method": "GET",
+    "source": "src/app/api/patients/[patientId]/initial-history/route.ts",
+    "line": 9,
+    "roles": [],
+    "authorization": "no-explicit-route-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": null
+  },
+  {
+    "path": "/api/patients/[patientId]/initial-history",
+    "method": "PUT",
+    "source": "src/app/api/patients/[patientId]/initial-history/route.ts",
+    "line": 10,
+    "roles": [],
+    "authorization": "no-explicit-route-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": null
+  },
+  {
+    "path": "/api/patients/[patientId]/referrals",
+    "method": "GET",
+    "source": "src/app/api/patients/[patientId]/referrals/route.ts",
+    "line": 8,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_list_patient_referrals_for_appointment"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "Estudiante inválido."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/patients/[patientId]",
+    "method": "GET",
+    "source": "src/app/api/patients/[patientId]/route.ts",
+    "line": 13,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "patient"
+    ],
+    "statusLiterals": [
+      200,
+      404
+    ],
+    "localErrors": [
+      "Estudiante no encontrado."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/patients/[patientId]",
+    "method": "PATCH",
+    "source": "src/app/api/patients/[patientId]/route.ts",
+    "line": 36,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [
+      "academicPeriod",
+      "birthDate",
+      "careerId",
+      "carnet",
+      "email",
+      "enrollmentStart",
+      "fullName",
+      "phone",
+      "registrationCode"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_register_or_update_patient"
+    ],
+    "tables": [
+      "patient"
+    ],
+    "statusLiterals": [
+      200,
+      400,
+      404
+    ],
+    "localErrors": [
+      "El cuerpo debe ser JSON.",
+      "Estudiante no encontrado."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/patients",
+    "method": "GET",
+    "source": "src/app/api/patients/route.ts",
+    "line": 31,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "query"
+    ],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "patient"
+    ],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/patients",
+    "method": "POST",
+    "source": "src/app/api/patients/route.ts",
+    "line": 53,
+    "roles": [
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "query"
+    ],
+    "bodyFields": [
+      "academicPeriod",
+      "birthDate",
+      "careerId",
+      "carnet",
+      "email",
+      "enrollmentStart",
+      "fullName",
+      "phone",
+      "registrationCode"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_register_or_update_patient"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      201,
+      400
+    ],
+    "localErrors": [
+      "El cuerpo debe ser JSON.",
+      "Completa nombre, carnet, código, carrera y período académico."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/reports/clinical",
+    "method": "GET",
+    "source": "src/app/api/reports/clinical/route.ts",
+    "line": 22,
+    "roles": [
+      "ADMINISTRATIVE",
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "allergies",
+      "diagnosis",
+      "encounterType",
+      "from",
+      "habitTerms",
+      "histories",
+      "positiveHabits",
+      "search",
+      "specialtyId",
+      "to"
+    ],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [
+      "rpc_clinical_report"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      400
+    ],
+    "localErrors": [
+      "El período no es válido.",
+      "Tipo de atención inválido.",
+      "Hábito inválido."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/reports/clinical",
+    "method": "POST",
+    "source": "src/app/api/reports/clinical/route.ts",
+    "line": 35,
+    "roles": [
+      "ADMINISTRATIVE",
+      "REVIEW_DOCTOR",
+      "SPECIALIST"
+    ],
+    "authorization": "route-role-guard",
+    "query": [
+      "allergies",
+      "diagnosis",
+      "encounterType",
+      "from",
+      "habitTerms",
+      "histories",
+      "positiveHabits",
+      "search",
+      "specialtyId",
+      "to"
+    ],
+    "bodyFields": [
+      "filters",
+      "format",
+      "purpose",
+      "rowCount"
+    ],
+    "formFields": [],
+    "rpcs": [
+      "rpc_log_clinical_report_export"
+    ],
+    "tables": [],
+    "statusLiterals": [
+      200,
+      201,
+      400
+    ],
+    "localErrors": [
+      "Exportación inválida."
+    ],
+    "sqlErrorsVia": "supabaseError"
+  },
+  {
+    "path": "/api/specialties",
+    "method": "GET",
+    "source": "src/app/api/specialties/route.ts",
+    "line": 8,
+    "roles": [
+      "REVIEW_DOCTOR",
+      "SPECIALIST",
+      "ADMINISTRATIVE"
+    ],
+    "authorization": "route-role-guard",
+    "query": [],
+    "bodyFields": [],
+    "formFields": [],
+    "rpcs": [],
+    "tables": [
+      "specialty"
+    ],
+    "statusLiterals": [
+      200
+    ],
+    "localErrors": [],
+    "sqlErrorsVia": "supabaseError"
+  }
+]

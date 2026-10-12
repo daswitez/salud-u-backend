@@ -1,0 +1,47 @@
+name: salud-u-backend
+services:
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: ${DB_NAME:-salud_u}
+      POSTGRES_USER: ${DB_MIGRATOR_USER:-salud_u_migrator}
+      POSTGRES_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Define DB_MIGRATOR_PASSWORD en .env}
+      APP_DB_USER: ${DB_APP_USER:-salud_u_runtime}
+      APP_DB_PASSWORD: ${DB_APP_PASSWORD:?Define DB_APP_PASSWORD en .env}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init/01-create-runtime-role.sh:/docker-entrypoint-initdb.d/01-create-runtime-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+  backend:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-salud_u}
+      DB_APP_USER: ${DB_APP_USER:-salud_u_runtime}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Define DB_APP_PASSWORD en .env}
+      DB_MIGRATOR_USER: ${DB_MIGRATOR_USER:-salud_u_migrator}
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Define DB_MIGRATOR_PASSWORD en .env}
+      DOCUMENTS_ROOT: /var/lib/salud-u/documents
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - clinical_documents:/var/lib/salud-u/documents
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+volumes:
+  postgres_data:
+  clinical_documents:

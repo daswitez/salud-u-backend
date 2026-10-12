@@ -1,0 +1,4798 @@
+{
+  "provenance": "synthetic expected fixtures, manually specified from repository code; SQL/Storage results are mocks",
+  "clock": "2026-10-11T12:00:00.000Z",
+  "ids": {
+    "profile": "00000000-0000-4000-8000-000000000001",
+    "patient": "00000000-0000-4000-8000-000000000002",
+    "staff": "00000000-0000-4000-8000-000000000003",
+    "career": "00000000-0000-4000-8000-000000000004",
+    "specialty": "00000000-0000-4000-8000-000000000005",
+    "request": "00000000-0000-4000-8000-000000000006",
+    "slot": "00000000-0000-4000-8000-000000000007",
+    "appointment": "00000000-0000-4000-8000-000000000008",
+    "encounter": "00000000-0000-4000-8000-000000000009",
+    "document": "00000000-0000-4000-8000-000000000010",
+    "background": "00000000-0000-4000-8000-000000000011",
+    "referral": "00000000-0000-4000-8000-000000000012",
+    "export": "00000000-0000-4000-8000-000000000013"
+  },
+  "cases": [
+    {
+      "name": "me-user",
+      "path": "/api/me",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {},
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "user": {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "email": "synthetic@example.invalid",
+            "name": "Usuario Sintético",
+            "role": "estudiante",
+            "clinicalRole": "STUDENT"
+          }
+        }
+      }
+    },
+    {
+      "name": "health",
+      "path": "/api/health/supabase",
+      "method": "GET",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "specialty",
+          "result": {
+            "count": 5,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "service": "supabase",
+          "enabledSpecialties": 5
+        }
+      }
+    },
+    {
+      "name": "careers",
+      "path": "/api/careers",
+      "method": "GET",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "career",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000004",
+                "code": "SYN",
+                "name": "Carrera Sintética"
+              }
+            ],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "code": "SYN",
+              "name": "Carrera Sintética"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "specialties",
+      "path": "/api/specialties",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "specialty",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": []
+        }
+      }
+    },
+    {
+      "name": "my-specialties",
+      "path": "/api/my-specialties",
+      "method": "GET",
+      "role": "SPECIALIST",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "staff_specialty": [
+                {
+                  "specialty": [
+                    {
+                      "id": "00000000-0000-4000-8000-000000000005",
+                      "code": "GYNECOLOGY",
+                      "name": "Especialidad Sintética"
+                    }
+                  ]
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000005",
+              "code": "GYNECOLOGY",
+              "name": "Especialidad Sintética"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "patients-list",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000002",
+                "carnet": "SYN-0001",
+                "registration_code": "SYN-REG-0001",
+                "given_names": "Paciente",
+                "family_names": "Sintético",
+                "birth_date": null,
+                "phone": null,
+                "email": null,
+                "academic_status": "ACTIVE",
+                "created_at": "2026-10-11T12:00:00.000Z",
+                "updated_at": "2026-10-11T12:00:00.000Z",
+                "academic_enrollment": []
+              }
+            ],
+            "error": null
+          },
+          "query": [
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "givenNames": "Paciente",
+              "familyNames": "Sintético",
+              "fullName": "Paciente Sintético",
+              "birthDate": null,
+              "phone": null,
+              "email": null,
+              "academicStatus": "ACTIVE",
+              "createdAt": "2026-10-11T12:00:00.000Z",
+              "updatedAt": "2026-10-11T12:00:00.000Z",
+              "career": null,
+              "enrollment": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "patients-create",
+      "path": "/api/patients",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_register_or_update_patient",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000002",
+            "error": null
+          },
+          "args": {
+            "p_patient_id": null,
+            "p_given_names": "Paciente",
+            "p_family_names": "Sintético"
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000002"
+          }
+        }
+      },
+      "body": {
+        "fullName": "Paciente Sintético",
+        "carnet": "SYN-0001",
+        "registrationCode": "SYN-REG-0001",
+        "careerId": "00000000-0000-4000-8000-000000000004",
+        "academicPeriod": "2026",
+        "enrollmentStart": "2026-01-01"
+      }
+    },
+    {
+      "name": "patient-detail",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registration_code": "SYN-REG-0001",
+              "given_names": "Paciente",
+              "family_names": "Sintético",
+              "birth_date": null,
+              "phone": null,
+              "email": null,
+              "academic_status": "ACTIVE",
+              "created_at": "2026-10-11T12:00:00.000Z",
+              "updated_at": "2026-10-11T12:00:00.000Z",
+              "academic_enrollment": []
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "carnet": "SYN-0001",
+            "registrationCode": "SYN-REG-0001",
+            "fullName": "Paciente Sintético",
+            "birthDate": null,
+            "phone": null,
+            "email": null,
+            "academicStatus": "ACTIVE",
+            "createdAt": "2026-10-11T12:00:00.000Z",
+            "updatedAt": "2026-10-11T12:00:00.000Z",
+            "career": null,
+            "enrollment": null
+          }
+        }
+      }
+    },
+    {
+      "name": "patient-patch-clears-contact",
+      "path": "/api/patients/[patientId]",
+      "method": "PATCH",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registration_code": "SYN-REG-0001",
+              "given_names": "Paciente",
+              "family_names": "Sintético",
+              "birth_date": null,
+              "phone": null,
+              "email": null,
+              "academic_status": "ACTIVE",
+              "created_at": "2026-10-11T12:00:00.000Z",
+              "updated_at": "2026-10-11T12:00:00.000Z",
+              "academic_enrollment": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_register_or_update_patient",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000002",
+            "error": null
+          },
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_phone": null,
+            "p_email": null,
+            "p_birth_date": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000002"
+          }
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "legacy-GET",
+      "path": "/api/patients/[patientId]/initial-history",
+      "method": "GET",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 410,
+        "json": {
+          "ok": false,
+          "error": "La ficha de revisión se registra durante la cita médica."
+        }
+      }
+    },
+    {
+      "name": "legacy-PUT",
+      "path": "/api/patients/[patientId]/initial-history",
+      "method": "PUT",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 410,
+        "json": {
+          "ok": false,
+          "error": "La ficha de revisión se registra durante la cita médica."
+        }
+      }
+    },
+    {
+      "name": "patient-referrals",
+      "path": "/api/patients/[patientId]/referrals",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_list_patient_referrals_for_appointment",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": []
+        }
+      }
+    },
+    {
+      "name": "admin-referrals",
+      "path": "/api/administrative/referrals",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_list_referrals_for_administration",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": []
+        }
+      }
+    },
+    {
+      "name": "request-list",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "appointment_request",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": []
+        }
+      }
+    },
+    {
+      "name": "request-create-student",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_initial_appointment_request",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000006",
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000006"
+          }
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "request-create-admin-INITIAL",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_appointment_request_for_patient",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000006",
+            "error": null
+          },
+          "args": {
+            "p_appointment_type": "INITIAL"
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000006"
+          }
+        }
+      },
+      "body": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "appointmentType": "INITIAL",
+        "referralId": "00000000-0000-4000-8000-000000000012",
+        "specialtyId": "00000000-0000-4000-8000-000000000005"
+      }
+    },
+    {
+      "name": "request-create-admin-SPECIALTY",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_appointment_request_for_patient",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000006",
+            "error": null
+          },
+          "args": {
+            "p_appointment_type": "SPECIALTY"
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000006"
+          }
+        }
+      },
+      "body": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "appointmentType": "SPECIALTY",
+        "referralId": "00000000-0000-4000-8000-000000000012",
+        "specialtyId": "00000000-0000-4000-8000-000000000005"
+      }
+    },
+    {
+      "name": "request-create-admin-REFERRAL",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_appointment_request_for_patient",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000006",
+            "error": null
+          },
+          "args": {
+            "p_appointment_type": "REFERRAL"
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000006"
+          }
+        }
+      },
+      "body": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "appointmentType": "REFERRAL",
+        "referralId": "00000000-0000-4000-8000-000000000012",
+        "specialtyId": "00000000-0000-4000-8000-000000000005"
+      }
+    },
+    {
+      "name": "request-cancel",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_cancel_appointment_request",
+          "result": {
+            "data": null,
+            "error": null
+          },
+          "args": {
+            "p_reason": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": null
+        }
+      },
+      "body": {
+        "action": "cancel"
+      }
+    },
+    {
+      "name": "request-assign",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_assign_appointment_request",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000008",
+            "error": null
+          },
+          "args": {
+            "p_request_id": "00000000-0000-4000-8000-000000000006",
+            "p_slot_id": "00000000-0000-4000-8000-000000000007"
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "appointmentId": "00000000-0000-4000-8000-000000000008"
+          }
+        }
+      },
+      "body": {
+        "slotId": "00000000-0000-4000-8000-000000000007"
+      }
+    },
+    {
+      "name": "check-in",
+      "path": "/api/appointments/[appointmentId]/check-in",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_check_in_appointment",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": null
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "no-show",
+      "path": "/api/appointments/[appointmentId]/no-show",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_mark_appointment_no_show",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": null
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "availability-published",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "initial=true",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "availability_slot",
+          "result": {
+            "data": [],
+            "error": null
+          },
+          "query": [
+            [
+              "eq",
+              [
+                "status",
+                "PUBLISHED"
+              ]
+            ],
+            [
+              "is",
+              [
+                "specialty_id",
+                null
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": []
+        }
+      }
+    },
+    {
+      "name": "availability-manage",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "manage=true&from=2026-10-11&to=2026-10-11",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "availability_schedule",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "availability_recurring_block",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "availability_block",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "availability_slot",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "schedules": [],
+            "recurringBlocks": [],
+            "dateBlocks": [],
+            "slots": [],
+            "appointments": []
+          }
+        }
+      }
+    },
+    {
+      "name": "availability-rules",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_replace_my_availability_schedule",
+          "result": {
+            "data": 0,
+            "error": null
+          },
+          "args": {
+            "p_rules": [],
+            "p_recurring_blocks": []
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "generatedSlots": 0
+          }
+        }
+      },
+      "body": {
+        "rules": []
+      }
+    },
+    {
+      "name": "availability-date-block",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_my_availability_block",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000007",
+            "error": null
+          },
+          "args": {
+            "p_starts_at": null,
+            "p_ends_at": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000007"
+          }
+        }
+      },
+      "body": {
+        "dateBlock": true,
+        "blockDate": "2026-10-12",
+        "label": "Bloqueo sintético"
+      }
+    },
+    {
+      "name": "availability-slot",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_publish_availability_slot",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000007",
+            "error": null
+          },
+          "args": {
+            "p_capacity": 1,
+            "p_specialty_id": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000007"
+          }
+        }
+      },
+      "body": {
+        "startsAt": "2026-10-12T12:00:00Z",
+        "endsAt": "2026-10-12T12:30:00Z",
+        "capacity": "1"
+      }
+    },
+    {
+      "name": "availability-delete",
+      "path": "/api/availability-slots",
+      "method": "DELETE",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "blockId=00000000-0000-4000-8000-000000000007",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_delete_my_availability_block",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": null
+        }
+      }
+    },
+    {
+      "name": "medical-appointments",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": []
+        }
+      }
+    },
+    {
+      "name": "start-new",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000008",
+              "patient_id": "00000000-0000-4000-8000-000000000002",
+              "status": "SCHEDULED",
+              "appointment_type": "INITIAL",
+              "referral_id": null
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_open_encounter",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000009",
+            "error": null
+          },
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_appointment_id": "00000000-0000-4000-8000-000000000008"
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "encounterId": "00000000-0000-4000-8000-000000000009",
+            "status": "DRAFT"
+          }
+        }
+      }
+    },
+    {
+      "name": "start-reuse",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000008",
+              "patient_id": "00000000-0000-4000-8000-000000000002",
+              "status": "SCHEDULED",
+              "appointment_type": "INITIAL",
+              "referral_id": null
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000009",
+              "status": "DRAFT"
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "encounterId": "00000000-0000-4000-8000-000000000009",
+            "status": "DRAFT"
+          }
+        }
+      }
+    },
+    {
+      "name": "medical-patient-empty",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registration_code": "SYN-REG-0001",
+              "given_names": "Paciente",
+              "family_names": "Sintético",
+              "birth_date": null,
+              "phone": null,
+              "email": null,
+              "academic_status": "ACTIVE",
+              "created_at": "2026-10-11T12:00:00.000Z",
+              "updated_at": "2026-10-11T12:00:00.000Z",
+              "academic_enrollment": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "referral",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "result": {
+            "data": {
+              "current": null,
+              "encounter": null
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "patient": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "fullName": "Paciente Sintético",
+              "birthDate": null,
+              "phone": null,
+              "email": null
+            },
+            "intake": null,
+            "clinicalBackground": null,
+            "encounters": [],
+            "diagnoses": [],
+            "referrals": [],
+            "appointments": [],
+            "documents": []
+          }
+        }
+      }
+    },
+    {
+      "name": "background-read",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "result": {
+            "data": {
+              "current": null,
+              "encounter": null
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "current": null,
+            "encounter": null
+          }
+        }
+      }
+    },
+    {
+      "name": "background-save",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_save_clinical_background",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000011",
+              "versionNo": 1,
+              "data": {
+                "schemaVersion": 1,
+                "allergies": {
+                  "status": "UNKNOWN",
+                  "items": []
+                },
+                "personalConditions": {
+                  "status": "UNKNOWN",
+                  "items": []
+                },
+                "surgeries": {
+                  "status": "UNKNOWN",
+                  "items": []
+                },
+                "medications": {
+                  "status": "UNKNOWN",
+                  "items": []
+                },
+                "familyHistory": {
+                  "status": "UNKNOWN",
+                  "items": []
+                },
+                "habits": {
+                  "diet": "",
+                  "physicalActivity": "",
+                  "tobacco": "",
+                  "alcohol": ""
+                }
+              },
+              "verificationStatus": "CONFIRMED",
+              "recordedAt": "2026-10-11T12:00:00.000Z",
+              "recordedBy": "Usuario Sintético",
+              "changeReason": "Caso sintético"
+            },
+            "error": null
+          },
+          "args": {
+            "p_expected_version": 0,
+            "p_encounter_id": null,
+            "p_data": {
+              "schemaVersion": 1,
+              "allergies": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "personalConditions": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "surgeries": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "medications": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "familyHistory": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "habits": {
+                "diet": "",
+                "physicalActivity": "",
+                "tobacco": "",
+                "alcohol": ""
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000011",
+            "versionNo": 1,
+            "data": {
+              "schemaVersion": 1,
+              "allergies": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "personalConditions": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "surgeries": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "medications": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "familyHistory": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "habits": {
+                "diet": "",
+                "physicalActivity": "",
+                "tobacco": "",
+                "alcohol": ""
+              }
+            },
+            "verificationStatus": "CONFIRMED",
+            "recordedAt": "2026-10-11T12:00:00.000Z",
+            "recordedBy": "Usuario Sintético",
+            "changeReason": "Caso sintético"
+          }
+        }
+      },
+      "body": {
+        "changeReason": "Caso sintético",
+        "data": {}
+      }
+    },
+    {
+      "name": "finalize-REVIEW_DOCTOR",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_finalize_initial_encounter",
+          "result": {
+            "data": {
+              "encounterId": "00000000-0000-4000-8000-000000000009",
+              "referralId": null
+            },
+            "error": null
+          },
+          "args": {
+            "p_chief_complaint": "Caso sintético",
+            "p_assessment": "Evaluación sintética"
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "encounterId": "00000000-0000-4000-8000-000000000009",
+            "referralId": null
+          }
+        }
+      },
+      "body": {
+        "chiefComplaint": "Caso sintético",
+        "assessment": "Evaluación sintética",
+        "specialtyHistory": {
+          "specialtyCode": "GYNECOLOGY"
+        }
+      }
+    },
+    {
+      "name": "finalize-SPECIALIST",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "role": "SPECIALIST",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_finalize_specialty_encounter",
+          "result": {
+            "data": null,
+            "error": null
+          },
+          "args": {
+            "p_chief_complaint": "Caso sintético",
+            "p_assessment": "Evaluación sintética"
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": null
+        }
+      },
+      "body": {
+        "chiefComplaint": "Caso sintético",
+        "assessment": "Evaluación sintética",
+        "specialtyHistory": {
+          "specialtyCode": "GYNECOLOGY"
+        }
+      }
+    },
+    {
+      "name": "document-upload",
+      "path": "/api/medical/documents",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_document_upload",
+          "result": {
+            "data": [
+              {
+                "document_id": "00000000-0000-4000-8000-000000000010",
+                "object_path": "synthetic/file.pdf"
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "storage-upload",
+          "name": "clinical-documents",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_finalize_document_upload",
+          "result": {
+            "data": null,
+            "error": null
+          },
+          "args": {
+            "p_document_id": "00000000-0000-4000-8000-000000000010"
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000010"
+          }
+        }
+      },
+      "form": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentType": "OTHER",
+        "file": {
+          "name": "synthetic.pdf",
+          "type": "application/pdf",
+          "content": "%PDF-1.4 synthetic fixture"
+        }
+      }
+    },
+    {
+      "name": "document-download",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "result": {
+            "data": {
+              "bucket": "clinical-documents",
+              "object_path": "synthetic/file.pdf"
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "storage-sign",
+          "name": "clinical-documents",
+          "result": {
+            "data": {
+              "signedUrl": "https://example.invalid/synthetic/file.pdf?token=SYNTHETIC"
+            },
+            "error": null
+          },
+          "args": [
+            "synthetic/file.pdf",
+            60
+          ]
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "url": "https://example.invalid/synthetic/file.pdf?token=SYNTHETIC"
+          }
+        }
+      }
+    },
+    {
+      "name": "report-empty",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_clinical_report",
+          "result": {
+            "data": [],
+            "error": null
+          },
+          "args": {
+            "p_filters": {
+              "from": null,
+              "to": null,
+              "specialtyId": null,
+              "encounterType": null,
+              "diagnosis": null,
+              "allergies": [],
+              "histories": [],
+              "habitTerms": [],
+              "positiveHabits": [],
+              "search": null
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [],
+          "filters": {
+            "from": null,
+            "to": null,
+            "specialtyId": null,
+            "encounterType": null,
+            "diagnosis": null,
+            "allergies": [],
+            "histories": [],
+            "habitTerms": [],
+            "positiveHabits": [],
+            "search": null
+          }
+        }
+      }
+    },
+    {
+      "name": "report-export-record",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_log_clinical_report_export",
+          "result": {
+            "data": "00000000-0000-4000-8000-000000000013",
+            "error": null
+          },
+          "args": {
+            "p_filters": {},
+            "p_purpose": "Gestión clínica",
+            "p_row_count": 0
+          }
+        }
+      ],
+      "expected": {
+        "status": 201,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000013"
+          }
+        }
+      },
+      "body": {
+        "format": "CSV",
+        "rowCount": 0
+      }
+    },
+    {
+      "name": "anonymous-GET-/api/administrative/referrals",
+      "path": "/api/administrative/referrals",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/administrative/referrals",
+      "path": "/api/administrative/referrals",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/appointment-requests/[requestId]/assign",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/appointment-requests/[requestId]/assign",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-PATCH-/api/appointment-requests/[requestId]",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-PATCH-/api/appointment-requests/[requestId]",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/appointments/[appointmentId]/check-in",
+      "path": "/api/appointments/[appointmentId]/check-in",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/appointments/[appointmentId]/check-in",
+      "path": "/api/appointments/[appointmentId]/check-in",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/appointments/[appointmentId]/no-show",
+      "path": "/api/appointments/[appointmentId]/no-show",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/appointments/[appointmentId]/no-show",
+      "path": "/api/appointments/[appointmentId]/no-show",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-DELETE-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "DELETE",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-DELETE-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "DELETE",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/medical/appointments/[appointmentId]/start",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/medical/appointments/[appointmentId]/start",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/medical/appointments",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/medical/appointments",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/medical/documents/[documentId]/download",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/medical/documents/[documentId]/download",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/medical/documents",
+      "path": "/api/medical/documents",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/medical/documents",
+      "path": "/api/medical/documents",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/medical/encounters/[encounterId]/finalize",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/medical/encounters/[encounterId]/finalize",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-PATCH-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-PATCH-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/medical/patients/[patientId]",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/medical/patients/[patientId]",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/my-specialties",
+      "path": "/api/my-specialties",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/my-specialties",
+      "path": "/api/my-specialties",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/patients/[patientId]/referrals",
+      "path": "/api/patients/[patientId]/referrals",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/patients/[patientId]/referrals",
+      "path": "/api/patients/[patientId]/referrals",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-PATCH-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "PATCH",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-PATCH-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "PATCH",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/patients",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/patients",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/patients",
+      "path": "/api/patients",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/patients",
+      "path": "/api/patients",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-POST-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-POST-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "anonymous-GET-/api/specialties",
+      "path": "/api/specialties",
+      "method": "GET",
+      "role": null,
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "forbidden-GET-/api/specialties",
+      "path": "/api/specialties",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "forbidden"
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "me-anonymous",
+      "path": "/api/me",
+      "method": "GET",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 401,
+        "json": {
+          "ok": false,
+          "error": "unauthenticated"
+        }
+      }
+    },
+    {
+      "name": "validation-0",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Selecciona un estudiante para crear la solicitud."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "validation-1",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "Una estudiante sólo puede solicitar su propia atención."
+        }
+      },
+      "body": {
+        "patientId": "00000000-0000-4000-8000-000000000002"
+      }
+    },
+    {
+      "name": "validation-2",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "La estudiante sólo puede solicitar una revisión inicial."
+        }
+      },
+      "body": {
+        "appointmentType": "SPECIALTY"
+      }
+    },
+    {
+      "name": "validation-3",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "role": "STUDENT",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Acción no válida."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "validation-4",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Selecciona un cupo."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "validation-5",
+      "path": "/api/patients",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Completa nombre, carnet, código, carrera y período académico."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "validation-6",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Indica el motivo de actualización."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "validation-7",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "El motivo de consulta y la evaluación son obligatorios."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "validation-8",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Exportación inválida."
+        }
+      },
+      "body": {}
+    },
+    {
+      "name": "sqlstate-42501",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "42501",
+              "message": "Error sintético"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "error": "Error sintético",
+          "code": "42501"
+        }
+      }
+    },
+    {
+      "name": "sqlstate-23505",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "23505",
+              "message": "Error sintético"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 409,
+        "json": {
+          "ok": false,
+          "error": "Error sintético",
+          "code": "23505"
+        }
+      }
+    },
+    {
+      "name": "sqlstate-40001",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "40001",
+              "message": "Error sintético"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 409,
+        "json": {
+          "ok": false,
+          "error": "Error sintético",
+          "code": "40001"
+        }
+      }
+    },
+    {
+      "name": "sqlstate-P0002",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "P0002",
+              "message": "Error sintético"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 404,
+        "json": {
+          "ok": false,
+          "error": "Error sintético",
+          "code": "P0002"
+        }
+      }
+    },
+    {
+      "name": "sqlstate-23514",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "23514",
+              "message": "Error sintético"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Error sintético",
+          "code": "23514"
+        }
+      }
+    },
+    {
+      "name": "sqlstate-22023",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "22023",
+              "message": "Error sintético"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Error sintético",
+          "code": "22023"
+        }
+      }
+    },
+    {
+      "name": "report-validation-0",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "from=2026-11-01&to=2026-10-01",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "El período no es válido."
+        }
+      }
+    },
+    {
+      "name": "report-validation-1",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "encounterType=BAD",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Tipo de atención inválido."
+        }
+      }
+    },
+    {
+      "name": "report-validation-2",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "positiveHabits=%5B%22bad%22%5D",
+      "steps": [],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Hábito inválido."
+        }
+      }
+    },
+    {
+      "name": "health-database-error",
+      "path": "/api/health/supabase",
+      "method": "GET",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "specialty",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "SYNTHETIC"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 503,
+        "json": {
+          "ok": false,
+          "service": "supabase",
+          "error": "database_unavailable"
+        }
+      }
+    },
+    {
+      "name": "careers-error-exception",
+      "path": "/api/careers",
+      "method": "GET",
+      "role": null,
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "career",
+          "result": {
+            "data": null,
+            "error": {
+              "message": "Error sintético",
+              "code": "42501"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 400,
+        "json": {
+          "ok": false,
+          "error": "Error sintético"
+        }
+      }
+    },
+    {
+      "name": "start-invalid-status",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000008",
+              "patient_id": "00000000-0000-4000-8000-000000000002",
+              "status": "ATTENDED",
+              "appointment_type": "INITIAL",
+              "referral_id": null
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 409,
+        "json": {
+          "ok": false,
+          "error": "Esta cita ya no puede iniciarse."
+        }
+      }
+    },
+    {
+      "name": "patient-not-found",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 404,
+        "json": {
+          "ok": false,
+          "error": "Estudiante no encontrado."
+        }
+      }
+    },
+    {
+      "name": "patients-list-two-rows",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000002",
+                "carnet": "SYN-0001",
+                "registration_code": "SYN-REG-0001",
+                "given_names": "Paciente",
+                "family_names": "Sintético",
+                "birth_date": null,
+                "phone": null,
+                "email": null,
+                "academic_status": "ACTIVE",
+                "created_at": "2026-10-11T12:00:00.000Z",
+                "updated_at": "2026-10-11T12:00:00.000Z",
+                "academic_enrollment": []
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000010",
+                "carnet": "SYN-0001",
+                "registration_code": "SYN-REG-0001",
+                "given_names": "Paciente",
+                "family_names": "Segundo",
+                "birth_date": null,
+                "phone": null,
+                "email": null,
+                "academic_status": "ACTIVE",
+                "created_at": "2026-10-11T12:00:00.000Z",
+                "updated_at": "2026-10-11T12:00:00.000Z",
+                "academic_enrollment": []
+              }
+            ],
+            "error": null
+          },
+          "query": [
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "givenNames": "Paciente",
+              "familyNames": "Sintético",
+              "fullName": "Paciente Sintético",
+              "birthDate": null,
+              "phone": null,
+              "email": null,
+              "academicStatus": "ACTIVE",
+              "createdAt": "2026-10-11T12:00:00.000Z",
+              "updatedAt": "2026-10-11T12:00:00.000Z",
+              "career": null,
+              "enrollment": null
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000010",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "givenNames": "Paciente",
+              "familyNames": "Segundo",
+              "fullName": "Paciente Segundo",
+              "birthDate": null,
+              "phone": null,
+              "email": null,
+              "academicStatus": "ACTIVE",
+              "createdAt": "2026-10-11T12:00:00.000Z",
+              "updatedAt": "2026-10-11T12:00:00.000Z",
+              "career": null,
+              "enrollment": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "patients-query-sanitized",
+      "path": "/api/patients",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "query=%20SYN%2C%25()%20",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000002",
+                "carnet": "SYN-0001",
+                "registration_code": "SYN-REG-0001",
+                "given_names": "Paciente",
+                "family_names": "Sintético",
+                "birth_date": null,
+                "phone": null,
+                "email": null,
+                "academic_status": "ACTIVE",
+                "created_at": "2026-10-11T12:00:00.000Z",
+                "updated_at": "2026-10-11T12:00:00.000Z",
+                "academic_enrollment": []
+              }
+            ],
+            "error": null
+          },
+          "query": [
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ],
+            [
+              "or",
+              [
+                "carnet.ilike.%SYN%,registration_code.ilike.%SYN%,given_names.ilike.%SYN%,family_names.ilike.%SYN%"
+              ]
+            ]
+          ]
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "givenNames": "Paciente",
+              "familyNames": "Sintético",
+              "fullName": "Paciente Sintético",
+              "birthDate": null,
+              "phone": null,
+              "email": null,
+              "academicStatus": "ACTIVE",
+              "createdAt": "2026-10-11T12:00:00.000Z",
+              "updatedAt": "2026-10-11T12:00:00.000Z",
+              "career": null,
+              "enrollment": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "medical-appointments-relations",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000008",
+                "appointment_type": "INITIAL",
+                "status": "SCHEDULED",
+                "scheduled_for": "2026-10-11T12:00:00.000Z",
+                "checked_in_at": null,
+                "patient": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "carnet": "SYN",
+                    "registration_code": "SYN-REG",
+                    "given_names": "Paciente",
+                    "family_names": "Sintético",
+                    "birth_date": null,
+                    "phone": null,
+                    "email": null
+                  }
+                ],
+                "availability_slot": [
+                  {
+                    "starts_at": "2026-10-11T12:00:00.000Z",
+                    "ends_at": "2026-10-11T12:30:00.000Z",
+                    "specialty": null
+                  }
+                ]
+              }
+            ],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000008",
+              "appointmentType": "INITIAL",
+              "status": "SCHEDULED",
+              "scheduledFor": "2026-10-11T12:00:00.000Z",
+              "checkedInAt": null,
+              "endsAt": "2026-10-11T12:30:00.000Z",
+              "specialty": "Revisión estudiantil",
+              "specialtyCode": null,
+              "patient": {
+                "id": "00000000-0000-4000-8000-000000000002",
+                "carnet": "SYN",
+                "registrationCode": "SYN-REG",
+                "fullName": "Paciente Sintético",
+                "birthDate": null,
+                "phone": null,
+                "email": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "request-list-mixed-case",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "role": "STUDENT",
+      "params": {},
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "appointment_request",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000006",
+                "appointment_type": "INITIAL",
+                "referral_id": null,
+                "specialty_id": null,
+                "status": "ASSIGNED",
+                "requested_at": "2026-10-11T12:00:00.000Z",
+                "assigned_at": "2026-10-11T12:00:00.000Z",
+                "cancelled_at": null,
+                "cancellation_reason": null,
+                "patient": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "carnet": "SYN",
+                    "given_names": "Paciente",
+                    "family_names": "Sintético"
+                  }
+                ],
+                "appointment": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000008",
+                    "status": "SCHEDULED",
+                    "scheduled_for": "2026-10-11T12:00:00.000Z",
+                    "checked_in_at": null,
+                    "cancelled_at": null,
+                    "availability_slot": [
+                      {
+                        "starts_at": "2026-10-11T12:00:00.000Z",
+                        "ends_at": "2026-10-11T12:30:00.000Z",
+                        "staff": [
+                          {
+                            "profile": [
+                              {
+                                "display_name": "Médico Sintético"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000006",
+              "appointment_type": "INITIAL",
+              "referral_id": null,
+              "specialty_id": null,
+              "status": "ASSIGNED",
+              "requested_at": "2026-10-11T12:00:00.000Z",
+              "assigned_at": "2026-10-11T12:00:00.000Z",
+              "cancelled_at": null,
+              "cancellation_reason": null,
+              "patient": {
+                "id": "00000000-0000-4000-8000-000000000002",
+                "carnet": "SYN",
+                "given_names": "Paciente",
+                "family_names": "Sintético"
+              },
+              "appointment": {
+                "id": "00000000-0000-4000-8000-000000000008",
+                "status": "SCHEDULED",
+                "scheduled_for": "2026-10-11T12:00:00.000Z",
+                "checked_in_at": null,
+                "cancelled_at": null,
+                "doctorName": "Médico Sintético",
+                "endsAt": "2026-10-11T12:30:00.000Z"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "availability-retains-staff",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "initial=true",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "availability_slot",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000007",
+                "specialty_id": null,
+                "starts_at": "2026-10-11T12:00:00.000Z",
+                "ends_at": "2026-10-11T12:30:00.000Z",
+                "capacity": 1,
+                "booked_count": 0,
+                "status": "PUBLISHED",
+                "staff": {
+                  "profile": {
+                    "display_name": "Médico Sintético"
+                  }
+                }
+              }
+            ],
+            "error": null
+          },
+          "query": [
+            [
+              "eq",
+              [
+                "status",
+                "PUBLISHED"
+              ]
+            ],
+            [
+              "is",
+              [
+                "specialty_id",
+                null
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [
+            {
+              "id": "00000000-0000-4000-8000-000000000007",
+              "specialty_id": null,
+              "starts_at": "2026-10-11T12:00:00.000Z",
+              "ends_at": "2026-10-11T12:30:00.000Z",
+              "capacity": 1,
+              "booked_count": 0,
+              "status": "PUBLISHED",
+              "staff": {
+                "profile": {
+                  "display_name": "Médico Sintético"
+                }
+              },
+              "doctorName": "Médico Sintético"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "medical-patient-area-REVIEW_DOCTOR",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": [
+                {
+                  "specialty_id": "00000000-0000-4000-8000-000000000005",
+                  "active_from": "2026-01-01",
+                  "active_to": null
+                }
+              ]
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registration_code": "SYN-REG-0001",
+              "given_names": "Paciente",
+              "family_names": "Sintético",
+              "birth_date": null,
+              "phone": null,
+              "email": null,
+              "academic_status": "ACTIVE",
+              "created_at": "2026-10-11T12:00:00.000Z",
+              "updated_at": "2026-10-11T12:00:00.000Z",
+              "academic_enrollment": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000009",
+                "encounter_type": "INITIAL",
+                "specialty_id": null,
+                "clinical_background_version_id": null,
+                "specialty": null
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000010",
+                "encounter_type": "SPECIALTY",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "clinical_background_version_id": null,
+                "specialty": [
+                  {
+                    "name": "Especialidad Sintética"
+                  }
+                ]
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000011",
+                "encounter_type": "SPECIALTY",
+                "specialty_id": "00000000-0000-4000-8000-000000000004",
+                "clinical_background_version_id": null,
+                "specialty": [
+                  {
+                    "name": "Otra área"
+                  }
+                ]
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "referral",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000012",
+                "source_encounter_id": "00000000-0000-4000-8000-000000000009",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "assigned_staff_id": "00000000-0000-4000-8000-000000000003",
+                "specialty": {
+                  "name": "Especialidad Sintética"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "review_history_version",
+          "result": {
+            "data": [
+              {
+                "encounter_id": "00000000-0000-4000-8000-000000000009",
+                "data": {
+                  "schemaVersion": 1,
+                  "observations": "Caso sintético"
+                },
+                "version_no": 1,
+                "recorded_at": "2026-10-11T12:00:00.000Z"
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "result": {
+            "data": {
+              "current": null,
+              "encounter": null
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "encounter_diagnosis",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000007",
+                "encounter_id": "00000000-0000-4000-8000-000000000009",
+                "free_text": "Texto sintético",
+                "condition": null
+              }
+            ],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "patient": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "fullName": "Paciente Sintético",
+              "birthDate": null,
+              "phone": null,
+              "email": null
+            },
+            "intake": null,
+            "clinicalBackground": null,
+            "encounters": [
+              {
+                "id": "00000000-0000-4000-8000-000000000009",
+                "encounter_type": "INITIAL",
+                "specialty_id": null,
+                "clinical_background_version_id": null,
+                "specialty": null,
+                "accessReason": "AREA",
+                "reviewHistory": {
+                  "schemaVersion": 1,
+                  "observations": "Caso sintético"
+                },
+                "specialtyHistory": null,
+                "clinicalBackground": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "id": "00000000-0000-4000-8000-000000000007",
+                "encounter_id": "00000000-0000-4000-8000-000000000009",
+                "free_text": "Texto sintético",
+                "condition": null,
+                "label": "Texto sintético"
+              }
+            ],
+            "referrals": [
+              {
+                "id": "00000000-0000-4000-8000-000000000012",
+                "source_encounter_id": "00000000-0000-4000-8000-000000000009",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "assigned_staff_id": "00000000-0000-4000-8000-000000000003",
+                "specialty": "Especialidad Sintética"
+              }
+            ],
+            "appointments": [],
+            "documents": []
+          }
+        }
+      }
+    },
+    {
+      "name": "medical-patient-area-SPECIALIST",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "role": "SPECIALIST",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": [
+                {
+                  "specialty_id": "00000000-0000-4000-8000-000000000005",
+                  "active_from": "2026-01-01",
+                  "active_to": null
+                }
+              ]
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registration_code": "SYN-REG-0001",
+              "given_names": "Paciente",
+              "family_names": "Sintético",
+              "birth_date": null,
+              "phone": null,
+              "email": null,
+              "academic_status": "ACTIVE",
+              "created_at": "2026-10-11T12:00:00.000Z",
+              "updated_at": "2026-10-11T12:00:00.000Z",
+              "academic_enrollment": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000009",
+                "encounter_type": "INITIAL",
+                "specialty_id": null,
+                "clinical_background_version_id": null,
+                "specialty": null
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000010",
+                "encounter_type": "SPECIALTY",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "clinical_background_version_id": null,
+                "specialty": [
+                  {
+                    "name": "Especialidad Sintética"
+                  }
+                ]
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000011",
+                "encounter_type": "SPECIALTY",
+                "specialty_id": "00000000-0000-4000-8000-000000000004",
+                "clinical_background_version_id": null,
+                "specialty": [
+                  {
+                    "name": "Otra área"
+                  }
+                ]
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "referral",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000012",
+                "source_encounter_id": "00000000-0000-4000-8000-000000000009",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "assigned_staff_id": "00000000-0000-4000-8000-000000000003",
+                "specialty": {
+                  "name": "Especialidad Sintética"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "review_history_version",
+          "result": {
+            "data": [
+              {
+                "encounter_id": "00000000-0000-4000-8000-000000000009",
+                "data": {
+                  "schemaVersion": 1,
+                  "observations": "Caso sintético"
+                },
+                "version_no": 1,
+                "recorded_at": "2026-10-11T12:00:00.000Z"
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "specialty_history_intake_version",
+          "result": {
+            "data": [],
+            "error": null
+          }
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "result": {
+            "data": {
+              "current": null,
+              "encounter": null
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "encounter_diagnosis",
+          "result": {
+            "data": [
+              {
+                "id": "00000000-0000-4000-8000-000000000007",
+                "encounter_id": "00000000-0000-4000-8000-000000000009",
+                "free_text": "Texto sintético",
+                "condition": null
+              }
+            ],
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "patient": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registrationCode": "SYN-REG-0001",
+              "fullName": "Paciente Sintético",
+              "birthDate": null,
+              "phone": null,
+              "email": null
+            },
+            "intake": null,
+            "clinicalBackground": null,
+            "encounters": [
+              {
+                "id": "00000000-0000-4000-8000-000000000009",
+                "encounter_type": "INITIAL",
+                "specialty_id": null,
+                "clinical_background_version_id": null,
+                "specialty": null,
+                "accessReason": "REFERRAL_SOURCE",
+                "reviewHistory": {
+                  "schemaVersion": 1,
+                  "observations": "Caso sintético"
+                },
+                "specialtyHistory": null,
+                "clinicalBackground": null
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000010",
+                "encounter_type": "SPECIALTY",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "clinical_background_version_id": null,
+                "specialty": "Especialidad Sintética",
+                "accessReason": "AREA",
+                "reviewHistory": null,
+                "specialtyHistory": null,
+                "clinicalBackground": null
+              }
+            ],
+            "diagnoses": [
+              {
+                "id": "00000000-0000-4000-8000-000000000007",
+                "encounter_id": "00000000-0000-4000-8000-000000000009",
+                "free_text": "Texto sintético",
+                "condition": null,
+                "label": "Texto sintético"
+              }
+            ],
+            "referrals": [
+              {
+                "id": "00000000-0000-4000-8000-000000000012",
+                "source_encounter_id": "00000000-0000-4000-8000-000000000009",
+                "specialty_id": "00000000-0000-4000-8000-000000000005",
+                "assigned_staff_id": "00000000-0000-4000-8000-000000000003",
+                "specialty": "Especialidad Sintética"
+              }
+            ],
+            "appointments": [],
+            "documents": []
+          }
+        }
+      }
+    },
+    {
+      "name": "report-terms-deduplicate",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {},
+      "query": "allergies=%5B%22%20Caso%20%22,%22Caso%22,10,%22%22%5D",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_clinical_report",
+          "result": {
+            "data": [],
+            "error": null
+          },
+          "args": {
+            "p_filters": {
+              "from": null,
+              "to": null,
+              "specialtyId": null,
+              "encounterType": null,
+              "diagnosis": null,
+              "allergies": [
+                "Caso"
+              ],
+              "histories": [],
+              "habitTerms": [],
+              "positiveHabits": [],
+              "search": null
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": [],
+          "filters": {
+            "from": null,
+            "to": null,
+            "specialtyId": null,
+            "encounterType": null,
+            "diagnosis": null,
+            "allergies": [
+              "Caso"
+            ],
+            "histories": [],
+            "habitTerms": [],
+            "positiveHabits": [],
+            "search": null
+          }
+        }
+      }
+    },
+    {
+      "name": "patient-relation-object-drops-career",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "role": "ADMINISTRATIVE",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000002",
+              "carnet": "SYN-0001",
+              "registration_code": "SYN-REG-0001",
+              "given_names": "Paciente",
+              "family_names": "Sintético",
+              "birth_date": null,
+              "phone": null,
+              "email": null,
+              "academic_status": "ACTIVE",
+              "created_at": "2026-10-11T12:00:00.000Z",
+              "updated_at": "2026-10-11T12:00:00.000Z",
+              "academic_enrollment": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000004",
+                  "academic_period": "2026",
+                  "started_on": "2026-01-01",
+                  "status": "ACTIVE",
+                  "career": {
+                    "id": "00000000-0000-4000-8000-000000000004",
+                    "code": "SYN",
+                    "name": "Carrera Sintética"
+                  }
+                }
+              ]
+            },
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "data": {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "carnet": "SYN-0001",
+            "registrationCode": "SYN-REG-0001",
+            "fullName": "Paciente Sintético",
+            "birthDate": null,
+            "phone": null,
+            "email": null,
+            "academicStatus": "ACTIVE",
+            "createdAt": "2026-10-11T12:00:00.000Z",
+            "updatedAt": "2026-10-11T12:00:00.000Z",
+            "career": null,
+            "enrollment": {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "academicPeriod": "2026",
+              "startedOn": "2026-01-01",
+              "status": "ACTIVE"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "start-new-not-found",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "result": {
+            "data": {
+              "id": "00000000-0000-4000-8000-000000000003",
+              "staff_specialty": []
+            },
+            "error": null
+          }
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 404,
+        "json": {
+          "ok": false,
+          "error": "La cita no pertenece a este profesional."
+        }
+      }
+    },
+    {
+      "name": "document-download-not-found",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "result": {
+            "data": null,
+            "error": null
+          }
+        }
+      ],
+      "expected": {
+        "status": 404,
+        "json": {
+          "ok": false,
+          "error": "El archivo no está disponible."
+        }
+      }
+    },
+    {
+      "name": "background-version-conflict",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "role": "REVIEW_DOCTOR",
+      "params": {
+        "patientId": "00000000-0000-4000-8000-000000000002",
+        "requestId": "00000000-0000-4000-8000-000000000006",
+        "appointmentId": "00000000-0000-4000-8000-000000000008",
+        "encounterId": "00000000-0000-4000-8000-000000000009",
+        "documentId": "00000000-0000-4000-8000-000000000010"
+      },
+      "query": "",
+      "steps": [
+        {
+          "kind": "rpc",
+          "name": "rpc_save_clinical_background",
+          "result": {
+            "data": null,
+            "error": {
+              "code": "40001",
+              "message": "Los antecedentes fueron actualizados por otro profesional. Recarga la ficha antes de guardar."
+            }
+          },
+          "args": {
+            "p_expected_version": 0,
+            "p_encounter_id": null,
+            "p_data": {
+              "schemaVersion": 1,
+              "allergies": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "personalConditions": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "surgeries": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "medications": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "familyHistory": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "habits": {
+                "diet": "",
+                "physicalActivity": "",
+                "tobacco": "",
+                "alcohol": ""
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": 409,
+        "json": {
+          "ok": false,
+          "code": "40001",
+          "error": "Los antecedentes fueron actualizados por otro profesional. Recarga la ficha antes de guardar."
+        }
+      },
+      "body": {
+        "changeReason": "Caso sintético",
+        "data": {}
+      }
+    }
+  ]
+}

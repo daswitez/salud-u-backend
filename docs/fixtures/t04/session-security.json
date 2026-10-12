@@ -1,0 +1,21 @@
+{
+  "story": "T-04",
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "csrf-creates-http-session",
+      "request": {"method": "GET", "path": "/api/v1/security/csrf"},
+      "response": {"status": 200, "body": {"ok": true, "data": {"token": "<opaque>", "headerName": "X-CSRF-TOKEN", "parameterName": "_csrf"}, "error": null}}
+    },
+    {
+      "name": "logout-missing-csrf",
+      "request": {"method": "POST", "path": "/api/v1/session/logout"},
+      "response": {"status": 403, "body": {"ok": false, "data": null, "error": {"code": "CSRF_INVALID", "message": "<localized>", "details": {}, "requestId": "<uuid>"}}}
+    },
+    {
+      "name": "session-anonymous",
+      "request": {"method": "GET", "path": "/api/v1/session"},
+      "response": {"status": 401, "body": {"ok": false, "data": null, "error": {"code": "UNAUTHENTICATED", "message": "<localized>", "details": {}, "requestId": "<uuid>"}}}
+    }
+  ]
+}

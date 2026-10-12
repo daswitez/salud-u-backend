@@ -1,0 +1,92 @@
+{
+  "info": {
+    "_postman_id": "41880542-a949-4e4a-b2cc-ea1a88277c9a",
+    "name": "Salud-U API v1 — T-04 / BE-01",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "No incluye credenciales ni usuarios demo. Definir email y password de una cuenta real provisionada de forma institucional. Postman conserva JSESSIONID y SALUD_U_SESSION en su jar de cookies."
+  },
+  "item": [
+    {
+      "name": "Anónimo",
+      "item": [
+        {
+          "name": "Obtener CSRF y sesión HTTP",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('200 y contrato CSRF', function () { pm.response.to.have.status(200); const body = pm.response.json(); pm.expect(body.ok).to.eql(true); pm.environment.set('csrfToken', body.data.token); });"], "type": "text/javascript"}}],
+          "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/security/csrf"}
+        },
+        {
+          "name": "Logout sin CSRF (403 comprobable)",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('CSRF rechazado', function () { pm.response.to.have.status(403); pm.expect(pm.response.json().error.code).to.eql('CSRF_INVALID'); });"], "type": "text/javascript"}}],
+          "request": {"method": "POST", "header": [], "url": "{{baseUrl}}/api/v1/session/logout"}
+        },
+        {
+          "name": "Login con CSRF y cuenta real",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('sesión creada', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().ok).to.eql(true); });"], "type": "text/javascript"}}],
+          "request": {"method": "POST", "header": [{"key": "X-CSRF-TOKEN", "value": "{{csrfToken}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"}, "url": "{{baseUrl}}/api/v1/auth/login"}
+        },
+        {
+          "name": "Logout con CSRF",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('logout correcto', function () { pm.response.to.have.status(204); });"], "type": "text/javascript"}}],
+          "request": {"method": "POST", "header": [{"key": "X-CSRF-TOKEN", "value": "{{csrfToken}}"}], "url": "{{baseUrl}}/api/v1/session/logout"}
+        }
+      ]
+    },
+    {
+      "name": "Perfil",
+      "description": "Ejecutar después de iniciar sesión y obtener CSRF. Los cambios exitosos revocan esta sesión; volver a autenticar antes de seguir.",
+      "item": [
+        {
+          "name": "Actualizar perfil (revoca sesión)",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('perfil actualizado y sesión revocada', function () { pm.response.to.have.status(204); pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); });"], "type": "text/javascript"}}],
+          "request": {"method": "PATCH", "header": [{"key": "X-CSRF-TOKEN", "value": "{{csrfToken}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"displayName\": \"{{displayName}}\",\n  \"email\": \"{{newEmail}}\",\n  \"currentPassword\": \"{{password}}\"\n}"}, "url": "{{baseUrl}}/api/v1/profile"}
+        },
+        {
+          "name": "Cambiar contraseña (revoca sesión)",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('contraseña actualizada', function () { pm.response.to.have.status(204); });"], "type": "text/javascript"}}],
+          "request": {"method": "POST", "header": [{"key": "X-CSRF-TOKEN", "value": "{{csrfToken}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"}, "url": "{{baseUrl}}/api/v1/profile/password"}
+        }
+      ]
+    },
+    {
+      "name": "Pacientes administrativos",
+      "description": "Ejecutar con una cuenta ADMINISTRATIVE y una carrera activa. No incluir datos reales en la colección.",
+      "item": [
+        {
+          "name": "Listar y buscar pacientes",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('listado heredado', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().ok).to.eql(true); });"], "type": "text/javascript"}}],
+          "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/patients?query={{patientQuery}}"}
+        },
+        {
+          "name": "Crear paciente sintético",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('paciente creado', function () { pm.response.to.have.status(201); pm.environment.set('patientId', pm.response.json().data.id); });"], "type": "text/javascript"}}],
+          "request": {"method": "POST", "header": [{"key": "X-CSRF-TOKEN", "value": "{{csrfToken}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Paciente Sintético\",\n  \"carnet\": \"{{patientCarnet}}\",\n  \"registrationCode\": \"{{patientRegistrationCode}}\",\n  \"careerId\": \"{{careerId}}\",\n  \"academicPeriod\": \"{{academicPeriod}}\",\n  \"enrollmentStart\": \"{{enrollmentStart}}\"\n}"}, "url": "{{baseUrl}}/api/patients"}
+        }
+      ]
+    },
+    {
+      "name": "Estudiante",
+      "description": "Ejecutar tras login con una cuenta STUDENT; debe devolver ROLE_STUDENT.",
+      "item": [{"name": "Inspeccionar sesión", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/session"}}]
+    },
+    {
+      "name": "Administrativo",
+      "description": "Ejecutar tras login con una sesión ADMINISTRATIVE; debe devolver ROLE_ADMINISTRATIVE.",
+      "item": [{"name": "Inspeccionar sesión", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/session"}}]
+    },
+    {
+      "name": "Médico de revisión",
+      "description": "Ejecutar tras login con una sesión REVIEW_DOCTOR; debe devolver ROLE_REVIEW_DOCTOR.",
+      "item": [{"name": "Inspeccionar sesión", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/session"}}]
+    },
+    {
+      "name": "Especialista",
+      "description": "Ejecutar tras login con una sesión SPECIALIST; debe devolver ROLE_SPECIALIST.",
+      "item": [{"name": "Inspeccionar sesión", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/session"}}]
+    },
+    {
+      "name": "Auditor",
+      "description": "Ejecutar tras login con una sesión AUDITOR; debe devolver ROLE_AUDITOR.",
+      "item": [{"name": "Inspeccionar sesión", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/v1/session"}}]
+    }
+  ]
+}

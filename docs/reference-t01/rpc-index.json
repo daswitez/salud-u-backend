@@ -1,0 +1,1409 @@
+[
+  {
+    "signature": "private.availability_slot_is_blocked(uuid,timestamptz,timestamptz)",
+    "arguments": "p_staff_member_id uuid, p_starts_at timestamptz, p_ends_at timestamptz",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 59,
+    "sha256": "6e6b7d431decf0e184ad82959dbfbe159665ae2644d4be316c7cec5caac4a81f",
+    "sql": "create or replace function private.availability_slot_is_blocked(\n  p_staff_member_id uuid, p_starts_at timestamptz, p_ends_at timestamptz\n) returns boolean language sql stable security definer set search_path = '' as $$\n  with local_slot as (\n    select\n      (p_starts_at at time zone 'America/La_Paz')::date as local_date,\n      extract(isodow from p_starts_at at time zone 'America/La_Paz')::smallint as local_weekday,\n      (p_starts_at at time zone 'America/La_Paz')::time as local_start,\n      (p_ends_at at time zone 'America/La_Paz')::time as local_end\n  )\n  select exists(\n    select 1 from public.availability_block b, local_slot l\n    where b.staff_member_id = p_staff_member_id and b.block_date = l.local_date\n      and (b.starts_at is null or (b.starts_at < l.local_end and b.ends_at > l.local_start))\n  ) or exists(\n    select 1 from public.availability_recurring_block b, local_slot l\n    where b.staff_member_id = p_staff_member_id and b.weekday = l.local_weekday\n      and b.starts_at < l.local_end and b.ends_at > l.local_start\n  );\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_read_clinical_encounter(uuid)",
+    "arguments": "p_encounter_id uuid",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path=''",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 6,
+    "sha256": "bf22c5fe4f92b47d65b089546b263576fd0299b50909f74e344d8f77827b478a",
+    "sql": "create or replace function private.can_read_clinical_encounter(p_encounter_id uuid)\nreturns boolean language sql stable security definer set search_path='' as $$\n  with me as (select private.current_staff_id() as staff_id)\n  select exists(\n    select 1\n    from public.clinical_encounter ce,me\n    where ce.id=p_encounter_id\n      and private.can_read_clinical_patient(ce.patient_id)\n      and (\n        (private.has_active_role('REVIEW_DOCTOR') and ce.encounter_type='INITIAL')\n        or (\n          private.has_active_role('SPECIALIST') and (\n            (ce.encounter_type='SPECIALTY' and exists(\n              select 1 from public.staff_specialty ss\n              where ss.staff_member_id=me.staff_id and ss.specialty_id=ce.specialty_id\n                and ss.active_from<=current_date and (ss.active_to is null or ss.active_to>=current_date)\n            ))\n            or (ce.encounter_type='INITIAL' and exists(\n              select 1 from public.referral r\n              where r.source_encounter_id=ce.id and r.assigned_staff_id=me.staff_id\n            ))\n          )\n        )\n      )\n  );\n$$;",
+    "calls": [
+      "private.can_read_clinical_patient",
+      "private.current_staff_id",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_read_clinical_patient(uuid)",
+    "arguments": "p_patient_id uuid",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 621,
+    "sha256": "ffdfec8742c01160a345d89e697ca435112e4fceaaf7d854b5f06cc4f6685aa5",
+    "sql": "create or replace function private.can_read_clinical_patient(p_patient_id uuid)\nreturns boolean language sql stable security definer set search_path = '' as $$\n  with me as (select private.current_staff_id() as staff_id)\n  select (select staff_id from me) is not null and (\n    exists(select 1 from public.clinical_encounter ce,me where ce.patient_id=p_patient_id and ce.responsible_staff_id=me.staff_id)\n    or exists(select 1 from public.referral r,me where r.patient_id=p_patient_id and r.assigned_staff_id=me.staff_id)\n    or exists(select 1 from public.appointment a,me where a.patient_id=p_patient_id and a.assigned_staff_id=me.staff_id and a.status in ('SCHEDULED','CHECKED_IN','ATTENDED'))\n  );\n$$;",
+    "calls": [
+      "private.current_staff_id"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_read_document(uuid)",
+    "arguments": "p_document_id uuid",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path=''",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 45,
+    "sha256": "c3c4f718e6d8350ddfb0edf297686d2b695d42dca3e7424c81acce563f468c52",
+    "sql": "create or replace function private.can_read_document(p_document_id uuid)\nreturns boolean language sql stable security definer set search_path='' as $$\n  select exists(\n    select 1 from public.clinical_document d where d.id=p_document_id and d.status='AVAILABLE' and (\n      (d.encounter_id is not null and private.can_read_clinical_encounter(d.encounter_id))\n      or exists(\n        select 1 from public.document_access_grant g\n        where g.document_id=d.id and (g.expires_at is null or g.expires_at>now())\n          and (g.profile_id=(select auth.uid()) or (g.role_code is not null and private.has_active_role(g.role_code)))\n      )\n    )\n  );\n$$;",
+    "calls": [
+      "private.can_read_clinical_encounter",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_read_document_by_path(text)",
+    "arguments": "p_object_path text",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 670,
+    "sha256": "0bca8aceca4121f31d46ca45ba9dd60117b8057a8591a9ac88131e7a3d27b24d",
+    "sql": "create or replace function private.can_read_document_by_path(p_object_path text)\nreturns boolean language sql stable security definer set search_path = '' as $$\n  select private.can_read_document(d.id) from public.clinical_document d where d.object_path=p_object_path limit 1;\n$$;",
+    "calls": [
+      "private.can_read_document"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_read_patient(uuid)",
+    "arguments": "p_patient_id uuid",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 630,
+    "sha256": "98c5eb727bb62cba337a96ff167aaa16d66f444b23e9966786457d52e16fb01b",
+    "sql": "create or replace function private.can_read_patient(p_patient_id uuid)\nreturns boolean language sql stable security definer set search_path = '' as $$\n  select (select auth.uid()) is not null and (\n    exists(select 1 from public.patient p where p.id=p_patient_id and p.profile_id=(select auth.uid()))\n    or private.has_active_role('ADMINISTRATIVE') or private.can_read_clinical_patient(p_patient_id)\n  );\n$$;",
+    "calls": [
+      "private.can_read_clinical_patient",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_read_referral(uuid)",
+    "arguments": "p_referral_id uuid",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path=''",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 33,
+    "sha256": "e47b1a48dc54aa6c61e95aa75854da3dfe0124c6673e34e5736a11323e9bdee6",
+    "sql": "create or replace function private.can_read_referral(p_referral_id uuid)\nreturns boolean language sql stable security definer set search_path='' as $$\n  with me as (select private.current_staff_id() as staff_id)\n  select exists(\n    select 1 from public.referral r,me\n    where r.id=p_referral_id and (\n      (private.has_active_role('REVIEW_DOCTOR') and private.can_read_clinical_encounter(r.source_encounter_id))\n      or (private.has_active_role('SPECIALIST') and r.assigned_staff_id=me.staff_id)\n    )\n  );\n$$;",
+    "calls": [
+      "private.can_read_clinical_encounter",
+      "private.current_staff_id",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_upload_document_by_path(text)",
+    "arguments": "p_object_path text",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 663,
+    "sha256": "64da4478d35d6049efcdeeb339f620d781ac2cfee500bc64b1c238a960f58315",
+    "sql": "create or replace function private.can_upload_document_by_path(p_object_path text)\nreturns boolean language sql stable security definer set search_path = '' as $$\n  select exists(\n    select 1 from public.clinical_document d where d.object_path=p_object_path and d.status='PROCESSING'\n      and d.uploaded_by=(select auth.uid()) and private.can_read_clinical_patient(d.patient_id)\n  );\n$$;",
+    "calls": [
+      "private.can_read_clinical_patient"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.can_write_encounter(uuid,uuid,uuid)",
+    "arguments": "p_patient_id uuid,p_appointment_id uuid,p_referral_id uuid",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "line": 65,
+    "sha256": "6f65bcd0cea06a920e625aa015ee033590714bd93cfbc8e8b854a617a86ba825",
+    "sql": "create or replace function private.can_write_encounter(p_patient_id uuid,p_appointment_id uuid,p_referral_id uuid)\nreturns boolean language sql stable security definer set search_path = '' as $$\n  with me as (select private.current_staff_id() as staff_id)\n  select (select staff_id from me) is not null and (\n    (private.has_active_role('REVIEW_DOCTOR') and exists(\n      select 1 from public.appointment a, me where a.id=p_appointment_id and a.patient_id=p_patient_id and a.assigned_staff_id=me.staff_id\n        and a.appointment_type='INITIAL' and a.status in ('SCHEDULED','CHECKED_IN')\n    )) or\n    (private.has_active_role('SPECIALIST') and exists(\n      select 1 from public.appointment a, me where a.id=p_appointment_id and a.patient_id=p_patient_id and a.assigned_staff_id=me.staff_id\n        and a.appointment_type in ('REFERRAL','SPECIALTY') and a.status in ('SCHEDULED','CHECKED_IN')\n        and (p_referral_id is null or a.referral_id=p_referral_id)\n    ))\n  );\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.clinical_background_entry(text)",
+    "arguments": "p_value text",
+    "returnAndSecurity": "returns jsonb language sql immutable set search_path=''",
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "line": 35,
+    "sha256": "54cc0e08704b55ddd29115cf0dfdff7bcf1319bb9977aa94a59e51c57bdc5caa",
+    "sql": "create or replace function private.clinical_background_entry(p_value text)\nreturns jsonb language sql immutable set search_path='' as $$\n  select case\n    when nullif(btrim(coalesce(p_value,'')),'') is null then jsonb_build_object('status','UNKNOWN','items','[]'::jsonb)\n    when lower(btrim(p_value)) ~ '^(niega|sin |no usa|no refiere|ningun|ningún)'\n      then jsonb_build_object('status','NONE','items','[]'::jsonb)\n    else jsonb_build_object('status','PRESENT','items',jsonb_build_array(btrim(p_value)))\n  end;\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.clinical_background_items(jsonb,text)",
+    "arguments": "p_data jsonb,p_key text",
+    "returnAndSecurity": "returns jsonb language sql stable set search_path=''",
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "line": 5,
+    "sha256": "b5a0048ae498c3fdb3d1e932959a6a9f35622f2621ecbaa5f6cd9d533f2ab899",
+    "sql": "create or replace function private.clinical_background_items(p_data jsonb,p_key text)\nreturns jsonb language sql stable set search_path='' as $$\n  select case\n    when jsonb_typeof(p_data #> array[p_key,'items'])='array' then p_data #> array[p_key,'items']\n    when nullif(p_data #>> array[p_key,'details'],'') is not null then jsonb_build_array(p_data #>> array[p_key,'details'])\n    else '[]'::jsonb\n  end;\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.clinical_habits_search_text(jsonb)",
+    "arguments": "p_habits jsonb",
+    "returnAndSecurity": "returns text language sql stable set search_path=''",
+    "source": "supabase/migrations/20261006130000_enhanced_clinical_reports.sql",
+    "line": 14,
+    "sha256": "8234ea0a4138a6e563e342c3fbe356d6883e8d4c653ba03b3a30942120da4f5c",
+    "sql": "create or replace function private.clinical_habits_search_text(p_habits jsonb)\nreturns text language sql stable set search_path='' as $$\n  select concat_ws(' · ',\n    case p_habits->>'tobacco' when 'YES' then 'Tabaco: sí' when 'NO' then 'Tabaco: no' else null end,\n    case p_habits->>'alcohol' when 'YES' then 'Alcohol: sí' when 'NO' then 'Alcohol: no' else null end,\n    case p_habits->>'physicalActivity' when 'YES' then 'Actividad física: sí' when 'NO' then 'Actividad física: no' else null end,\n    case p_habits->>'diet' when 'ADEQUATE' then 'Alimentación: adecuada' when 'REGULAR' then 'Alimentación: regular' when 'INADEQUATE' then 'Alimentación: inadecuada' else null end,\n    nullif(p_habits->>'notes','')\n  );\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.current_staff_id()",
+    "arguments": "",
+    "returnAndSecurity": "returns uuid language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 606,
+    "sha256": "c5002776c492bdf18a381ca980655d9d92adc44810886620205d7d4a75359885",
+    "sql": "create or replace function private.current_staff_id()\nreturns uuid language sql stable security definer set search_path = '' as $$\n  select sm.id from public.staff_member sm where sm.profile_id=(select auth.uid()) and sm.is_active limit 1;\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.generate_availability_slots(uuid,date,date)",
+    "arguments": "p_staff_member_id uuid, p_from date, p_until date",
+    "returnAndSecurity": "returns integer language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 80,
+    "sha256": "b15fbc4ec90098b9509d6355a0654e550a26ec675b73b6b637badd1caa71ec46",
+    "sql": "create or replace function private.generate_availability_slots(\n  p_staff_member_id uuid, p_from date, p_until date\n) returns integer language plpgsql security definer set search_path = '' as $$\ndeclare\n  v_schedule public.availability_schedule%rowtype;\n  v_day date;\n  v_slot_starts_at timestamptz;\n  v_slot_ends_at timestamptz;\n  v_created integer := 0;\nbegin\n  if p_until < p_from then return 0; end if;\n\n  for v_schedule in\n    select * from public.availability_schedule\n    where staff_member_id = p_staff_member_id and is_active\n  loop\n    for v_day in\n      select value::date from generate_series(greatest(p_from, current_date), p_until, interval '1 day') as gs(value)\n      where extract(isodow from value)::smallint = v_schedule.weekday\n    loop\n      v_slot_starts_at := (v_day + v_schedule.starts_at) at time zone 'America/La_Paz';\n      while v_slot_starts_at + make_interval(mins => v_schedule.slot_duration_minutes)\n        <= (v_day + v_schedule.ends_at) at time zone 'America/La_Paz'\n      loop\n        v_slot_ends_at := v_slot_starts_at + make_interval(mins => v_schedule.slot_duration_minutes);\n        if not private.availability_slot_is_blocked(p_staff_member_id, v_slot_starts_at, v_slot_ends_at)\n          and not exists(\n            select 1 from public.availability_slot s\n            where s.staff_member_id = p_staff_member_id\n              and s.status in ('DRAFT','PUBLISHED')\n              and tstzrange(s.starts_at, s.ends_at, '[)') && tstzrange(v_slot_starts_at, v_slot_ends_at, '[)')\n          ) then\n          insert into public.availability_slot(\n            availability_schedule_id, staff_member_id, specialty_id, starts_at, ends_at,\n            capacity, booked_count, status, published_at, created_by\n          ) values (\n            v_schedule.id, p_staff_member_id, v_schedule.specialty_id, v_slot_starts_at, v_slot_ends_at,\n            1, 0, 'PUBLISHED', now(), (select auth.uid())\n          );\n          v_created := v_created + 1;\n        end if;\n        v_slot_starts_at := v_slot_ends_at;\n      end loop;\n    end loop;\n  end loop;\n  return v_created;\nend;\n$$;",
+    "calls": [
+      "private.availability_slot_is_blocked",
+      "public.availability_slot"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": [
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "private.has_active_role(public.app_role_code)",
+    "arguments": "p_role public.app_role_code",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 610,
+    "sha256": "402fb377753835ec5d4fad3b7b789fe72a6f504086e209ba2b60a63e3867485f",
+    "sql": "create or replace function private.has_active_role(p_role public.app_role_code)\nreturns boolean language sql stable security definer set search_path = '' as $$\n  select (select auth.uid()) is not null and exists(\n    select 1 from public.profile_role pr join public.app_role ar on ar.code=pr.role_code and ar.is_active\n    where pr.profile_id=(select auth.uid()) and pr.role_code=p_role and pr.revoked_at is null\n  );\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.is_any_staff()",
+    "arguments": "",
+    "returnAndSecurity": "returns boolean language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 617,
+    "sha256": "004d95433bd76bacd076ab6b6b0c6232a2114dae472cdb64c4538304c917c471",
+    "sql": "create or replace function private.is_any_staff()\nreturns boolean language sql stable security definer set search_path = '' as $$\n  select private.has_active_role('ADMINISTRATIVE') or private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST');\n$$;",
+    "calls": [
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.require_encounter_clinical_background()",
+    "arguments": "",
+    "returnAndSecurity": "returns trigger language plpgsql set search_path=''",
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "line": 225,
+    "sha256": "4df07f3c2d2bb0050b254fe8e00f532fff16a67e20ee784e89bbc566928690c4",
+    "sql": "create or replace function private.require_encounter_clinical_background()\nreturns trigger language plpgsql set search_path='' as $$\nbegin\n  if new.status='CLOSED' and old.status is distinct from 'CLOSED' and new.clinical_background_version_id is null then\n    raise exception 'Completa los antecedentes clínicos generales antes de cerrar la atención' using errcode='23514';\n  end if;\n  return new;\nend;\n$$;",
+    "calls": [],
+    "sqlstates": [
+      "23514"
+    ],
+    "exceptions": [
+      "Completa los antecedentes clínicos generales antes de cerrar la atención"
+    ],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.review_json_number(jsonb)",
+    "arguments": "p_value jsonb",
+    "returnAndSecurity": "returns numeric language sql immutable set search_path = ''",
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "line": 31,
+    "sha256": "41c305645b2180ac00bb3644dd3853c5c8533fcaf5764bd992e1bbd2eed893ad",
+    "sql": "create or replace function private.review_json_number(p_value jsonb)\nreturns numeric language sql immutable set search_path = '' as $$\n  select case when jsonb_typeof(p_value) = 'number' then (p_value #>> '{}')::numeric else null end;\n$$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "private.write_audit(text,text,uuid,uuid,text,jsonb)",
+    "arguments": "p_action text,p_resource_type text,p_resource_id uuid default null,p_patient_id uuid default null,\n  p_outcome text default 'SUCCESS',p_metadata jsonb default '{}'::jsonb",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 674,
+    "sha256": "023d276968e716d3853a142791ba8a21ddd361c1b0e27b4b840ba57035c5701c",
+    "sql": "create or replace function private.write_audit(\n  p_action text,p_resource_type text,p_resource_id uuid default null,p_patient_id uuid default null,\n  p_outcome text default 'SUCCESS',p_metadata jsonb default '{}'::jsonb\n) returns void language plpgsql security definer set search_path = '' as $$\nbegin\n  insert into public.audit_event(actor_profile_id,action,resource_type,resource_id,patient_id,outcome,metadata)\n  values((select auth.uid()),p_action,p_resource_type,p_resource_id,p_patient_id,p_outcome,coalesce(p_metadata,'{}'::jsonb));\nend; $$;",
+    "calls": [
+      "public.audit_event"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": [
+      "public.audit_event"
+    ]
+  },
+  {
+    "signature": "public.handle_new_auth_user()",
+    "arguments": "",
+    "returnAndSecurity": "returns trigger language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 591,
+    "sha256": "7e977fe811796b1a45e5c8f7e457e7355c63256ce4aaec257c45fe29e22a34c7",
+    "sql": "create or replace function public.handle_new_auth_user()\nreturns trigger language plpgsql security definer set search_path = '' as $$\nbegin\n  insert into public.profile(id,email,display_name)\n  values(new.id,new.email,coalesce(new.raw_user_meta_data ->> 'full_name',new.email,'Usuario'))\n  on conflict(id) do update set email=excluded.email;\n  return new;\nend; $$;",
+    "calls": [
+      "public.profile"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": [
+      "public.profile"
+    ]
+  },
+  {
+    "signature": "public.normalize_patient_identifiers()",
+    "arguments": "",
+    "returnAndSecurity": "returns trigger language plpgsql set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 320,
+    "sha256": "873e54583090ab49fd7b313893aa79ce9beb120634e25674551b22deb99dd5e4",
+    "sql": "create or replace function public.normalize_patient_identifiers() returns trigger language plpgsql set search_path = '' as $$\nbegin\n  new.carnet_normalized := regexp_replace(upper(btrim(new.carnet)),'[[:space:]]+','','g');\n  new.registration_code_normalized := regexp_replace(upper(btrim(new.registration_code)),'[[:space:]]+','','g');\n  return new;\nend; $$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_add_diagnosis(uuid,uuid,text,text,boolean)",
+    "arguments": "p_encounter_id uuid,p_condition_id uuid default null,p_free_text text default null,p_diagnosis_kind text default 'CONFIRMED',p_is_primary boolean default false",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 501,
+    "sha256": "71c16758b23c7de9e27414ea5e8ca2f77c1c0fa95289d503fb43dbc5a1b1528a",
+    "sql": "create or replace function public.rpc_add_diagnosis(\n  p_encounter_id uuid,p_condition_id uuid default null,p_free_text text default null,p_diagnosis_kind text default 'CONFIRMED',p_is_primary boolean default false\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_encounter public.clinical_encounter%rowtype; v_id uuid;\nbegin\n  select * into v_encounter from public.clinical_encounter where id=p_encounter_id for update;\n  if not found or v_encounter.status <> 'DRAFT' or v_encounter.responsible_staff_id is distinct from private.current_staff_id() then\n    raise exception 'No autorizado para modificar diagnósticos' using errcode='42501';\n  end if;\n  insert into public.encounter_diagnosis(encounter_id,condition_id,free_text,diagnosis_kind,is_primary,created_by)\n  values(p_encounter_id,p_condition_id,p_free_text,p_diagnosis_kind,p_is_primary,(select auth.uid())) returning id into v_id;\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "public.encounter_diagnosis"
+    ],
+    "sqlstates": [
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para modificar diagnósticos"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.encounter_diagnosis"
+    ]
+  },
+  {
+    "signature": "public.rpc_add_encounter_amendment(uuid,text,text)",
+    "arguments": "p_encounter_id uuid,p_reason text,p_content text",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 352,
+    "sha256": "584c671f153290cb14b28d0d4b6fb049c21a87e96aa568941cd58635513898a7",
+    "sql": "create or replace function public.rpc_add_encounter_amendment(p_encounter_id uuid,p_reason text,p_content text)\nreturns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_encounter public.clinical_encounter%rowtype; v_id uuid;\nbegin\n  select * into v_encounter from public.clinical_encounter where id=p_encounter_id for update;\n  if not found or v_encounter.status <> 'CLOSED' or v_encounter.responsible_staff_id is distinct from private.current_staff_id() then raise exception 'No autorizado para agregar una adenda' using errcode='42501'; end if;\n  insert into public.clinical_amendment(encounter_id,amendment_no,reason,content,created_by)\n  values(p_encounter_id,(select coalesce(max(amendment_no),0)+1 from public.clinical_amendment where encounter_id=p_encounter_id),p_reason,p_content,(select auth.uid())) returning id into v_id;\n  perform private.write_audit('ENCOUNTER_AMENDED','clinical_encounter',p_encounter_id,v_encounter.patient_id,'SUCCESS',jsonb_build_object('amendment_id',v_id));\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.write_audit",
+      "public.clinical_amendment"
+    ],
+    "sqlstates": [
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para agregar una adenda"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.clinical_amendment"
+    ]
+  },
+  {
+    "signature": "public.rpc_add_measurement(uuid,text,numeric,text,text,timestamptz)",
+    "arguments": "p_encounter_id uuid,p_measurement_type_code text,p_value_numeric numeric default null,p_value_text text default null,\n  p_unit text default null,p_measured_at timestamptz default now()",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 515,
+    "sha256": "cba8fa3901d1b185ecbfb47127271f2ef38df806e51f5b1391c4c5f5e0087d4f",
+    "sql": "create or replace function public.rpc_add_measurement(\n  p_encounter_id uuid,p_measurement_type_code text,p_value_numeric numeric default null,p_value_text text default null,\n  p_unit text default null,p_measured_at timestamptz default now()\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_encounter public.clinical_encounter%rowtype; v_id uuid;\nbegin\n  select * into v_encounter from public.clinical_encounter where id=p_encounter_id for update;\n  if not found or v_encounter.status <> 'DRAFT' or v_encounter.responsible_staff_id is distinct from private.current_staff_id() then\n    raise exception 'No autorizado para modificar mediciones' using errcode='42501';\n  end if;\n  insert into public.clinical_measurement(encounter_id,measurement_type_code,value_numeric,value_text,unit,measured_at,recorded_by)\n  values(p_encounter_id,p_measurement_type_code,p_value_numeric,p_value_text,p_unit,p_measured_at,(select auth.uid())) returning id into v_id;\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "public.clinical_measurement"
+    ],
+    "sqlstates": [
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para modificar mediciones"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.clinical_measurement"
+    ]
+  },
+  {
+    "signature": "public.rpc_assign_appointment_request(uuid,uuid)",
+    "arguments": "p_request_id uuid, p_slot_id uuid",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "line": 141,
+    "sha256": "bfea0748f86c5f3de4851ed6c431789ab08d3e7699b8d8d80811312357c75133",
+    "sql": "create or replace function public.rpc_assign_appointment_request(p_request_id uuid, p_slot_id uuid)\nreturns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_request public.appointment_request%rowtype; v_slot public.availability_slot%rowtype; v_referral public.referral%rowtype; v_appointment_id uuid;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then raise exception 'No autorizado para asignar cupos' using errcode='42501'; end if;\n  select * into v_request from public.appointment_request where id=p_request_id for update;\n  if not found or v_request.status<>'PENDING' then raise exception 'La solicitud no está pendiente' using errcode='23514'; end if;\n  select * into v_slot from public.availability_slot where id=p_slot_id for update;\n  if not found or v_slot.status<>'PUBLISHED' or v_slot.starts_at<=now() or v_slot.booked_count>=v_slot.capacity then raise exception 'El cupo no está disponible' using errcode='P0001'; end if;\n  if v_request.appointment_type='INITIAL' and v_slot.specialty_id is not null then raise exception 'La revisión requiere un cupo de médico de revisión' using errcode='23514'; end if;\n  if v_request.appointment_type='SPECIALTY' and v_slot.specialty_id is distinct from v_request.specialty_id then raise exception 'El cupo no corresponde a la especialidad solicitada' using errcode='23514'; end if;\n  if v_request.appointment_type='REFERRAL' then\n    select * into v_referral from public.referral where id=v_request.referral_id for update;\n    if not found or v_referral.patient_id<>v_request.patient_id or v_slot.specialty_id is distinct from v_referral.specialty_id or v_referral.status not in ('PENDING_ASSIGNMENT','ASSIGNED') or (v_referral.assigned_staff_id is not null and v_referral.assigned_staff_id<>v_slot.staff_member_id) then raise exception 'La derivación ya no está disponible para este profesional' using errcode='23514'; end if;\n  end if;\n  if exists(select 1 from public.appointment a where a.patient_id=v_request.patient_id and a.status in ('SCHEDULED','CHECKED_IN') and tstzrange(a.scheduled_for,a.scheduled_for+interval '1 hour','[)') && tstzrange(v_slot.starts_at,v_slot.ends_at,'[)')) then raise exception 'El estudiante ya tiene una cita activa en ese horario' using errcode='23505'; end if;\n  insert into public.appointment(patient_id,slot_id,appointment_type,referral_id,assigned_staff_id,requested_by,scheduled_for,status) values(v_request.patient_id,v_slot.id,v_request.appointment_type,v_request.referral_id,v_slot.staff_member_id,v_request.requested_by,v_slot.starts_at,'SCHEDULED') returning id into v_appointment_id;\n  if v_request.appointment_type='REFERRAL' and v_referral.status='PENDING_ASSIGNMENT' then update public.referral set assigned_staff_id=v_slot.staff_member_id,status='ASSIGNED',updated_at=now() where id=v_referral.id; insert into public.referral_status_event(referral_id,from_status,to_status,actor_id) values(v_referral.id,'PENDING_ASSIGNMENT','ASSIGNED',(select auth.uid())); end if;\n  update public.availability_slot set booked_count=booked_count+1 where id=v_slot.id;\n  insert into public.appointment_status_event(appointment_id,to_status,actor_id) values(v_appointment_id,'SCHEDULED',(select auth.uid()));\n  update public.appointment_request set status='ASSIGNED',appointment_id=v_appointment_id,assigned_at=now(),assigned_by=(select auth.uid()) where id=v_request.id;\n  perform private.write_audit('APPOINTMENT_REQUEST_ASSIGNED','appointment_request',v_request.id,v_request.patient_id,'SUCCESS',jsonb_build_object('appointment_id',v_appointment_id,'slot_id',p_slot_id));\n  return v_appointment_id;\nend;\n$$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment",
+      "public.appointment_status_event",
+      "public.referral_status_event"
+    ],
+    "sqlstates": [
+      "23505",
+      "23514",
+      "42501",
+      "P0001"
+    ],
+    "exceptions": [
+      "No autorizado para asignar cupos",
+      "La solicitud no está pendiente",
+      "El cupo no está disponible",
+      "La revisión requiere un cupo de médico de revisión",
+      "El cupo no corresponde a la especialidad solicitada",
+      "La derivación ya no está disponible para este profesional",
+      "El estudiante ya tiene una cita activa en ese horario"
+    ],
+    "rowLocks": 3,
+    "writes": [
+      "public.appointment",
+      "public.appointment_request",
+      "public.appointment_status_event",
+      "public.availability_slot",
+      "public.referral",
+      "public.referral_status_event"
+    ]
+  },
+  {
+    "signature": "public.rpc_assign_referral(uuid,uuid)",
+    "arguments": "p_referral_id uuid,p_staff_member_id uuid",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 388,
+    "sha256": "3e7f4517f96d78f75ebd559e7d7ae0841c3e3b34ab70f296d4642a2b8e34c54c",
+    "sql": "create or replace function public.rpc_assign_referral(p_referral_id uuid,p_staff_member_id uuid)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_referral public.referral%rowtype;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then raise exception 'No autorizado' using errcode='42501'; end if;\n  select * into v_referral from public.referral where id=p_referral_id for update;\n  if not found or v_referral.status <> 'PENDING_ASSIGNMENT' then raise exception 'La derivación no está disponible para asignación' using errcode='23514'; end if;\n  if not exists(select 1 from public.staff_specialty ss join public.staff_member sm on sm.id=ss.staff_member_id and sm.is_active\n    where ss.staff_member_id=p_staff_member_id and ss.specialty_id=v_referral.specialty_id and ss.active_from<=current_date and (ss.active_to is null or ss.active_to>=current_date)) then\n    raise exception 'El profesional no tiene la especialidad vigente requerida' using errcode='23514';\n  end if;\n  update public.referral set assigned_staff_id=p_staff_member_id,status='ASSIGNED' where id=p_referral_id;\n  insert into public.referral_status_event(referral_id,from_status,to_status,actor_id) values(p_referral_id,'PENDING_ASSIGNMENT','ASSIGNED',(select auth.uid()));\n  perform private.write_audit('REFERRAL_ASSIGNED','referral',p_referral_id,v_referral.patient_id,'SUCCESS',jsonb_build_object('staff_member_id',p_staff_member_id));\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.referral_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado",
+      "La derivación no está disponible para asignación",
+      "El profesional no tiene la especialidad vigente requerida"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.referral",
+      "public.referral_status_event"
+    ]
+  },
+  {
+    "signature": "public.rpc_book_appointment(uuid,uuid,public.appointment_type_code,uuid)",
+    "arguments": "p_patient_id uuid,p_slot_id uuid,p_appointment_type public.appointment_type_code,p_referral_id uuid default null",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 432,
+    "sha256": "28ea1d9dbd7a32ba746135182e2d4c2df2a34bfde5a72b8afc1f7be8690cceda",
+    "sql": "create or replace function public.rpc_book_appointment(\n  p_patient_id uuid,p_slot_id uuid,p_appointment_type public.appointment_type_code,p_referral_id uuid default null\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_slot public.availability_slot%rowtype; v_referral public.referral%rowtype; v_id uuid;\nbegin\n  if not (private.has_active_role('ADMINISTRATIVE') or\n    (private.has_active_role('STUDENT') and p_appointment_type='INITIAL' and exists(select 1 from public.patient p where p.id=p_patient_id and p.profile_id=(select auth.uid())))) then\n    raise exception 'No autorizado para reservar esta cita' using errcode='42501';\n  end if;\n  select * into v_slot from public.availability_slot where id=p_slot_id for update;\n  if not found or v_slot.status <> 'PUBLISHED' or v_slot.starts_at <= now() or v_slot.booked_count >= v_slot.capacity then\n    raise exception 'Cupo no disponible' using errcode='P0001';\n  end if;\n  if exists(select 1 from public.appointment a where a.patient_id=p_patient_id and a.status in ('REQUESTED','SCHEDULED','CHECKED_IN')\n    and tstzrange(a.scheduled_for,a.scheduled_for + interval '1 hour','[)') && tstzrange(v_slot.starts_at,v_slot.ends_at,'[)')) then\n    raise exception 'El paciente ya tiene una cita activa en ese horario' using errcode='23505';\n  end if;\n  if p_appointment_type='REFERRAL' then\n    select * into v_referral from public.referral where id=p_referral_id for update;\n    if not found or v_referral.patient_id <> p_patient_id or v_referral.status not in ('PENDING_ASSIGNMENT','ASSIGNED')\n       or v_referral.specialty_id is distinct from v_slot.specialty_id then\n      raise exception 'La derivación no es compatible con el cupo' using errcode='23514';\n    end if;\n  elsif p_referral_id is not null or v_slot.specialty_id is not null then\n    raise exception 'Una cita inicial requiere cupo de revisión y no lleva derivación' using errcode='23514';\n  end if;\n  insert into public.appointment(patient_id,slot_id,appointment_type,referral_id,assigned_staff_id,requested_by,scheduled_for)\n  values(p_patient_id,p_slot_id,p_appointment_type,p_referral_id,v_slot.staff_member_id,(select auth.uid()),v_slot.starts_at) returning id into v_id;\n  update public.availability_slot set booked_count=booked_count+1 where id=p_slot_id;\n  insert into public.appointment_status_event(appointment_id,to_status,actor_id) values(v_id,'SCHEDULED',(select auth.uid()));\n  perform private.write_audit('APPOINTMENT_BOOKED','appointment',v_id,p_patient_id,'SUCCESS',jsonb_build_object('slot_id',p_slot_id));\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment",
+      "public.appointment_status_event"
+    ],
+    "sqlstates": [
+      "23505",
+      "23514",
+      "42501",
+      "P0001"
+    ],
+    "exceptions": [
+      "No autorizado para reservar esta cita",
+      "Cupo no disponible",
+      "El paciente ya tiene una cita activa en ese horario",
+      "La derivación no es compatible con el cupo",
+      "Una cita inicial requiere cupo de revisión y no lleva derivación"
+    ],
+    "rowLocks": 2,
+    "writes": [
+      "public.appointment",
+      "public.appointment_status_event",
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "public.rpc_cancel_appointment_request(uuid,text)",
+    "arguments": "p_request_id uuid, p_reason text default null",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "line": 136,
+    "sha256": "520f7a17c77f430327efb1919d121f8f453f4e3f8bc316ddd458b49647ef6a9c",
+    "sql": "create or replace function public.rpc_cancel_appointment_request(p_request_id uuid, p_reason text default null)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_request public.appointment_request%rowtype; v_appointment public.appointment%rowtype;\nbegin\n  select * into v_request from public.appointment_request where id=p_request_id for update;\n  if not found then raise exception 'Solicitud no encontrada' using errcode='P0002'; end if;\n  if not (private.has_active_role('ADMINISTRATIVE') or exists(select 1 from public.patient p where p.id=v_request.patient_id and p.profile_id=(select auth.uid()))) then\n    raise exception 'No autorizado para cancelar la solicitud' using errcode='42501';\n  end if;\n  if v_request.status = 'CANCELLED' then return; end if;\n  if v_request.status = 'ASSIGNED' then\n    select * into v_appointment from public.appointment where id=v_request.appointment_id for update;\n    if v_appointment.status not in ('SCHEDULED') then raise exception 'La cita asignada ya no puede cancelarse' using errcode='23514'; end if;\n    update public.appointment set status='CANCELLED',cancelled_at=now(),cancellation_reason=nullif(btrim(p_reason),'') where id=v_appointment.id;\n    update public.availability_slot set booked_count=booked_count-1 where id=v_appointment.slot_id and booked_count > 0;\n    insert into public.appointment_status_event(appointment_id,from_status,to_status,reason,actor_id)\n      values(v_appointment.id,'SCHEDULED','CANCELLED',nullif(btrim(p_reason),''),(select auth.uid()));\n  end if;\n  update public.appointment_request set status='CANCELLED',cancelled_at=now(),cancelled_by=(select auth.uid()),cancellation_reason=nullif(btrim(p_reason),'') where id=v_request.id;\n  perform private.write_audit('APPOINTMENT_REQUEST_CANCELLED','appointment_request',v_request.id,v_request.patient_id);\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solicitud no encontrada",
+      "No autorizado para cancelar la solicitud",
+      "La cita asignada ya no puede cancelarse"
+    ],
+    "rowLocks": 2,
+    "writes": [
+      "public.appointment",
+      "public.appointment_request",
+      "public.appointment_status_event",
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "public.rpc_check_in_appointment(uuid)",
+    "arguments": "p_appointment_id uuid",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 466,
+    "sha256": "3826f72abbc780505fd9fd1c649b03fb7d42f4ae0d70549ffc17efb958aed14d",
+    "sql": "create or replace function public.rpc_check_in_appointment(p_appointment_id uuid)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_appointment public.appointment%rowtype;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then raise exception 'No autorizado' using errcode='42501'; end if;\n  select * into v_appointment from public.appointment where id=p_appointment_id for update;\n  if not found or v_appointment.status <> 'SCHEDULED' then raise exception 'La cita no puede registrar ingreso' using errcode='23514'; end if;\n  update public.appointment set status='CHECKED_IN',checked_in_at=now() where id=p_appointment_id;\n  insert into public.appointment_status_event(appointment_id,from_status,to_status,actor_id) values(p_appointment_id,'SCHEDULED','CHECKED_IN',(select auth.uid()));\n  perform private.write_audit('APPOINTMENT_CHECKED_IN','appointment',p_appointment_id,v_appointment.patient_id);\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado",
+      "La cita no puede registrar ingreso"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.appointment",
+      "public.appointment_status_event"
+    ]
+  },
+  {
+    "signature": "public.rpc_clinical_report(jsonb)",
+    "arguments": "p_filters jsonb default '{}'::jsonb",
+    "returnAndSecurity": "returns table(encounter_id uuid,closed_at timestamptz,encounter_type public.encounter_type_code,specialty_name text,patient_id uuid,carnet text,patient_name text,birth_date date,chief_complaint text,assessment text,instructions text,follow_up_text text,diagnoses text,allergies text,background_summary text,habits jsonb,specialty_history jsonb)\nlanguage sql stable security definer set search_path=''",
+    "source": "supabase/migrations/20261007100000_multi_criteria_clinical_reports.sql",
+    "line": 5,
+    "sha256": "a3d382c5249a18cd4048d0686c91d1191b1264f87db01650b47e215cafe862c1",
+    "sql": "create or replace function public.rpc_clinical_report(p_filters jsonb default '{}'::jsonb)\nreturns table(encounter_id uuid,closed_at timestamptz,encounter_type public.encounter_type_code,specialty_name text,patient_id uuid,carnet text,patient_name text,birth_date date,chief_complaint text,assessment text,instructions text,follow_up_text text,diagnoses text,allergies text,background_summary text,habits jsonb,specialty_history jsonb)\nlanguage sql stable security definer set search_path='' as $$\n  with scope as (\n    select ce.* from public.clinical_encounter ce where ce.status='CLOSED' and (\n      private.has_active_role('ADMINISTRATIVE') or private.has_active_role('REPORTING_OFFICER') or\n      ((private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST')) and ce.responsible_staff_id=private.current_staff_id())\n    )\n  ), report_rows as (\n    select ce.id as encounter_id,ce.closed_at,ce.encounter_type,ce.specialty_id,s.name as specialty_name,p.id as patient_id,p.carnet,\n      concat_ws(' ',p.given_names,p.family_names) as patient_name,p.birth_date,ce.chief_complaint,ce.assessment,ce.instructions,ce.follow_up_text,\n      coalesce(dx.labels,'') as diagnoses,\n      coalesce(nullif(background_details.allergies,''),nullif(background.data #>> '{allergies,details}',''),nullif(review.data #>> '{personalHistory,allergic}',''),'') as allergies,\n      coalesce(nullif(background_details.summary,''),nullif(concat_ws(' · ',\n        nullif(review.data #>> '{personalHistory,pathological}',''),nullif(review.data #>> '{personalHistory,surgical}',''),nullif(review.data #>> '{familyHistory}','')\n      ),''),'') as background_summary,\n      coalesce(background.data->'habits',review.data->'habits','{}'::jsonb) as habits,\n      coalesce(background.data->'habits',review.data->'habits','{}'::jsonb) as habits_for_search,\n      specialty_version.data as specialty_history\n    from scope ce\n    join public.patient p on p.id=ce.patient_id\n    left join public.specialty s on s.id=ce.specialty_id\n    left join public.clinical_background_version background on background.id=ce.clinical_background_version_id\n    left join lateral (\n      select string_agg(item,' · ' order by section_order,ordinal) filter (where section='Alergias') as allergies,\n        string_agg(section || ': ' || item,' · ' order by section_order,ordinal) as summary\n      from (\n        select 'Alergias'::text as section,1 as section_order,item,ordinal from jsonb_array_elements_text(private.clinical_background_items(background.data,'allergies')) with ordinality as listed(item,ordinal)\n        union all select 'Antecedentes personales',2,item,ordinal from jsonb_array_elements_text(private.clinical_background_items(background.data,'personalConditions')) with ordinality as listed(item,ordinal)\n        union all select 'Cirugías',3,item,ordinal from jsonb_array_elements_text(private.clinical_background_items(background.data,'surgeries')) with ordinality as listed(item,ordinal)\n        union all select 'Medicamentos',4,item,ordinal from jsonb_array_elements_text(private.clinical_background_items(background.data,'medications')) with ordinality as listed(item,ordinal)\n        union all select 'Antecedentes familiares',5,item,ordinal from jsonb_array_elements_text(private.clinical_background_items(background.data,'familyHistory')) with ordinality as listed(item,ordinal)\n      ) listed_background\n    ) background_details on true\n    left join lateral (select string_agg(coalesce(cc.display_name,ed.free_text),' · ' order by ed.is_primary desc,ed.created_at) labels from public.encounter_diagnosis ed left join public.clinical_condition_catalog cc on cc.id=ed.condition_id where ed.encounter_id=ce.id) dx on true\n    left join lateral (select rhv.data from public.review_history_version rhv join public.clinical_encounter initial on initial.id=rhv.encounter_id where initial.patient_id=ce.patient_id and rhv.recorded_at<=coalesce(ce.closed_at,now()) order by rhv.recorded_at desc limit 1) review on true\n    left join lateral (select shv.data from public.specialty_history_intake_version shv where shv.encounter_id=ce.id) specialty_version on true\n  )\n  select encounter_id,closed_at,encounter_type,specialty_name,patient_id,carnet,patient_name,birth_date,chief_complaint,assessment,instructions,follow_up_text,diagnoses,allergies,background_summary,habits,specialty_history\n  from report_rows\n  where closed_at::date between coalesce(nullif(p_filters->>'from','')::date,current_date-30) and coalesce(nullif(p_filters->>'to','')::date,current_date)\n    and (nullif(p_filters->>'encounterType','') is null or encounter_type::text=p_filters->>'encounterType')\n    and (nullif(p_filters->>'specialtyId','') is null or specialty_id=(p_filters->>'specialtyId')::uuid)\n    and (nullif(p_filters->>'diagnosis','') is null or diagnoses ilike concat('%',p_filters->>'diagnosis','%'))\n    and not exists (select 1 from jsonb_array_elements_text(case when jsonb_typeof(p_filters->'allergies')='array' then p_filters->'allergies' else '[]'::jsonb end) wanted(term) where allergies not ilike concat('%',wanted.term,'%'))\n    and not exists (select 1 from jsonb_array_elements_text(case when jsonb_typeof(p_filters->'histories')='array' then p_filters->'histories' else '[]'::jsonb end) wanted(term) where background_summary not ilike concat('%',wanted.term,'%'))\n    and not exists (select 1 from jsonb_array_elements_text(case when jsonb_typeof(p_filters->'habitTerms')='array' then p_filters->'habitTerms' else '[]'::jsonb end) wanted(term) where private.clinical_habits_search_text(habits_for_search) not ilike concat('%',wanted.term,'%'))\n    and not exists (select 1 from jsonb_array_elements_text(case when jsonb_typeof(p_filters->'positiveHabits')='array' then p_filters->'positiveHabits' else '[]'::jsonb end) wanted(key) where coalesce(habits_for_search->>wanted.key,'')<>'YES')\n    and (nullif(p_filters->>'search','') is null or concat_ws(' ',chief_complaint,assessment,instructions,follow_up_text,diagnoses,allergies,background_summary,private.clinical_habits_search_text(habits_for_search),coalesce(specialty_history::text,'')) ilike concat('%',p_filters->>'search','%'))\n  order by closed_at desc;\n$$;",
+    "calls": [
+      "private.clinical_background_items",
+      "private.clinical_habits_search_text",
+      "private.current_staff_id",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_close_encounter(uuid,text,text,text,text)",
+    "arguments": "p_encounter_id uuid,p_assessment text default null,p_instructions text default null,p_follow_up_text text default null,\n  p_blood_chemistry_status text default 'NOT_PRESENTED'",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 327,
+    "sha256": "1f77c22eb5f8ce1d059c6391d65a33506ffd0b7c670d94b792083249219fee48",
+    "sql": "create or replace function public.rpc_close_encounter(\n  p_encounter_id uuid,p_assessment text default null,p_instructions text default null,p_follow_up_text text default null,\n  p_blood_chemistry_status text default 'NOT_PRESENTED'\n) returns void language plpgsql security definer set search_path = '' as $$\ndeclare v_encounter public.clinical_encounter%rowtype; v_old_appointment_status public.appointment_status_code;\nbegin\n  select * into v_encounter from public.clinical_encounter where id=p_encounter_id for update;\n  if not found or v_encounter.status <> 'DRAFT' or v_encounter.responsible_staff_id is distinct from private.current_staff_id() then\n    raise exception 'No autorizado para cerrar esta atención' using errcode='42501';\n  end if;\n  if p_blood_chemistry_status='ATTACHED' and not exists(select 1 from public.clinical_document d where d.encounter_id=p_encounter_id and d.document_type_code='BLOOD_CHEMISTRY' and d.status='AVAILABLE') then\n    raise exception 'No existe una química sanguínea disponible asociada a la atención' using errcode='23514';\n  end if;\n  update public.clinical_encounter set assessment=p_assessment,instructions=p_instructions,follow_up_text=p_follow_up_text,\n    blood_chemistry_status=p_blood_chemistry_status,status='CLOSED',closed_at=now(),updated_by=(select auth.uid()) where id=p_encounter_id;\n  if v_encounter.appointment_id is not null then\n    select status into v_old_appointment_status from public.appointment where id=v_encounter.appointment_id for update;\n    if v_old_appointment_status in ('SCHEDULED','CHECKED_IN') then\n      update public.appointment set status='ATTENDED' where id=v_encounter.appointment_id;\n      insert into public.appointment_status_event(appointment_id,from_status,to_status,actor_id) values(v_encounter.appointment_id,v_old_appointment_status,'ATTENDED',(select auth.uid()));\n    end if;\n  end if;\n  perform private.write_audit('ENCOUNTER_CLOSED','clinical_encounter',p_encounter_id,v_encounter.patient_id);\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.write_audit",
+      "public.appointment_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para cerrar esta atención",
+      "No existe una química sanguínea disponible asociada a la atención"
+    ],
+    "rowLocks": 2,
+    "writes": [
+      "public.appointment",
+      "public.appointment_status_event",
+      "public.clinical_encounter"
+    ]
+  },
+  {
+    "signature": "public.rpc_close_referral(uuid,text)",
+    "arguments": "p_referral_id uuid,p_return_note text default null",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 404,
+    "sha256": "47e7a6409e28000282756511e739fc6f71489289a13f750d8bc92f9859cb7941",
+    "sql": "create or replace function public.rpc_close_referral(p_referral_id uuid,p_return_note text default null)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_referral public.referral%rowtype;\nbegin\n  select * into v_referral from public.referral where id=p_referral_id for update;\n  if not found or not private.has_active_role('SPECIALIST') or v_referral.assigned_staff_id is distinct from private.current_staff_id() or v_referral.status not in ('ASSIGNED','IN_PROGRESS') then\n    raise exception 'No autorizado para cerrar esta derivación' using errcode='42501';\n  end if;\n  if not exists(select 1 from public.clinical_encounter ce where ce.referral_id=p_referral_id and ce.status='CLOSED') then raise exception 'La derivación requiere una atención especializada cerrada' using errcode='23514'; end if;\n  update public.referral set status='CLOSED',closed_at=now(),return_note=p_return_note where id=p_referral_id;\n  insert into public.referral_status_event(referral_id,from_status,to_status,note,actor_id) values(p_referral_id,v_referral.status,'CLOSED',p_return_note,(select auth.uid()));\n  perform private.write_audit('REFERRAL_CLOSED','referral',p_referral_id,v_referral.patient_id);\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.referral_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para cerrar esta derivación",
+      "La derivación requiere una atención especializada cerrada"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.referral",
+      "public.referral_status_event"
+    ]
+  },
+  {
+    "signature": "public.rpc_compliance_report(uuid)",
+    "arguments": "p_career_id uuid default null",
+    "returnAndSecurity": "returns table(patient_id uuid,carnet text,full_name text,career_name text,first_closed_encounter_at timestamptz,compliance_status text)\nlanguage sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 723,
+    "sha256": "452a91c9adbd6ee0ab8132cd64ddf0cb6e0212ae7d9a521efd1795a6573960ef",
+    "sql": "create or replace function public.rpc_compliance_report(p_career_id uuid default null)\nreturns table(patient_id uuid,carnet text,full_name text,career_name text,first_closed_encounter_at timestamptz,compliance_status text)\nlanguage sql stable security definer set search_path = '' as $$\n  select p.id,p.carnet,concat_ws(' ',p.given_names,p.family_names),c.name,min(ce.closed_at),\n    case when min(ce.closed_at) is null then 'PENDING' else 'COMPLIANT' end\n  from public.academic_enrollment ae join public.patient p on p.id=ae.patient_id join public.career c on c.id=ae.career_id\n  left join public.clinical_encounter ce on ce.patient_id=p.id and ce.status='CLOSED' and ce.closed_at::date between ae.started_on and coalesce(ae.ended_on,current_date)\n  where (private.has_active_role('ADMINISTRATIVE') or private.has_active_role('REPORTING_OFFICER')) and (p_career_id is null or ae.career_id=p_career_id)\n  group by p.id,p.carnet,p.given_names,p.family_names,c.name;\n$$;",
+    "calls": [
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_create_appointment_request_for_patient(uuid,public.appointment_type_code,uuid,uuid)",
+    "arguments": "p_patient_id uuid,p_appointment_type public.appointment_type_code,p_referral_id uuid default null,p_specialty_id uuid default null",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql",
+    "line": 119,
+    "sha256": "b301fbb40e05e713fda3002eb3e71c624b87ffffef650929584505bd63ab4b0a",
+    "sql": "create function public.rpc_create_appointment_request_for_patient(\n  p_patient_id uuid,p_appointment_type public.appointment_type_code,p_referral_id uuid default null,p_specialty_id uuid default null\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_id uuid;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then raise exception 'Solo Administración puede crear solicitudes para un estudiante' using errcode='42501'; end if;\n  if not exists(select 1 from public.patient where id=p_patient_id and archived_at is null) then raise exception 'Estudiante no encontrado o archivado' using errcode='P0002'; end if;\n  if p_appointment_type='INITIAL' then\n    if p_referral_id is not null or p_specialty_id is not null then raise exception 'La revisión no usa especialidad ni derivación' using errcode='22023'; end if;\n    if exists(select 1 from public.appointment_request where patient_id=p_patient_id and appointment_type='INITIAL' and status='PENDING') then raise exception 'El estudiante ya tiene una solicitud de revisión pendiente' using errcode='23505'; end if;\n  elsif p_appointment_type='REFERRAL' then\n    if p_specialty_id is not null or not exists(select 1 from public.referral where id=p_referral_id and patient_id=p_patient_id and status in ('PENDING_ASSIGNMENT','ASSIGNED')) then raise exception 'La derivación no está disponible para programar una cita' using errcode='23514'; end if;\n  elsif p_appointment_type='SPECIALTY' then\n    if p_referral_id is not null or not exists(select 1 from public.specialty where id=p_specialty_id and is_enabled) then raise exception 'Selecciona una especialidad activa' using errcode='23514'; end if;\n    if exists(select 1 from public.appointment_request where patient_id=p_patient_id and specialty_id=p_specialty_id and appointment_type='SPECIALTY' and status='PENDING') then raise exception 'Ya existe una solicitud pendiente para esta especialidad' using errcode='23505'; end if;\n  else raise exception 'Tipo de cita no válido' using errcode='22023'; end if;\n  insert into public.appointment_request(patient_id,appointment_type,referral_id,specialty_id,requested_by) values(p_patient_id,p_appointment_type,p_referral_id,p_specialty_id,(select auth.uid())) returning id into v_id;\n  perform private.write_audit('APPOINTMENT_REQUEST_CREATED_BY_ADMIN','appointment_request',v_id,p_patient_id,'SUCCESS',jsonb_build_object('appointment_type',p_appointment_type,'referral_id',p_referral_id,'specialty_id',p_specialty_id));\n  return v_id;\nend;\n$$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_request"
+    ],
+    "sqlstates": [
+      "22023",
+      "23505",
+      "23514",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo Administración puede crear solicitudes para un estudiante",
+      "Estudiante no encontrado o archivado",
+      "La revisión no usa especialidad ni derivación",
+      "El estudiante ya tiene una solicitud de revisión pendiente",
+      "La derivación no está disponible para programar una cita",
+      "Selecciona una especialidad activa",
+      "Ya existe una solicitud pendiente para esta especialidad",
+      "Tipo de cita no válido"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.appointment_request"
+    ]
+  },
+  {
+    "signature": "public.rpc_create_document_upload(uuid,uuid,text,text,text,date,text)",
+    "arguments": "p_patient_id uuid,p_encounter_id uuid,p_document_type_code text,p_original_filename text,p_mime_type text,\n  p_study_date date default null,p_description text default null",
+    "returnAndSecurity": "returns table(document_id uuid,object_path text) language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 530,
+    "sha256": "d75b2c92cee2713debbbcd22e8b5eebfb51e325cee1aa77a85c9fbe56017858e",
+    "sql": "create or replace function public.rpc_create_document_upload(\n  p_patient_id uuid,p_encounter_id uuid,p_document_type_code text,p_original_filename text,p_mime_type text,\n  p_study_date date default null,p_description text default null\n) returns table(document_id uuid,object_path text) language plpgsql security definer set search_path = '' as $$\ndeclare v_id uuid:=gen_random_uuid(); v_path text;\nbegin\n  if not private.can_read_clinical_patient(p_patient_id) then raise exception 'No autorizado para cargar documento de este paciente' using errcode='42501'; end if;\n  if p_encounter_id is not null and not exists(select 1 from public.clinical_encounter ce where ce.id=p_encounter_id and ce.patient_id=p_patient_id and ce.status='DRAFT' and ce.responsible_staff_id=private.current_staff_id()) then\n    raise exception 'La atención no admite adjuntos o no pertenece al profesional' using errcode='42501';\n  end if;\n  if p_mime_type not in ('application/pdf','image/jpeg','image/png','image/webp') then raise exception 'Tipo de archivo no permitido' using errcode='22023'; end if;\n  v_path:=format('patient/%s/%s/%s',p_patient_id,to_char(current_date,'YYYY'),v_id);\n  insert into public.clinical_document(id,patient_id,encounter_id,document_type_code,object_path,original_filename,mime_type,study_date,description,uploaded_by)\n  values(v_id,p_patient_id,p_encounter_id,p_document_type_code,v_path,p_original_filename,p_mime_type,p_study_date,p_description,(select auth.uid()));\n  perform private.write_audit('DOCUMENT_UPLOAD_STARTED','clinical_document',v_id,p_patient_id);\n  return query select v_id,v_path;\nend; $$;",
+    "calls": [
+      "private.can_read_clinical_patient",
+      "private.current_staff_id",
+      "private.write_audit",
+      "public.clinical_document"
+    ],
+    "sqlstates": [
+      "22023",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para cargar documento de este paciente",
+      "La atención no admite adjuntos o no pertenece al profesional",
+      "Tipo de archivo no permitido"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.clinical_document"
+    ]
+  },
+  {
+    "signature": "public.rpc_create_initial_appointment_request()",
+    "arguments": "",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "line": 47,
+    "sha256": "85a7c6273996efbd0179f556747ded7262185d92e02ffa7f73de5eac2c7a7e58",
+    "sql": "create or replace function public.rpc_create_initial_appointment_request()\nreturns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_patient_id uuid; v_id uuid;\nbegin\n  if not private.has_active_role('STUDENT') then\n    raise exception 'Solo estudiantes pueden solicitar una revisión inicial' using errcode='42501';\n  end if;\n  select id into v_patient_id from public.patient\n    where profile_id = (select auth.uid()) and archived_at is null;\n  if v_patient_id is null then\n    raise exception 'Tu cuenta no está vinculada a un registro de estudiante' using errcode='P0002';\n  end if;\n  if exists(select 1 from public.appointment_request\n      where patient_id = v_patient_id and appointment_type = 'INITIAL' and status = 'PENDING') then\n    raise exception 'Ya existe una solicitud inicial pendiente' using errcode='23505';\n  end if;\n  insert into public.appointment_request(patient_id, appointment_type, requested_by)\n  values(v_patient_id, 'INITIAL', (select auth.uid())) returning id into v_id;\n  perform private.write_audit('APPOINTMENT_REQUEST_CREATED','appointment_request',v_id,v_patient_id);\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_request"
+    ],
+    "sqlstates": [
+      "23505",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo estudiantes pueden solicitar una revisión inicial",
+      "Tu cuenta no está vinculada a un registro de estudiante",
+      "Ya existe una solicitud inicial pendiente"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.appointment_request"
+    ]
+  },
+  {
+    "signature": "public.rpc_create_initial_appointment_request_for_patient(uuid)",
+    "arguments": "p_patient_id uuid",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920110000_administrative_initial_appointment_request.sql",
+    "line": 5,
+    "sha256": "9f1845b92b65f7465b3cf88d77b88c30b15ab0a65af18391e9490b1b9e3cd9ca",
+    "sql": "create or replace function public.rpc_create_initial_appointment_request_for_patient(p_patient_id uuid)\nreturns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_id uuid;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then\n    raise exception 'Solo Administración puede crear una solicitud para un estudiante' using errcode='42501';\n  end if;\n  if not exists(select 1 from public.patient where id=p_patient_id and archived_at is null) then\n    raise exception 'Estudiante no encontrado o archivado' using errcode='P0002';\n  end if;\n  if exists(select 1 from public.appointment_request\n      where patient_id=p_patient_id and appointment_type='INITIAL' and status='PENDING') then\n    raise exception 'El estudiante ya tiene una solicitud inicial pendiente' using errcode='23505';\n  end if;\n  insert into public.appointment_request(patient_id,appointment_type,requested_by)\n  values(p_patient_id,'INITIAL',(select auth.uid())) returning id into v_id;\n  perform private.write_audit('APPOINTMENT_REQUEST_CREATED_BY_ADMIN','appointment_request',v_id,p_patient_id);\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_request"
+    ],
+    "sqlstates": [
+      "23505",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo Administración puede crear una solicitud para un estudiante",
+      "Estudiante no encontrado o archivado",
+      "El estudiante ya tiene una solicitud inicial pendiente"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.appointment_request"
+    ]
+  },
+  {
+    "signature": "public.rpc_create_my_availability_block(date,time,time,text)",
+    "arguments": "p_block_date date, p_starts_at time default null, p_ends_at time default null, p_label text default null",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 208,
+    "sha256": "7afbb07e99f07d00008348b4cc8034819004dd7b1cc09d1ebc0cc715ad62126f",
+    "sql": "create or replace function public.rpc_create_my_availability_block(\n  p_block_date date, p_starts_at time default null, p_ends_at time default null, p_label text default null\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare\n  v_staff_member_id uuid;\n  v_block_id uuid;\n  v_starts_at timestamptz;\n  v_ends_at timestamptz;\nbegin\n  if not (private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST')) then\n    raise exception 'Solo médicos pueden crear bloqueos' using errcode = '42501';\n  end if;\n  if p_block_date < current_date or length(btrim(coalesce(p_label,''))) = 0\n    or ((p_starts_at is null) <> (p_ends_at is null)) or (p_starts_at is not null and p_ends_at <= p_starts_at) then\n    raise exception 'El bloqueo debe tener fecha vigente, nombre y horario válido' using errcode = '22023';\n  end if;\n  select private.current_staff_id() into v_staff_member_id;\n  if v_staff_member_id is null then raise exception 'La cuenta médica no tiene ficha de personal' using errcode = 'P0002'; end if;\n  v_starts_at := (p_block_date + coalesce(p_starts_at, time '00:00')) at time zone 'America/La_Paz';\n  v_ends_at := ((p_block_date + case when p_ends_at is null then time '00:00' else p_ends_at end)\n    + case when p_ends_at is null then interval '1 day' else interval '0 day' end) at time zone 'America/La_Paz';\n  if exists(\n    select 1 from public.availability_slot s where s.staff_member_id = v_staff_member_id and s.booked_count > 0\n      and s.status in ('DRAFT','PUBLISHED','BLOCKED')\n      and tstzrange(s.starts_at,s.ends_at,'[)') && tstzrange(v_starts_at,v_ends_at,'[)')\n  ) then raise exception 'No puedes bloquear un horario que ya tiene una cita asignada' using errcode = '23505'; end if;\n  insert into public.availability_block(staff_member_id,block_date,starts_at,ends_at,label,created_by)\n  values(v_staff_member_id,p_block_date,p_starts_at,p_ends_at,btrim(p_label),(select auth.uid())) returning id into v_block_id;\n  update public.availability_slot set status = 'BLOCKED', updated_at = now()\n  where staff_member_id = v_staff_member_id and booked_count = 0 and status = 'PUBLISHED'\n    and tstzrange(starts_at,ends_at,'[)') && tstzrange(v_starts_at,v_ends_at,'[)');\n  perform private.write_audit('AVAILABILITY_BLOCK_CREATED','availability_block',v_block_id,null,'SUCCESS',jsonb_build_object('date',p_block_date,'label',p_label));\n  return v_block_id;\nend;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.availability_block"
+    ],
+    "sqlstates": [
+      "22023",
+      "23505",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo médicos pueden crear bloqueos",
+      "El bloqueo debe tener fecha vigente, nombre y horario válido",
+      "La cuenta médica no tiene ficha de personal",
+      "No puedes bloquear un horario que ya tiene una cita asignada"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.availability_block",
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "public.rpc_create_referral(uuid,uuid,text,text,public.referral_priority_code,uuid[],uuid[])",
+    "arguments": "p_source_encounter_id uuid,p_specialty_id uuid,p_reason text,p_comment_for_specialist text,\n  p_priority public.referral_priority_code default 'ROUTINE',p_diagnosis_ids uuid[] default '{}'::uuid[],p_document_ids uuid[] default '{}'::uuid[]",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 364,
+    "sha256": "cfda37ed3abe7d65288c1be85eb89445f65fe3b552fe6fa27447d2bff933ffdd",
+    "sql": "create or replace function public.rpc_create_referral(\n  p_source_encounter_id uuid,p_specialty_id uuid,p_reason text,p_comment_for_specialist text,\n  p_priority public.referral_priority_code default 'ROUTINE',p_diagnosis_ids uuid[] default '{}'::uuid[],p_document_ids uuid[] default '{}'::uuid[]\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_source public.clinical_encounter%rowtype; v_id uuid;\nbegin\n  select * into v_source from public.clinical_encounter where id=p_source_encounter_id for update;\n  if not private.has_active_role('REVIEW_DOCTOR') or not found or v_source.encounter_type <> 'INITIAL' or v_source.status <> 'CLOSED' or v_source.responsible_staff_id is distinct from private.current_staff_id() then\n    raise exception 'Sólo el médico de revisión puede derivar desde una atención inicial cerrada propia' using errcode='42501';\n  end if;\n  if not exists(select 1 from public.specialty s where s.id=p_specialty_id and s.is_enabled) then raise exception 'Especialidad no habilitada' using errcode='23514'; end if;\n  insert into public.referral(patient_id,source_encounter_id,specialty_id,priority,reason,comment_for_specialist,requested_by)\n  values(v_source.patient_id,p_source_encounter_id,p_specialty_id,p_priority,p_reason,p_comment_for_specialist,(select auth.uid())) returning id into v_id;\n  insert into public.referral_diagnosis(referral_id,encounter_diagnosis_id)\n  select v_id,d.id from public.encounter_diagnosis d where d.id=any(p_diagnosis_ids) and d.encounter_id=p_source_encounter_id;\n  if (select count(*) from public.referral_diagnosis where referral_id=v_id) <> cardinality(p_diagnosis_ids) then raise exception 'Diagnóstico ajeno a la atención origen' using errcode='23514'; end if;\n  insert into public.referral_document(referral_id,document_id)\n  select v_id,d.id from public.clinical_document d where d.id=any(p_document_ids) and d.patient_id=v_source.patient_id and d.status='AVAILABLE';\n  if (select count(*) from public.referral_document where referral_id=v_id) <> cardinality(p_document_ids) then raise exception 'Documento ajeno al paciente o no disponible' using errcode='23514'; end if;\n  insert into public.referral_status_event(referral_id,to_status,actor_id) values(v_id,'PENDING_ASSIGNMENT',(select auth.uid()));\n  perform private.write_audit('REFERRAL_CREATED','referral',v_id,v_source.patient_id);\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.referral",
+      "public.referral_diagnosis",
+      "public.referral_document",
+      "public.referral_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "Sólo el médico de revisión puede derivar desde una atención inicial cerrada propia",
+      "Especialidad no habilitada",
+      "Diagnóstico ajeno a la atención origen",
+      "Documento ajeno al paciente o no disponible"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.referral",
+      "public.referral_diagnosis",
+      "public.referral_document",
+      "public.referral_status_event"
+    ]
+  },
+  {
+    "signature": "public.rpc_daily_activity(date,date)",
+    "arguments": "p_from date default current_date,p_to date default current_date",
+    "returnAndSecurity": "returns table(activity_day date,encounter_type public.encounter_type_code,specialty_name text,total_closed bigint)\nlanguage sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 713,
+    "sha256": "7a6ca9c48b8c384c967d2572a246cda5487a6159194a4d84735ba3005c2c0fef",
+    "sql": "create or replace function public.rpc_daily_activity(p_from date default current_date,p_to date default current_date)\nreturns table(activity_day date,encounter_type public.encounter_type_code,specialty_name text,total_closed bigint)\nlanguage sql stable security definer set search_path = '' as $$\n  select ce.closed_at::date,ce.encounter_type,s.name,count(*)\n  from public.clinical_encounter ce left join public.specialty s on s.id=ce.specialty_id\n  where ce.status='CLOSED' and ce.closed_at::date between p_from and p_to\n    and (private.has_active_role('ADMINISTRATIVE') or private.has_active_role('REPORTING_OFFICER')\n      or ((private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST')) and ce.responsible_staff_id=private.current_staff_id()))\n  group by ce.closed_at::date,ce.encounter_type,s.name order by ce.closed_at::date,ce.encounter_type,s.name;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_delete_my_availability_block(uuid)",
+    "arguments": "p_block_id uuid",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 244,
+    "sha256": "00be7dbc7868ec2a1d9b274d905fb0f4b6e40b50473b26633c5fee2b93d21715",
+    "sql": "create or replace function public.rpc_delete_my_availability_block(p_block_id uuid)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_block public.availability_block%rowtype; v_staff_member_id uuid;\nbegin\n  select private.current_staff_id() into v_staff_member_id;\n  select * into v_block from public.availability_block where id = p_block_id and staff_member_id = v_staff_member_id for update;\n  if not found then raise exception 'Bloqueo no encontrado' using errcode = 'P0002'; end if;\n  if v_block.block_date < current_date then raise exception 'No se puede modificar un bloqueo histórico' using errcode = '23514'; end if;\n  -- Cerramos los cupos bloqueados de esa fecha y los regeneramos según las reglas activas.\n  update public.availability_slot set status = 'CLOSED', updated_at = now()\n  where staff_member_id = v_staff_member_id and availability_schedule_id is not null and status = 'BLOCKED'\n    and (starts_at at time zone 'America/La_Paz')::date = v_block.block_date;\n  delete from public.availability_block where id = v_block.id;\n  perform private.generate_availability_slots(v_staff_member_id, v_block.block_date, v_block.block_date);\n  perform private.write_audit('AVAILABILITY_BLOCK_DELETED','availability_block',p_block_id);\nend;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.generate_availability_slots",
+      "private.write_audit"
+    ],
+    "sqlstates": [
+      "23514",
+      "P0002"
+    ],
+    "exceptions": [
+      "Bloqueo no encontrado",
+      "No se puede modificar un bloqueo histórico"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.availability_block",
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "public.rpc_finalize_document_upload(uuid)",
+    "arguments": "p_document_id uuid",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 548,
+    "sha256": "e7384ac038616ef3bf0f40285c91526118103da278e1d830aab28a1d39d0e336",
+    "sql": "create or replace function public.rpc_finalize_document_upload(p_document_id uuid)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_doc public.clinical_document%rowtype; v_metadata jsonb; v_size bigint; v_mime text;\nbegin\n  select * into v_doc from public.clinical_document where id=p_document_id for update;\n  if not found or v_doc.status <> 'PROCESSING' or v_doc.uploaded_by <> (select auth.uid()) then raise exception 'Documento no disponible para finalizar' using errcode='42501'; end if;\n  select o.metadata into v_metadata from storage.objects o where o.bucket_id=v_doc.bucket and o.name=v_doc.object_path;\n  if v_metadata is null then raise exception 'No se encontró el archivo en Storage' using errcode='P0002'; end if;\n  v_size:=nullif(v_metadata ->> 'size','')::bigint; v_mime:=coalesce(v_metadata ->> 'mimetype',v_metadata ->> 'contentType');\n  if v_size is null or v_size <= 0 or v_size > 15728640 or v_mime is distinct from v_doc.mime_type then\n    update public.clinical_document set status='REJECTED',rejected_reason='Metadatos de archivo inválidos' where id=p_document_id;\n    perform private.write_audit('DOCUMENT_REJECTED','clinical_document',p_document_id,v_doc.patient_id,'FAILURE');\n    raise exception 'Archivo rechazado por validación de metadatos' using errcode='22023';\n  end if;\n  update public.clinical_document set status='AVAILABLE',size_bytes=v_size,available_at=now() where id=p_document_id;\n  perform private.write_audit('DOCUMENT_AVAILABLE','clinical_document',p_document_id,v_doc.patient_id);\nend; $$;",
+    "calls": [
+      "private.write_audit"
+    ],
+    "sqlstates": [
+      "22023",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Documento no disponible para finalizar",
+      "No se encontró el archivo en Storage",
+      "Archivo rechazado por validación de metadatos"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.clinical_document"
+    ]
+  },
+  {
+    "signature": "public.rpc_finalize_initial_encounter(uuid,text,text,text,text,text,text,uuid,text,text,public.referral_priority_code,jsonb)",
+    "arguments": "p_encounter_id uuid,\n  p_chief_complaint text,\n  p_assessment text,\n  p_instructions text default null,\n  p_follow_up_text text default null,\n  p_blood_chemistry_status text default 'NOT_PRESENTED',\n  p_diagnosis_text text default null,\n  p_referral_specialty_id uuid default null,\n  p_referral_reason text default null,\n  p_referral_comment text default null,\n  p_referral_priority public.referral_priority_code default 'ROUTINE',\n  p_review_history jsonb default '{}'::jsonb",
+    "returnAndSecurity": "returns jsonb language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "line": 57,
+    "sha256": "5658385c59437e0f07ded1f3c0cee29ab3f5892b6bcbeedfa39c623b2274971e",
+    "sql": "create function public.rpc_finalize_initial_encounter(\n  p_encounter_id uuid,\n  p_chief_complaint text,\n  p_assessment text,\n  p_instructions text default null,\n  p_follow_up_text text default null,\n  p_blood_chemistry_status text default 'NOT_PRESENTED',\n  p_diagnosis_text text default null,\n  p_referral_specialty_id uuid default null,\n  p_referral_reason text default null,\n  p_referral_comment text default null,\n  p_referral_priority public.referral_priority_code default 'ROUTINE',\n  p_review_history jsonb default '{}'::jsonb\n) returns jsonb language plpgsql security definer set search_path = '' as $$\ndeclare\n  v_encounter public.clinical_encounter%rowtype;\n  v_previous_appointment_status public.appointment_status_code;\n  v_referral_id uuid;\n  v_version_no integer;\nbegin\n  select * into v_encounter from public.clinical_encounter where id = p_encounter_id for update;\n  if not found or v_encounter.encounter_type <> 'INITIAL' or v_encounter.status <> 'DRAFT' or not private.has_active_role('REVIEW_DOCTOR') or v_encounter.responsible_staff_id is distinct from private.current_staff_id() then\n    raise exception 'No autorizado para finalizar esta atención inicial' using errcode = '42501';\n  end if;\n  if length(btrim(coalesce(p_chief_complaint, ''))) = 0 or length(btrim(coalesce(p_assessment, ''))) = 0 then\n    raise exception 'El motivo de consulta y la evaluación son obligatorios' using errcode = '22023';\n  end if;\n  if jsonb_typeof(p_review_history) <> 'object' then raise exception 'La ficha de revisión debe ser un objeto' using errcode = '22023'; end if;\n  if p_blood_chemistry_status not in ('ATTACHED', 'PENDING', 'NOT_PRESENTED') then raise exception 'Estado de química sanguínea inválido' using errcode = '22023'; end if;\n  if p_blood_chemistry_status = 'ATTACHED' and not exists(select 1 from public.clinical_document d where d.encounter_id = p_encounter_id and d.document_type_code = 'BLOOD_CHEMISTRY' and d.status = 'AVAILABLE') then\n    raise exception 'No existe una química sanguínea disponible asociada a la atención' using errcode = '23514';\n  end if;\n  if p_referral_specialty_id is not null and (length(btrim(coalesce(p_referral_reason, ''))) = 0 or length(btrim(coalesce(p_referral_comment, ''))) = 0) then\n    raise exception 'La derivación requiere motivo y resumen para el especialista' using errcode = '22023';\n  end if;\n\n  update public.clinical_encounter set chief_complaint = btrim(p_chief_complaint), assessment = btrim(p_assessment), instructions = nullif(btrim(coalesce(p_instructions, '')), ''), follow_up_text = nullif(btrim(coalesce(p_follow_up_text, '')), ''), blood_chemistry_status = p_blood_chemistry_status, status = 'CLOSED', closed_at = now(), updated_at = now(), updated_by = (select auth.uid()) where id = p_encounter_id;\n  select coalesce(max(version_no), 0) + 1 into v_version_no from public.review_history_version where history_id = v_encounter.history_id;\n  insert into public.review_history_version(history_id, encounter_id, version_no, data, recorded_by)\n  values(v_encounter.history_id, p_encounter_id, v_version_no, p_review_history, (select auth.uid()));\n\n  insert into public.clinical_measurement(encounter_id, measurement_type_code, value_numeric, unit, recorded_by)\n  select p_encounter_id, item.code, item.value_numeric, item.unit, (select auth.uid())\n  from (values\n    ('BLOOD_PRESSURE_SYSTOLIC'::text, private.review_json_number(p_review_history #> '{vitals,bloodPressureSystolic}'), 'mmHg'::text),\n    ('BLOOD_PRESSURE_DIASTOLIC'::text, private.review_json_number(p_review_history #> '{vitals,bloodPressureDiastolic}'), 'mmHg'::text),\n    ('HEART_RATE'::text, private.review_json_number(p_review_history #> '{vitals,heartRate}'), 'lpm'::text),\n    ('RESPIRATORY_RATE'::text, private.review_json_number(p_review_history #> '{vitals,respiratoryRate}'), 'rpm'::text),\n    ('TEMPERATURE'::text, private.review_json_number(p_review_history #> '{vitals,temperature}'), '°C'::text),\n    ('OXYGEN_SATURATION'::text, private.review_json_number(p_review_history #> '{vitals,oxygenSaturation}'), '%'::text),\n    ('WEIGHT'::text, private.review_json_number(p_review_history #> '{vitals,weight}'), 'kg'::text),\n    ('HEIGHT'::text, private.review_json_number(p_review_history #> '{vitals,height}') * 100, 'cm'::text),\n    ('BMI'::text, case when private.review_json_number(p_review_history #> '{vitals,height}') > 0 and private.review_json_number(p_review_history #> '{vitals,weight}') is not null then private.review_json_number(p_review_history #> '{vitals,weight}') / power(private.review_json_number(p_review_history #> '{vitals,height}'), 2) else null end, 'kg/m²'::text)\n  ) as item(code, value_numeric, unit)\n  where item.value_numeric is not null;\n\n  if length(btrim(coalesce(p_diagnosis_text, ''))) > 0 then insert into public.encounter_diagnosis(encounter_id, free_text, diagnosis_kind, is_primary, created_by) values(p_encounter_id, btrim(p_diagnosis_text), 'CONFIRMED', true, (select auth.uid())); end if;\n  select status into v_previous_appointment_status from public.appointment where id = v_encounter.appointment_id for update;\n  if v_previous_appointment_status in ('SCHEDULED', 'CHECKED_IN') then update public.appointment set status = 'ATTENDED', updated_at = now() where id = v_encounter.appointment_id; insert into public.appointment_status_event(appointment_id, from_status, to_status, actor_id) values(v_encounter.appointment_id, v_previous_appointment_status, 'ATTENDED', (select auth.uid())); end if;\n\n  if p_referral_specialty_id is not null then\n    if not exists(select 1 from public.specialty s where s.id = p_referral_specialty_id and s.is_enabled) then raise exception 'La especialidad seleccionada no está habilitada' using errcode = '23514'; end if;\n    insert into public.referral(patient_id, source_encounter_id, specialty_id, priority, reason, comment_for_specialist, requested_by)\n    values(v_encounter.patient_id, p_encounter_id, p_referral_specialty_id, p_referral_priority, btrim(p_referral_reason), btrim(p_referral_comment), (select auth.uid())) returning id into v_referral_id;\n    insert into public.referral_diagnosis(referral_id, encounter_diagnosis_id) select v_referral_id, id from public.encounter_diagnosis where encounter_id = p_encounter_id;\n    insert into public.referral_document(referral_id, document_id) select v_referral_id, id from public.clinical_document where encounter_id = p_encounter_id and status = 'AVAILABLE';\n    insert into public.referral_status_event(referral_id, to_status, actor_id) values(v_referral_id, 'PENDING_ASSIGNMENT', (select auth.uid()));\n    perform private.write_audit('REFERRAL_CREATED', 'referral', v_referral_id, v_encounter.patient_id, 'SUCCESS', jsonb_build_object('review_history_version', v_version_no));\n  end if;\n  perform private.write_audit('REVIEW_HISTORY_RECORDED', 'review_history_version', p_encounter_id, v_encounter.patient_id, 'SUCCESS', jsonb_build_object('version_no', v_version_no));\n  perform private.write_audit('ENCOUNTER_CLOSED', 'clinical_encounter', p_encounter_id, v_encounter.patient_id);\n  return jsonb_build_object('encounterId', p_encounter_id, 'referralId', v_referral_id, 'reviewHistoryVersion', v_version_no);\nend;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.review_json_number",
+      "private.write_audit",
+      "public.appointment_status_event",
+      "public.clinical_measurement",
+      "public.encounter_diagnosis",
+      "public.referral",
+      "public.referral_diagnosis",
+      "public.referral_document",
+      "public.referral_status_event",
+      "public.review_history_version"
+    ],
+    "sqlstates": [
+      "22023",
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para finalizar esta atención inicial",
+      "El motivo de consulta y la evaluación son obligatorios",
+      "La ficha de revisión debe ser un objeto",
+      "Estado de química sanguínea inválido",
+      "No existe una química sanguínea disponible asociada a la atención",
+      "La derivación requiere motivo y resumen para el especialista",
+      "La especialidad seleccionada no está habilitada"
+    ],
+    "rowLocks": 2,
+    "writes": [
+      "public.appointment",
+      "public.appointment_status_event",
+      "public.clinical_encounter",
+      "public.clinical_measurement",
+      "public.encounter_diagnosis",
+      "public.referral",
+      "public.referral_diagnosis",
+      "public.referral_document",
+      "public.referral_status_event",
+      "public.review_history_version"
+    ]
+  },
+  {
+    "signature": "public.rpc_finalize_specialty_encounter(uuid,text,text,text,text,text,jsonb)",
+    "arguments": "p_encounter_id uuid,\n  p_chief_complaint text,\n  p_assessment text,\n  p_instructions text default null,\n  p_follow_up_text text default null,\n  p_diagnosis_text text default null,\n  p_specialty_history jsonb default null",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260930190000_atomic_specialty_history_finalize.sql",
+    "line": 7,
+    "sha256": "a7738815088ecbeef38584abd085d13a625c5eaf8a01881029e950cfabeb101e",
+    "sql": "create function public.rpc_finalize_specialty_encounter(\n  p_encounter_id uuid,\n  p_chief_complaint text,\n  p_assessment text,\n  p_instructions text default null,\n  p_follow_up_text text default null,\n  p_diagnosis_text text default null,\n  p_specialty_history jsonb default null\n) returns void language plpgsql security definer set search_path = '' as $$\ndeclare\n  v_encounter public.clinical_encounter%rowtype;\n  v_previous public.appointment_status_code;\n  v_specialty_code text;\n  v_history_version integer;\n  v_history_id uuid;\nbegin\n  select * into v_encounter from public.clinical_encounter where id=p_encounter_id for update;\n  if not found or v_encounter.encounter_type<>'SPECIALTY' or v_encounter.status<>'DRAFT'\n    or not private.has_active_role('SPECIALIST') or v_encounter.responsible_staff_id is distinct from private.current_staff_id() then\n    raise exception 'No autorizado para finalizar esta atención especializada' using errcode='42501';\n  end if;\n  if length(btrim(coalesce(p_chief_complaint,'')))=0 or length(btrim(coalesce(p_assessment,'')))=0 then\n    raise exception 'El motivo de consulta y la evaluación son obligatorios' using errcode='22023';\n  end if;\n  if jsonb_typeof(p_specialty_history) <> 'object' or v_encounter.specialty_history_id is null then\n    raise exception 'La ficha estructurada de especialidad es obligatoria' using errcode='22023';\n  end if;\n  select code into v_specialty_code from public.specialty where id=v_encounter.specialty_id;\n  if v_specialty_code is null or p_specialty_history->>'specialtyCode' is distinct from v_specialty_code then\n    raise exception 'La ficha no corresponde a la especialidad de esta cita' using errcode='23514';\n  end if;\n  if exists(select 1 from public.specialty_history_intake_version where encounter_id=p_encounter_id) then\n    raise exception 'Esta cita ya tiene una versión de ficha de especialidad' using errcode='23505';\n  end if;\n\n  select coalesce(max(version_no),0)+1 into v_history_version from public.specialty_history_intake_version where specialty_history_id=v_encounter.specialty_history_id;\n  insert into public.specialty_history_intake_version(specialty_history_id,encounter_id,template_id,version_no,data,recorded_by)\n  values(v_encounter.specialty_history_id,p_encounter_id,null,v_history_version,p_specialty_history,(select auth.uid())) returning id into v_history_id;\n\n  update public.clinical_encounter set chief_complaint=btrim(p_chief_complaint),assessment=btrim(p_assessment),instructions=nullif(btrim(coalesce(p_instructions,'')),''),follow_up_text=nullif(btrim(coalesce(p_follow_up_text,'')),''),status='CLOSED',closed_at=now(),updated_at=now(),updated_by=(select auth.uid()) where id=p_encounter_id;\n  if length(btrim(coalesce(p_diagnosis_text,'')))>0 then insert into public.encounter_diagnosis(encounter_id,free_text,diagnosis_kind,is_primary,created_by) values(p_encounter_id,btrim(p_diagnosis_text),'CONFIRMED',true,(select auth.uid())); end if;\n  select status into v_previous from public.appointment where id=v_encounter.appointment_id for update;\n  if v_previous in ('SCHEDULED','CHECKED_IN') then update public.appointment set status='ATTENDED',updated_at=now() where id=v_encounter.appointment_id; insert into public.appointment_status_event(appointment_id,from_status,to_status,actor_id) values(v_encounter.appointment_id,v_previous,'ATTENDED',(select auth.uid())); end if;\n  if v_encounter.referral_id is not null then update public.referral set status='CLOSED',closed_at=now(),updated_at=now() where id=v_encounter.referral_id and status='IN_PROGRESS'; if found then insert into public.referral_status_event(referral_id,from_status,to_status,actor_id) values(v_encounter.referral_id,'IN_PROGRESS','CLOSED',(select auth.uid())); end if; end if;\n  perform private.write_audit('SPECIALTY_HISTORY_RECORDED','specialty_history_intake_version',v_history_id,v_encounter.patient_id,'SUCCESS',jsonb_build_object('version_no',v_history_version));\n  perform private.write_audit('SPECIALTY_ENCOUNTER_CLOSED','clinical_encounter',p_encounter_id,v_encounter.patient_id);\nend;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_status_event",
+      "public.encounter_diagnosis",
+      "public.referral_status_event",
+      "public.specialty_history_intake_version"
+    ],
+    "sqlstates": [
+      "22023",
+      "23505",
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para finalizar esta atención especializada",
+      "El motivo de consulta y la evaluación son obligatorios",
+      "La ficha estructurada de especialidad es obligatoria",
+      "La ficha no corresponde a la especialidad de esta cita",
+      "Esta cita ya tiene una versión de ficha de especialidad"
+    ],
+    "rowLocks": 2,
+    "writes": [
+      "public.appointment",
+      "public.appointment_status_event",
+      "public.clinical_encounter",
+      "public.encounter_diagnosis",
+      "public.referral",
+      "public.referral_status_event",
+      "public.specialty_history_intake_version"
+    ]
+  },
+  {
+    "signature": "public.rpc_get_clinical_background(uuid,uuid)",
+    "arguments": "p_patient_id uuid,p_encounter_id uuid default null",
+    "returnAndSecurity": "returns jsonb language plpgsql stable security definer set search_path=''",
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "line": 110,
+    "sha256": "a86f403cc52d797eb13c00fba3129fa2a2e75ce6b21eccd3ab346d54a33910fb",
+    "sql": "create or replace function public.rpc_get_clinical_background(p_patient_id uuid,p_encounter_id uuid default null)\nreturns jsonb language plpgsql stable security definer set search_path='' as $$\ndeclare v_history public.clinical_history%rowtype; v_current jsonb; v_encounter jsonb;\nbegin\n  if not (private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST'))\n    or not private.can_read_clinical_patient(p_patient_id) then\n    raise exception 'No autorizado para consultar los antecedentes clínicos generales' using errcode='42501';\n  end if;\n  select * into v_history from public.clinical_history where patient_id=p_patient_id;\n  if not found then raise exception 'Historia clínica no encontrada' using errcode='P0002'; end if;\n  select jsonb_build_object('id',v.id,'versionNo',v.version_no,'data',v.data,'verificationStatus',v.verification_status,\n    'recordedAt',v.recorded_at,'recordedBy',coalesce(p.display_name,p.email),'changeReason',v.change_reason)\n  into v_current from public.clinical_background_version v left join public.profile p on p.id=v.recorded_by\n  where v.id=v_history.current_background_version_id;\n  if p_encounter_id is not null then\n    select jsonb_build_object('id',v.id,'versionNo',v.version_no,'data',v.data,'verificationStatus',v.verification_status,\n      'recordedAt',v.recorded_at,'recordedBy',coalesce(p.display_name,p.email),'changeReason',v.change_reason)\n    into v_encounter\n    from public.clinical_encounter ce\n    join public.clinical_background_version v on v.id=ce.clinical_background_version_id\n    left join public.profile p on p.id=v.recorded_by\n    where ce.id=p_encounter_id and ce.patient_id=p_patient_id;\n  end if;\n  return jsonb_build_object('current',v_current,'encounter',v_encounter);\nend;\n$$;",
+    "calls": [
+      "private.can_read_clinical_patient",
+      "private.has_active_role"
+    ],
+    "sqlstates": [
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "No autorizado para consultar los antecedentes clínicos generales",
+      "Historia clínica no encontrada"
+    ],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_get_initial_history_intake(uuid)",
+    "arguments": "p_patient_id uuid",
+    "returnAndSecurity": "returns table(\n  version_no integer,\n  allergies text,\n  chronic_conditions text,\n  current_medications text,\n  relevant_history text,\n  emergency_contact_note text,\n  recorded_at timestamptz\n) language plpgsql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260920100000_initial_history_admission.sql",
+    "line": 7,
+    "sha256": "e3f12ec1f493bf650ff0fd7f4ff3924135f374838aec3e32b66bee71a7ed4c69",
+    "sql": "create or replace function public.rpc_get_initial_history_intake(p_patient_id uuid)\nreturns table(\n  version_no integer,\n  allergies text,\n  chronic_conditions text,\n  current_medications text,\n  relevant_history text,\n  emergency_contact_note text,\n  recorded_at timestamptz\n) language plpgsql stable security definer set search_path = '' as $$\nbegin\n  if not (private.has_active_role('ADMINISTRATIVE') or private.can_read_clinical_patient(p_patient_id)) then\n    raise exception 'No autorizado para consultar la historia inicial' using errcode='42501';\n  end if;\n  return query\n    select hiv.version_no,hiv.allergies,hiv.chronic_conditions,hiv.current_medications,hiv.relevant_history,hiv.emergency_contact_note,hiv.recorded_at\n    from public.history_intake_version hiv\n    join public.clinical_history h on h.id=hiv.history_id\n    where h.patient_id=p_patient_id\n    order by hiv.version_no desc\n    limit 1;\nend; $$;",
+    "calls": [
+      "private.can_read_clinical_patient",
+      "private.has_active_role"
+    ],
+    "sqlstates": [
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para consultar la historia inicial"
+    ],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_list_patient_referrals_for_appointment(uuid)",
+    "arguments": "p_patient_id uuid",
+    "returnAndSecurity": "returns table(id uuid, specialty_id uuid, specialty_name text, status public.referral_status_code)\nlanguage sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260920140000_administrative_referral_appointments.sql",
+    "line": 31,
+    "sha256": "1ace9d40059714b2695e5f8fda7ed13198d1c52567ccb3b612b9efab5e60ed1a",
+    "sql": "create or replace function public.rpc_list_patient_referrals_for_appointment(p_patient_id uuid)\nreturns table(id uuid, specialty_id uuid, specialty_name text, status public.referral_status_code)\nlanguage sql stable security definer set search_path = '' as $$\n  select r.id, r.specialty_id, s.name, r.status\n  from public.referral r\n  join public.specialty s on s.id = r.specialty_id\n  where private.has_active_role('ADMINISTRATIVE') and r.patient_id = p_patient_id\n    and r.status in ('PENDING_ASSIGNMENT','ASSIGNED')\n  order by r.created_at desc;\n$$;",
+    "calls": [
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_list_referrals_for_administration()",
+    "arguments": "",
+    "returnAndSecurity": "returns table(\n  id uuid, patient_id uuid, patient_name text, patient_carnet text, specialty_id uuid, specialty_name text,\n  priority public.referral_priority_code, reason text, comment_for_specialist text, status public.referral_status_code,\n  requested_at timestamptz, requested_by_name text, assigned_staff_name text, appointment_id uuid, scheduled_for timestamptz\n) language sql stable security definer set search_path = ''",
+    "source": "supabase/migrations/20260920150200_administrative_referral_inbox.sql",
+    "line": 3,
+    "sha256": "7811a799153588282119780e60253de748d2318dda220e206eedfba34ba6dd28",
+    "sql": "create or replace function public.rpc_list_referrals_for_administration()\nreturns table(\n  id uuid, patient_id uuid, patient_name text, patient_carnet text, specialty_id uuid, specialty_name text,\n  priority public.referral_priority_code, reason text, comment_for_specialist text, status public.referral_status_code,\n  requested_at timestamptz, requested_by_name text, assigned_staff_name text, appointment_id uuid, scheduled_for timestamptz\n) language sql stable security definer set search_path = '' as $$\n  select r.id, p.id, concat_ws(' ',p.given_names,p.family_names), p.carnet, s.id, s.name,\n    r.priority, r.reason, r.comment_for_specialist, r.status, r.created_at,\n    coalesce(requester.display_name,'Profesional no disponible'), assignee.display_name, a.id, a.scheduled_for\n  from public.referral r\n  join public.patient p on p.id=r.patient_id\n  join public.specialty s on s.id=r.specialty_id\n  left join public.profile requester on requester.id=r.requested_by\n  left join public.staff_member assigned_staff on assigned_staff.id=r.assigned_staff_id\n  left join public.profile assignee on assignee.id=assigned_staff.profile_id\n  left join public.appointment a on a.referral_id=r.id\n  where private.has_active_role('ADMINISTRATIVE')\n  order by case r.status when 'PENDING_ASSIGNMENT' then 0 when 'ASSIGNED' then 1 when 'IN_PROGRESS' then 2 else 3 end, r.created_at desc;\n$$;",
+    "calls": [
+      "private.has_active_role"
+    ],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  },
+  {
+    "signature": "public.rpc_log_clinical_report_export(jsonb,text,integer,text)",
+    "arguments": "p_filters jsonb, p_format text, p_row_count integer, p_purpose text default 'Gestión clínica'",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260930200000_flexible_clinical_reports.sql",
+    "line": 34,
+    "sha256": "cea139d71bbca236d539179978838665a5fbe2ff11f2093f360ef456cbee89a4",
+    "sql": "create or replace function public.rpc_log_clinical_report_export(p_filters jsonb, p_format text, p_row_count integer, p_purpose text default 'Gestión clínica')\nreturns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_id uuid;\nbegin\n  if not (private.has_active_role('ADMINISTRATIVE') or private.has_active_role('REPORTING_OFFICER') or private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST')) then raise exception 'No autorizado para exportar reportes' using errcode='42501'; end if;\n  if p_format not in ('CSV','XLSX','PDF') or p_row_count < 0 then raise exception 'Formato o cantidad inválida' using errcode='22023'; end if;\n  insert into public.report_export(requested_by,report_code,purpose,filters,field_set,result_mode,status,row_count,completed_at)\n  values((select auth.uid()),'CLINICAL_DETAIL',coalesce(nullif(btrim(p_purpose),''),'Gestión clínica'),p_filters,jsonb_build_array('encounter','patient','diagnosis','history'),'NOMINAL','AVAILABLE',p_row_count,now()) returning id into v_id;\n  perform private.write_audit('REPORT_EXPORTED','report_export',v_id,null,'SUCCESS',jsonb_build_object('format',p_format,'row_count',p_row_count));\n  return v_id;\nend;\n$$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.report_export"
+    ],
+    "sqlstates": [
+      "22023",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para exportar reportes",
+      "Formato o cantidad inválida"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.report_export"
+    ]
+  },
+  {
+    "signature": "public.rpc_mark_appointment_no_show(uuid,text)",
+    "arguments": "p_appointment_id uuid, p_reason text default null",
+    "returnAndSecurity": "returns void language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "line": 158,
+    "sha256": "cc75b8d9e17219c44c8918aae5861a17074b145b45b1c2c2c5598bb2d0078171",
+    "sql": "create or replace function public.rpc_mark_appointment_no_show(p_appointment_id uuid, p_reason text default null)\nreturns void language plpgsql security definer set search_path = '' as $$\ndeclare v_appointment public.appointment%rowtype;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then raise exception 'No autorizado' using errcode='42501'; end if;\n  select * into v_appointment from public.appointment where id=p_appointment_id for update;\n  if not found or v_appointment.status not in ('SCHEDULED','CHECKED_IN') then raise exception 'La cita no puede marcarse como inasistencia' using errcode='23514'; end if;\n  update public.appointment set status='NO_SHOW' where id=p_appointment_id;\n  insert into public.appointment_status_event(appointment_id,from_status,to_status,reason,actor_id)\n    values(p_appointment_id,v_appointment.status,'NO_SHOW',nullif(btrim(p_reason),''),(select auth.uid()));\n  perform private.write_audit('APPOINTMENT_NO_SHOW','appointment',p_appointment_id,v_appointment.patient_id);\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.appointment_status_event"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado",
+      "La cita no puede marcarse como inasistencia"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.appointment",
+      "public.appointment_status_event"
+    ]
+  },
+  {
+    "signature": "public.rpc_open_encounter(uuid,uuid,uuid,text)",
+    "arguments": "p_patient_id uuid,p_appointment_id uuid,p_referral_id uuid,p_chief_complaint text",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path=''",
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "line": 195,
+    "sha256": "5a588337491a971ea8854d25c84d62d133ab5f27ec87b15f4da877108f7f9902",
+    "sql": "create or replace function public.rpc_open_encounter(\n  p_patient_id uuid,p_appointment_id uuid,p_referral_id uuid,p_chief_complaint text\n) returns uuid language plpgsql security definer set search_path='' as $$\ndeclare v_history_id uuid; v_background_version_id uuid; v_staff_id uuid; v_referral public.referral%rowtype; v_appointment public.appointment%rowtype;\n  v_specialty_id uuid; v_specialty_history_id uuid; v_id uuid;\nbegin\n  if not private.can_write_encounter(p_patient_id,p_appointment_id,p_referral_id) then raise exception 'No existe relación clínica válida para abrir esta atención' using errcode='42501'; end if;\n  select * into v_appointment from public.appointment where id=p_appointment_id and patient_id=p_patient_id for update;\n  select id,current_background_version_id into v_history_id,v_background_version_id from public.clinical_history where patient_id=p_patient_id;\n  select private.current_staff_id() into v_staff_id;\n  if v_appointment.referral_id is not null then select * into v_referral from public.referral where id=v_appointment.referral_id for update; v_specialty_id:=v_referral.specialty_id;\n  elsif v_appointment.appointment_type='SPECIALTY' then select specialty_id into v_specialty_id from public.availability_slot where id=v_appointment.slot_id; end if;\n  if v_appointment.appointment_type<>'INITIAL' then\n    if v_specialty_id is null then raise exception 'La cita especializada no tiene especialidad' using errcode='23514'; end if;\n    insert into public.specialty_clinical_history(patient_id,specialty_id,opened_by) values(p_patient_id,v_specialty_id,(select auth.uid()))\n      on conflict(patient_id,specialty_id) do update set patient_id=excluded.patient_id returning id into v_specialty_history_id;\n  end if;\n  insert into public.clinical_encounter(history_id,patient_id,appointment_id,referral_id,specialty_history_id,responsible_staff_id,encounter_type,specialty_id,clinical_background_version_id,chief_complaint,created_by,updated_by)\n  values(v_history_id,p_patient_id,p_appointment_id,v_appointment.referral_id,v_specialty_history_id,v_staff_id,\n    case when v_appointment.appointment_type='INITIAL' then 'INITIAL'::public.encounter_type_code else 'SPECIALTY'::public.encounter_type_code end,\n    v_specialty_id,v_background_version_id,p_chief_complaint,(select auth.uid()),(select auth.uid())) returning id into v_id;\n  if v_appointment.referral_id is not null and v_referral.status='ASSIGNED' then\n    update public.referral set status='IN_PROGRESS',accepted_at=coalesce(accepted_at,now()) where id=v_referral.id;\n    insert into public.referral_status_event(referral_id,from_status,to_status,actor_id) values(v_referral.id,'ASSIGNED','IN_PROGRESS',(select auth.uid()));\n  end if;\n  perform private.write_audit('ENCOUNTER_OPENED','clinical_encounter',v_id,p_patient_id);\n  return v_id;\nend;\n$$;",
+    "calls": [
+      "private.can_write_encounter",
+      "private.current_staff_id",
+      "private.write_audit",
+      "public.clinical_encounter",
+      "public.referral_status_event",
+      "public.specialty_clinical_history"
+    ],
+    "sqlstates": [
+      "23514",
+      "42501"
+    ],
+    "exceptions": [
+      "No existe relación clínica válida para abrir esta atención",
+      "La cita especializada no tiene especialidad"
+    ],
+    "rowLocks": 2,
+    "writes": [
+      "public.clinical_encounter",
+      "public.referral",
+      "public.referral_status_event",
+      "public.specialty_clinical_history"
+    ]
+  },
+  {
+    "signature": "public.rpc_publish_availability_slot(timestamptz,timestamptz,integer,uuid)",
+    "arguments": "p_starts_at timestamptz, p_ends_at timestamptz, p_capacity integer default 1, p_specialty_id uuid default null",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "line": 70,
+    "sha256": "3a7ef2861312f823da2f56454ce6e7d8e807be846c740bf2a6164a74a0a39e51",
+    "sql": "create or replace function public.rpc_publish_availability_slot(\n  p_starts_at timestamptz, p_ends_at timestamptz, p_capacity integer default 1, p_specialty_id uuid default null\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_staff_id uuid; v_id uuid;\nbegin\n  if not (private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST')) then\n    raise exception 'Solo médicos pueden publicar cupos' using errcode='42501';\n  end if;\n  select private.current_staff_id() into v_staff_id;\n  if v_staff_id is null then raise exception 'La cuenta médica no tiene ficha de personal' using errcode='P0002'; end if;\n  if p_starts_at <= now() or p_ends_at <= p_starts_at or p_capacity not between 1 and 20 then\n    raise exception 'El rango horario o la capacidad no son válidos' using errcode='22023';\n  end if;\n  if private.has_active_role('REVIEW_DOCTOR') and p_specialty_id is not null then\n    raise exception 'Un médico de revisión publica cupos iniciales sin especialidad' using errcode='23514';\n  end if;\n  if private.has_active_role('SPECIALIST') and (\n    p_specialty_id is null or not exists(\n      select 1 from public.staff_specialty ss where ss.staff_member_id = v_staff_id\n        and ss.specialty_id = p_specialty_id and ss.active_from <= current_date\n        and (ss.active_to is null or ss.active_to >= current_date)\n    )\n  ) then raise exception 'La especialidad no está asignada a este médico' using errcode='23514'; end if;\n  if exists(select 1 from public.availability_slot s where s.staff_member_id = v_staff_id\n      and s.status in ('DRAFT','PUBLISHED')\n      and tstzrange(s.starts_at,s.ends_at,'[)') && tstzrange(p_starts_at,p_ends_at,'[)')) then\n    raise exception 'El cupo se superpone con otra disponibilidad publicada' using errcode='23505';\n  end if;\n  insert into public.availability_slot(staff_member_id,specialty_id,starts_at,ends_at,capacity,status,published_at,created_by)\n  values(v_staff_id,p_specialty_id,p_starts_at,p_ends_at,p_capacity,'PUBLISHED',now(),(select auth.uid())) returning id into v_id;\n  perform private.write_audit('AVAILABILITY_SLOT_PUBLISHED','availability_slot',v_id,null,'SUCCESS',jsonb_build_object('capacity',p_capacity));\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.availability_slot"
+    ],
+    "sqlstates": [
+      "22023",
+      "23505",
+      "23514",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo médicos pueden publicar cupos",
+      "La cuenta médica no tiene ficha de personal",
+      "El rango horario o la capacidad no son válidos",
+      "Un médico de revisión publica cupos iniciales sin especialidad",
+      "La especialidad no está asignada a este médico",
+      "El cupo se superpone con otra disponibilidad publicada"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "public.rpc_record_initial_history_intake(uuid,text,text,text,text,text)",
+    "arguments": "p_patient_id uuid,\n  p_allergies text default null,\n  p_chronic_conditions text default null,\n  p_current_medications text default null,\n  p_relevant_history text default null,\n  p_emergency_contact_note text default null",
+    "returnAndSecurity": "returns integer language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920100000_initial_history_admission.sql",
+    "line": 32,
+    "sha256": "0cb899b82445c0fcd5ae995cbbadda82e718221a4ce12775611dab66c8704763",
+    "sql": "create or replace function public.rpc_record_initial_history_intake(\n  p_patient_id uuid,\n  p_allergies text default null,\n  p_chronic_conditions text default null,\n  p_current_medications text default null,\n  p_relevant_history text default null,\n  p_emergency_contact_note text default null\n) returns integer language plpgsql security definer set search_path = '' as $$\ndeclare v_history_id uuid; v_version_no integer;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then\n    raise exception 'Solo Administración puede registrar la declaración inicial' using errcode='42501';\n  end if;\n  select id into v_history_id from public.clinical_history where patient_id=p_patient_id;\n  if v_history_id is null then\n    raise exception 'No existe una historia clínica para el estudiante' using errcode='P0002';\n  end if;\n  select coalesce(max(version_no),0)+1 into v_version_no from public.history_intake_version where history_id=v_history_id;\n  insert into public.history_intake_version(\n    history_id,version_no,allergies,chronic_conditions,current_medications,relevant_history,emergency_contact_note,recorded_by\n  ) values(\n    v_history_id,v_version_no,nullif(btrim(p_allergies),''),nullif(btrim(p_chronic_conditions),''),\n    nullif(btrim(p_current_medications),''),nullif(btrim(p_relevant_history),''),nullif(btrim(p_emergency_contact_note),''),(select auth.uid())\n  );\n  perform private.write_audit('INITIAL_HISTORY_RECORDED','history_intake_version',v_history_id,p_patient_id,'SUCCESS',jsonb_build_object('version_no',v_version_no));\n  return v_version_no;\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.history_intake_version"
+    ],
+    "sqlstates": [
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo Administración puede registrar la declaración inicial",
+      "No existe una historia clínica para el estudiante"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.history_intake_version"
+    ]
+  },
+  {
+    "signature": "public.rpc_record_specialty_history_intake(uuid,jsonb,uuid)",
+    "arguments": "p_encounter_id uuid, p_data jsonb, p_template_id uuid default null",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260921100000_review_history_versions.sql",
+    "line": 36,
+    "sha256": "d62338c0cd23e93a6f32ee64fa5b3184a105f9a1d7a8395f63dc7f9938be29df",
+    "sql": "create or replace function public.rpc_record_specialty_history_intake(p_encounter_id uuid, p_data jsonb, p_template_id uuid default null)\nreturns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_encounter public.clinical_encounter%rowtype; v_version integer; v_id uuid;\nbegin\n  select * into v_encounter from public.clinical_encounter where id = p_encounter_id for update;\n  if not found or v_encounter.encounter_type <> 'SPECIALTY' or v_encounter.responsible_staff_id is distinct from private.current_staff_id() or not private.has_active_role('SPECIALIST') then\n    raise exception 'No autorizado para registrar la ficha de especialidad' using errcode = '42501';\n  end if;\n  if jsonb_typeof(p_data) <> 'object' then raise exception 'Los datos de la ficha deben ser un objeto' using errcode = '22023'; end if;\n  if exists(select 1 from public.specialty_history_intake_version where encounter_id = p_encounter_id) then\n    raise exception 'Esta cita ya tiene una versión de ficha de especialidad' using errcode = '23505';\n  end if;\n  select coalesce(max(version_no), 0) + 1 into v_version from public.specialty_history_intake_version where specialty_history_id = v_encounter.specialty_history_id;\n  insert into public.specialty_history_intake_version(specialty_history_id, encounter_id, template_id, version_no, data, recorded_by)\n  values(v_encounter.specialty_history_id, p_encounter_id, p_template_id, v_version, p_data, (select auth.uid())) returning id into v_id;\n  perform private.write_audit('SPECIALTY_HISTORY_RECORDED', 'specialty_history_intake_version', v_id, v_encounter.patient_id, 'SUCCESS', jsonb_build_object('version_no', v_version));\n  return v_id;\nend;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.specialty_history_intake_version"
+    ],
+    "sqlstates": [
+      "22023",
+      "23505",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para registrar la ficha de especialidad",
+      "Los datos de la ficha deben ser un objeto",
+      "Esta cita ya tiene una versión de ficha de especialidad"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.specialty_history_intake_version"
+    ]
+  },
+  {
+    "signature": "public.rpc_register_or_update_patient(uuid,text,text,text,text,date,text,text,uuid,uuid,text,date)",
+    "arguments": "p_patient_id uuid,p_carnet text,p_registration_code text,p_given_names text,p_family_names text,\n  p_birth_date date default null,p_phone text default null,p_email text default null,p_profile_id uuid default null,\n  p_career_id uuid default null,p_academic_period text default null,p_enrollment_start date default null",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 684,
+    "sha256": "b2cbb05b6f96ed09ae1b591d08a5f4760b630af1a4d423ffddae6a1aaafa4189",
+    "sql": "create or replace function public.rpc_register_or_update_patient(\n  p_patient_id uuid,p_carnet text,p_registration_code text,p_given_names text,p_family_names text,\n  p_birth_date date default null,p_phone text default null,p_email text default null,p_profile_id uuid default null,\n  p_career_id uuid default null,p_academic_period text default null,p_enrollment_start date default null\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_patient_id uuid;\nbegin\n  if not private.has_active_role('ADMINISTRATIVE') then raise exception 'No autorizado para registrar pacientes' using errcode='42501'; end if;\n  if p_patient_id is null then\n    insert into public.patient(profile_id,carnet,carnet_normalized,registration_code,registration_code_normalized,given_names,family_names,birth_date,phone,email,created_by,updated_by)\n    values(p_profile_id,p_carnet,'',p_registration_code,'',p_given_names,p_family_names,p_birth_date,p_phone,p_email,(select auth.uid()),(select auth.uid()))\n    returning id into v_patient_id;\n    insert into public.clinical_history(patient_id,opened_by) values(v_patient_id,(select auth.uid()));\n    perform private.write_audit('PATIENT_CREATED','patient',v_patient_id,v_patient_id);\n  else\n    update public.patient set carnet=p_carnet,registration_code=p_registration_code,given_names=p_given_names,family_names=p_family_names,\n      birth_date=p_birth_date,phone=p_phone,email=p_email,profile_id=coalesce(p_profile_id,profile_id),updated_by=(select auth.uid())\n    where id=p_patient_id and archived_at is null returning id into v_patient_id;\n    if v_patient_id is null then raise exception 'Paciente no encontrado o archivado' using errcode='P0002'; end if;\n    perform private.write_audit('PATIENT_UPDATED','patient',v_patient_id,v_patient_id);\n  end if;\n  if p_career_id is not null and p_academic_period is not null and p_enrollment_start is not null then\n    insert into public.academic_enrollment(patient_id,career_id,academic_period,started_on) values(v_patient_id,p_career_id,p_academic_period,p_enrollment_start)\n    on conflict(patient_id,career_id,academic_period) do update set status='ACTIVE',ended_on=null;\n  end if;\n  return v_patient_id;\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.academic_enrollment",
+      "public.clinical_history",
+      "public.patient"
+    ],
+    "sqlstates": [
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "No autorizado para registrar pacientes",
+      "Paciente no encontrado o archivado"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.academic_enrollment",
+      "public.clinical_history",
+      "public.patient"
+    ]
+  },
+  {
+    "signature": "public.rpc_replace_my_availability_schedule(jsonb,jsonb)",
+    "arguments": "p_rules jsonb, p_recurring_blocks jsonb default '[]'::jsonb",
+    "returnAndSecurity": "returns integer language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 129,
+    "sha256": "c35c814a3888dd408974ebbe9462375fcc0eb3c9cedfdb28347a94c5c9b1eba0",
+    "sql": "create or replace function public.rpc_replace_my_availability_schedule(\n  p_rules jsonb, p_recurring_blocks jsonb default '[]'::jsonb\n) returns integer language plpgsql security definer set search_path = '' as $$\ndeclare\n  v_staff_member_id uuid;\n  v_rule jsonb;\n  v_block jsonb;\n  v_weekday smallint;\n  v_starts_at time;\n  v_ends_at time;\n  v_specialty_id uuid;\n  v_duration smallint;\n  v_created integer;\nbegin\n  if not (private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST')) then\n    raise exception 'Solo médicos pueden configurar disponibilidad' using errcode = '42501';\n  end if;\n  if jsonb_typeof(p_rules) <> 'array' or jsonb_typeof(p_recurring_blocks) <> 'array' then\n    raise exception 'La configuración debe ser una lista de horarios y bloqueos' using errcode = '22023';\n  end if;\n  select private.current_staff_id() into v_staff_member_id;\n  if v_staff_member_id is null then raise exception 'La cuenta médica no tiene ficha de personal' using errcode = 'P0002'; end if;\n\n  -- Nunca se eliminan ni alteran cupos con una reserva: se conservan como historial operativo.\n  update public.availability_slot\n  set status = 'CLOSED', updated_at = now()\n  where staff_member_id = v_staff_member_id and availability_schedule_id is not null\n    and starts_at > now() and booked_count = 0 and status in ('DRAFT','PUBLISHED','BLOCKED');\n\n  delete from public.availability_recurring_block where staff_member_id = v_staff_member_id;\n  delete from public.availability_schedule where staff_member_id = v_staff_member_id;\n\n  for v_rule in select value from jsonb_array_elements(p_rules)\n  loop\n    v_weekday := nullif(v_rule ->> 'weekday', '')::smallint;\n    v_starts_at := nullif(v_rule ->> 'startsAt', '')::time;\n    v_ends_at := nullif(v_rule ->> 'endsAt', '')::time;\n    v_duration := nullif(v_rule ->> 'slotDurationMinutes', '')::smallint;\n    v_specialty_id := nullif(v_rule ->> 'specialtyId', '')::uuid;\n    if v_weekday not between 1 and 7 or v_starts_at is null or v_ends_at is null or v_ends_at <= v_starts_at\n      or v_duration not between 5 and 240 then\n      raise exception 'Cada jornada debe tener día, horario válido y duración entre 5 y 240 minutos' using errcode = '22023';\n    end if;\n    if private.has_active_role('REVIEW_DOCTOR') and v_specialty_id is not null then\n      raise exception 'La revisión estudiantil no selecciona especialidad' using errcode = '23514';\n    end if;\n    if private.has_active_role('SPECIALIST') and (\n      v_specialty_id is null or not exists(\n        select 1 from public.staff_specialty ss where ss.staff_member_id = v_staff_member_id and ss.specialty_id = v_specialty_id\n          and ss.active_from <= current_date and (ss.active_to is null or ss.active_to >= current_date)\n      )\n    ) then raise exception 'La especialidad no está asignada a este médico' using errcode = '23514'; end if;\n    if exists(\n      select 1 from public.availability_schedule s where s.staff_member_id = v_staff_member_id and s.weekday = v_weekday\n        and s.starts_at < v_ends_at and s.ends_at > v_starts_at\n    ) then raise exception 'Hay jornadas superpuestas el mismo día' using errcode = '23505'; end if;\n    insert into public.availability_schedule(staff_member_id,specialty_id,weekday,starts_at,ends_at,slot_duration_minutes,created_by)\n    values(v_staff_member_id,v_specialty_id,v_weekday,v_starts_at,v_ends_at,v_duration,(select auth.uid()));\n  end loop;\n\n  for v_block in select value from jsonb_array_elements(p_recurring_blocks)\n  loop\n    v_weekday := nullif(v_block ->> 'weekday', '')::smallint;\n    v_starts_at := nullif(v_block ->> 'startsAt', '')::time;\n    v_ends_at := nullif(v_block ->> 'endsAt', '')::time;\n    if v_weekday not between 1 and 7 or v_starts_at is null or v_ends_at is null or v_ends_at <= v_starts_at\n      or length(btrim(coalesce(v_block ->> 'label',''))) = 0 then\n      raise exception 'Cada bloqueo recurrente debe tener día, nombre y horario válido' using errcode = '22023';\n    end if;\n    insert into public.availability_recurring_block(staff_member_id,weekday,starts_at,ends_at,label,created_by)\n    values(v_staff_member_id,v_weekday,v_starts_at,v_ends_at,btrim(v_block ->> 'label'),(select auth.uid()));\n  end loop;\n\n  select private.generate_availability_slots(v_staff_member_id, current_date, current_date + 90) into v_created;\n  perform private.write_audit('AVAILABILITY_SCHEDULE_REPLACED','availability_schedule',null,null,'SUCCESS',jsonb_build_object('generated_slots',v_created));\n  return v_created;\nend;\n$$;",
+    "calls": [
+      "private.current_staff_id",
+      "private.generate_availability_slots",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.availability_recurring_block",
+      "public.availability_schedule"
+    ],
+    "sqlstates": [
+      "22023",
+      "23505",
+      "23514",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "Solo médicos pueden configurar disponibilidad",
+      "La configuración debe ser una lista de horarios y bloqueos",
+      "La cuenta médica no tiene ficha de personal",
+      "Cada jornada debe tener día, horario válido y duración entre 5 y 240 minutos",
+      "La revisión estudiantil no selecciona especialidad",
+      "La especialidad no está asignada a este médico",
+      "Hay jornadas superpuestas el mismo día",
+      "Cada bloqueo recurrente debe tener día, nombre y horario válido"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.availability_recurring_block",
+      "public.availability_schedule",
+      "public.availability_slot"
+    ]
+  },
+  {
+    "signature": "public.rpc_request_report_export(text,text,jsonb,jsonb,text)",
+    "arguments": "p_report_code text,p_purpose text,p_filters jsonb default '{}'::jsonb,p_field_set jsonb default '[]'::jsonb,p_result_mode text default 'AGGREGATED'",
+    "returnAndSecurity": "returns uuid language plpgsql security definer set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 418,
+    "sha256": "9027c79b831e3491d4e309a6b3a25b745e867ae23f93208d6fbbc6587a17f115",
+    "sql": "create or replace function public.rpc_request_report_export(\n  p_report_code text,p_purpose text,p_filters jsonb default '{}'::jsonb,p_field_set jsonb default '[]'::jsonb,p_result_mode text default 'AGGREGATED'\n) returns uuid language plpgsql security definer set search_path = '' as $$\ndeclare v_id uuid;\nbegin\n  if not (private.has_active_role('ADMINISTRATIVE') or private.has_active_role('REPORTING_OFFICER')) then raise exception 'No autorizado para solicitar exportaciones' using errcode='42501'; end if;\n  if p_result_mode not in ('AGGREGATED','PSEUDONYMIZED','NOMINAL') then raise exception 'Modo de resultado inválido' using errcode='22023'; end if;\n  insert into public.report_export(requested_by,report_code,purpose,filters,field_set,result_mode)\n  values((select auth.uid()),p_report_code,p_purpose,p_filters,p_field_set,p_result_mode) returning id into v_id;\n  perform private.write_audit('REPORT_EXPORT_REQUESTED','report_export',v_id,null,'SUCCESS',jsonb_build_object('report_code',p_report_code,'result_mode',p_result_mode));\n  return v_id;\nend; $$;",
+    "calls": [
+      "private.has_active_role",
+      "private.write_audit",
+      "public.report_export"
+    ],
+    "sqlstates": [
+      "22023",
+      "42501"
+    ],
+    "exceptions": [
+      "No autorizado para solicitar exportaciones",
+      "Modo de resultado inválido"
+    ],
+    "rowLocks": 0,
+    "writes": [
+      "public.report_export"
+    ]
+  },
+  {
+    "signature": "public.rpc_save_clinical_background(uuid,jsonb,integer,uuid,text)",
+    "arguments": "p_patient_id uuid,p_data jsonb,p_expected_version integer default 0,p_encounter_id uuid default null,p_change_reason text default 'Actualización clínica'",
+    "returnAndSecurity": "returns jsonb language plpgsql security definer set search_path=''",
+    "source": "supabase/migrations/20261006110000_listed_clinical_background_items.sql",
+    "line": 6,
+    "sha256": "6398226cd3a0c7aa9cf95d6950a9fa5b1c4577f0dd72baf7d43fb0de73f1214f",
+    "sql": "create or replace function public.rpc_save_clinical_background(\n  p_patient_id uuid,p_data jsonb,p_expected_version integer default 0,p_encounter_id uuid default null,p_change_reason text default 'Actualización clínica'\n) returns jsonb language plpgsql security definer set search_path='' as $$\ndeclare v_history public.clinical_history%rowtype; v_current public.clinical_background_version%rowtype; v_new public.clinical_background_version%rowtype;\n  v_staff_id uuid; v_status text; v_key text; v_items jsonb;\nbegin\n  if not (private.has_active_role('REVIEW_DOCTOR') or private.has_active_role('SPECIALIST'))\n    or not private.can_read_clinical_patient(p_patient_id) then\n    raise exception 'No autorizado para modificar los antecedentes clínicos generales' using errcode='42501';\n  end if;\n  if jsonb_typeof(p_data)<>'object' then raise exception 'Los antecedentes generales deben ser un objeto' using errcode='22023'; end if;\n  foreach v_key in array array['allergies','personalConditions','surgeries','medications','familyHistory'] loop\n    v_status := p_data #>> array[v_key,'status'];\n    if v_status is null or v_status not in ('PRESENT','NONE','UNKNOWN') then\n      raise exception 'Estado inválido en %',v_key using errcode='22023';\n    end if;\n    v_items := p_data #> array[v_key,'items'];\n    if coalesce(jsonb_typeof(v_items),'null') <> 'array' then\n      raise exception 'La lista de % no es válida',v_key using errcode='22023';\n    end if;\n    if jsonb_array_length(v_items)>50 then\n      raise exception 'La lista de % admite hasta 50 elementos',v_key using errcode='22023';\n    end if;\n    if v_status='PRESENT' and jsonb_array_length(v_items)=0 then\n      raise exception 'Agrega al menos un elemento en %',v_key using errcode='22023';\n    end if;\n    if exists(select 1 from jsonb_array_elements_text(v_items) as listed(item) where length(btrim(item))=0 or length(item)>500) then\n      raise exception 'Los elementos de % deben tener entre 1 y 500 caracteres',v_key using errcode='22023';\n    end if;\n    if v_status<>'PRESENT' and jsonb_array_length(v_items)>0 then\n      raise exception 'La lista de % debe estar vacía cuando el antecedente no está presente',v_key using errcode='22023';\n    end if;\n  end loop;\n  if jsonb_typeof(coalesce(p_data->'habits','{}'::jsonb))<>'object' then raise exception 'Los hábitos deben ser un objeto' using errcode='22023'; end if;\n  if length(btrim(coalesce(p_change_reason,'')))=0 then raise exception 'Indica el motivo de actualización' using errcode='22023'; end if;\n\n  select * into v_history from public.clinical_history where patient_id=p_patient_id for update;\n  if not found then raise exception 'Historia clínica no encontrada' using errcode='P0002'; end if;\n  if v_history.current_background_version_id is not null then select * into v_current from public.clinical_background_version where id=v_history.current_background_version_id; end if;\n  if coalesce(v_current.version_no,0)<>coalesce(p_expected_version,0) then\n    raise exception 'Los antecedentes fueron actualizados por otro profesional. Recarga la ficha antes de guardar.' using errcode='40001';\n  end if;\n  select private.current_staff_id() into v_staff_id;\n  if p_encounter_id is not null and not exists(\n    select 1 from public.clinical_encounter ce where ce.id=p_encounter_id and ce.patient_id=p_patient_id and ce.status='DRAFT' and ce.responsible_staff_id=v_staff_id\n  ) then raise exception 'La atención no está disponible para vincular esta actualización' using errcode='42501'; end if;\n\n  insert into public.clinical_background_version(history_id,version_no,data,verification_status,source_encounter_id,change_reason,recorded_by)\n  values(v_history.id,coalesce(v_current.version_no,0)+1,p_data,'CONFIRMED',p_encounter_id,btrim(p_change_reason),(select auth.uid())) returning * into v_new;\n  update public.clinical_history set current_background_version_id=v_new.id where id=v_history.id;\n  if p_encounter_id is not null then update public.clinical_encounter set clinical_background_version_id=v_new.id,updated_at=now(),updated_by=(select auth.uid()) where id=p_encounter_id; end if;\n  perform private.write_audit('CLINICAL_BACKGROUND_UPDATED','clinical_background_version',v_new.id,p_patient_id,'SUCCESS',jsonb_build_object('version_no',v_new.version_no,'encounter_id',p_encounter_id));\n  return jsonb_build_object('id',v_new.id,'versionNo',v_new.version_no,'data',v_new.data,'verificationStatus',v_new.verification_status,\n    'recordedAt',v_new.recorded_at,'recordedBy',(select coalesce(display_name,email) from public.profile where id=v_new.recorded_by),'changeReason',v_new.change_reason);\nend;\n$$;",
+    "calls": [
+      "private.can_read_clinical_patient",
+      "private.current_staff_id",
+      "private.has_active_role",
+      "private.write_audit",
+      "public.clinical_background_version"
+    ],
+    "sqlstates": [
+      "22023",
+      "40001",
+      "42501",
+      "P0002"
+    ],
+    "exceptions": [
+      "No autorizado para modificar los antecedentes clínicos generales",
+      "Los antecedentes generales deben ser un objeto",
+      "Estado inválido en %",
+      "La lista de % no es válida",
+      "La lista de % admite hasta 50 elementos",
+      "Agrega al menos un elemento en %",
+      "Los elementos de % deben tener entre 1 y 500 caracteres",
+      "La lista de % debe estar vacía cuando el antecedente no está presente",
+      "Los hábitos deben ser un objeto",
+      "Indica el motivo de actualización",
+      "Historia clínica no encontrada",
+      "Los antecedentes fueron actualizados por otro profesional. Recarga la ficha antes de guardar.",
+      "La atención no está disponible para vincular esta actualización"
+    ],
+    "rowLocks": 1,
+    "writes": [
+      "public.clinical_background_version",
+      "public.clinical_encounter",
+      "public.clinical_history"
+    ]
+  },
+  {
+    "signature": "public.set_updated_at()",
+    "arguments": "",
+    "returnAndSecurity": "returns trigger language plpgsql set search_path = ''",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 319,
+    "sha256": "7c77c2cd5e23a477a56c6345628dc9ea32865f288525651da7452acf1d5c8f0e",
+    "sql": "create or replace function public.set_updated_at() returns trigger language plpgsql set search_path = '' as $$ begin new.updated_at := now(); return new; end; $$;",
+    "calls": [],
+    "sqlstates": [],
+    "exceptions": [],
+    "rowLocks": 0,
+    "writes": []
+  }
+]

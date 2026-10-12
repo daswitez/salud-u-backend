@@ -1,0 +1,187 @@
+[
+  {
+    "signature": "public.rpc_add_diagnosis(uuid,uuid,text,text,boolean)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_add_encounter_amendment(uuid,text,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_add_measurement(uuid,text,numeric,text,text,timestamptz)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_assign_appointment_request(uuid,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql"
+  },
+  {
+    "signature": "public.rpc_assign_referral(uuid,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_book_appointment(uuid,uuid,public.appointment_type_code,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_cancel_appointment_request(uuid,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql"
+  },
+  {
+    "signature": "public.rpc_check_in_appointment(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_clinical_report(jsonb)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20261007100000_multi_criteria_clinical_reports.sql"
+  },
+  {
+    "signature": "public.rpc_close_encounter(uuid,text,text,text,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_close_referral(uuid,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_compliance_report(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_create_appointment_request_for_patient(uuid,public.appointment_type_code,uuid,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920150100_direct_specialty_and_specialty_history.sql"
+  },
+  {
+    "signature": "public.rpc_create_document_upload(uuid,uuid,text,text,text,date,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_create_initial_appointment_request()",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql"
+  },
+  {
+    "signature": "public.rpc_create_initial_appointment_request_for_patient(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920110000_administrative_initial_appointment_request.sql"
+  },
+  {
+    "signature": "public.rpc_create_my_availability_block(date,time,time,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920130000_recurring_availability.sql"
+  },
+  {
+    "signature": "public.rpc_create_referral(uuid,uuid,text,text,public.referral_priority_code,uuid[],uuid[])",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_daily_activity(date,date)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_delete_my_availability_block(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920130000_recurring_availability.sql"
+  },
+  {
+    "signature": "public.rpc_finalize_document_upload(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_finalize_initial_encounter(uuid,text,text,text,text,text,text,uuid,text,text,public.referral_priority_code,jsonb)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260921100000_review_history_versions.sql"
+  },
+  {
+    "signature": "public.rpc_finalize_specialty_encounter(uuid,text,text,text,text,text,jsonb)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260930190000_atomic_specialty_history_finalize.sql"
+  },
+  {
+    "signature": "public.rpc_get_clinical_background(uuid,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20261006100000_global_clinical_background.sql"
+  },
+  {
+    "signature": "public.rpc_get_initial_history_intake(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920100000_initial_history_admission.sql"
+  },
+  {
+    "signature": "public.rpc_list_patient_referrals_for_appointment(uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920140000_administrative_referral_appointments.sql"
+  },
+  {
+    "signature": "public.rpc_list_referrals_for_administration()",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920150200_administrative_referral_inbox.sql"
+  },
+  {
+    "signature": "public.rpc_log_clinical_report_export(jsonb,text,integer,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260930200000_flexible_clinical_reports.sql"
+  },
+  {
+    "signature": "public.rpc_mark_appointment_no_show(uuid,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql"
+  },
+  {
+    "signature": "public.rpc_open_encounter(uuid,uuid,uuid,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20261006100000_global_clinical_background.sql"
+  },
+  {
+    "signature": "public.rpc_publish_availability_slot(timestamptz,timestamptz,integer,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql"
+  },
+  {
+    "signature": "public.rpc_record_initial_history_intake(uuid,text,text,text,text,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920100000_initial_history_admission.sql"
+  },
+  {
+    "signature": "public.rpc_record_specialty_history_intake(uuid,jsonb,uuid)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260921100000_review_history_versions.sql"
+  },
+  {
+    "signature": "public.rpc_register_or_update_patient(uuid,text,text,text,text,date,text,text,uuid,uuid,text,date)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_replace_my_availability_schedule(jsonb,jsonb)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260920130000_recurring_availability.sql"
+  },
+  {
+    "signature": "public.rpc_request_report_export(text,text,jsonb,jsonb,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20260918150000_initial_clinical_schema.sql"
+  },
+  {
+    "signature": "public.rpc_save_clinical_background(uuid,jsonb,integer,uuid,text)",
+    "comparison": "equal-tokens-except-create-or-replace",
+    "migrationSource": "supabase/migrations/20261006110000_listed_clinical_background_items.sql"
+  }
+]

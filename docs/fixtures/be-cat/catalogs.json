@@ -1,0 +1,21 @@
+{
+  "story": "BE-CAT",
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "careers-active-order",
+      "request": {"method": "GET", "path": "/api/careers"},
+      "response": {"status": 200, "json": {"ok": true, "data": [{"id": "00000000-0000-4000-8000-000000000004", "code": "SYN", "name": "Carrera Sintética"}]}}
+    },
+    {
+      "name": "specialties-student-forbidden",
+      "request": {"method": "GET", "path": "/api/specialties", "role": "STUDENT"},
+      "response": {"status": 403, "json": {"ok": false, "error": "forbidden"}}
+    },
+    {
+      "name": "admin-deactivates-specialty",
+      "request": {"method": "POST", "path": "/api/v1/admin/catalogs/SPECIALTY", "role": "ADMINISTRATIVE", "csrf": "<valid>", "body": {"code": "NUTRITION", "name": "Nutrición", "active": false}},
+      "response": {"status": 200, "json": {"ok": true, "data": {"id": "<uuid>", "code": "NUTRITION", "name": "Nutrición"}, "error": null}}
+    }
+  ]
+}

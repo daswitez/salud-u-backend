@@ -1,0 +1,345 @@
+[
+  {
+    "table": "public.specialty",
+    "name": "authenticated_read_specialty",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 775,
+    "sql": "create policy authenticated_read_specialty on public.specialty for select to authenticated using(true);"
+  },
+  {
+    "table": "public.career",
+    "name": "authenticated_read_career",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 777,
+    "sql": "create policy authenticated_read_career on public.career for select to authenticated using(true);"
+  },
+  {
+    "table": "public.clinical_condition_catalog",
+    "name": "authenticated_read_condition_catalog",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 779,
+    "sql": "create policy authenticated_read_condition_catalog on public.clinical_condition_catalog for select to authenticated using(true);"
+  },
+  {
+    "table": "public.measurement_type",
+    "name": "authenticated_read_measurement_type",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 781,
+    "sql": "create policy authenticated_read_measurement_type on public.measurement_type for select to authenticated using(true);"
+  },
+  {
+    "table": "public.tag_catalog",
+    "name": "authenticated_read_tag_catalog",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 783,
+    "sql": "create policy authenticated_read_tag_catalog on public.tag_catalog for select to authenticated using(true);"
+  },
+  {
+    "table": "public.document_type",
+    "name": "authenticated_read_document_type",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 785,
+    "sql": "create policy authenticated_read_document_type on public.document_type for select to authenticated using(true);"
+  },
+  {
+    "table": "public.profile",
+    "name": "profile_self_or_admin_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 787,
+    "sql": "create policy profile_self_or_admin_select on public.profile for select to authenticated using(id=(select auth.uid()) or private.has_active_role('ADMINISTRATIVE'));"
+  },
+  {
+    "table": "public.profile_role",
+    "name": "profile_role_auditor_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 789,
+    "sql": "create policy profile_role_auditor_select on public.profile_role for select to authenticated using(profile_id=(select auth.uid()) or private.has_active_role('AUDITOR') or private.has_active_role('ADMINISTRATIVE'));"
+  },
+  {
+    "table": "public.staff_member",
+    "name": "staff_member_authenticated_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 791,
+    "sql": "create policy staff_member_authenticated_select on public.staff_member for select to authenticated using(private.is_any_staff());"
+  },
+  {
+    "table": "public.staff_specialty",
+    "name": "staff_specialty_authenticated_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 793,
+    "sql": "create policy staff_specialty_authenticated_select on public.staff_specialty for select to authenticated using(private.is_any_staff());"
+  },
+  {
+    "table": "public.patient",
+    "name": "patient_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 796,
+    "sql": "create policy patient_authorized_select on public.patient for select to authenticated using(private.can_read_patient(id));"
+  },
+  {
+    "table": "public.patient_contact",
+    "name": "patient_contact_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 798,
+    "sql": "create policy patient_contact_authorized_select on public.patient_contact for select to authenticated using(private.can_read_patient(patient_id));"
+  },
+  {
+    "table": "public.emergency_contact",
+    "name": "emergency_contact_clinical_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 800,
+    "sql": "create policy emergency_contact_clinical_select on public.emergency_contact for select to authenticated using(private.can_read_clinical_patient(patient_id));"
+  },
+  {
+    "table": "public.academic_enrollment",
+    "name": "enrollment_admin_or_self_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 802,
+    "sql": "create policy enrollment_admin_or_self_select on public.academic_enrollment for select to authenticated using(private.has_active_role('ADMINISTRATIVE') or exists(select 1 from public.patient p where p.id=patient_id and p.profile_id=(select auth.uid())));"
+  },
+  {
+    "table": "public.availability_slot",
+    "name": "availability_visible_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 804,
+    "sql": "create policy availability_visible_select on public.availability_slot for select to authenticated using(status='PUBLISHED' or private.is_any_staff());"
+  },
+  {
+    "table": "public.appointment",
+    "name": "appointment_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 806,
+    "sql": "create policy appointment_authorized_select on public.appointment for select to authenticated using(private.can_read_patient(patient_id) or private.has_active_role('ADMINISTRATIVE'));"
+  },
+  {
+    "table": "public.appointment_status_event",
+    "name": "appointment_event_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 808,
+    "sql": "create policy appointment_event_authorized_select on public.appointment_status_event for select to authenticated using(exists(select 1 from public.appointment a where a.id=appointment_id and private.can_read_patient(a.patient_id)));"
+  },
+  {
+    "table": "public.clinical_history",
+    "name": "clinical_history_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 811,
+    "sql": "create policy clinical_history_authorized_select on public.clinical_history for select to authenticated using(private.can_read_clinical_patient(patient_id));"
+  },
+  {
+    "table": "public.history_intake_version",
+    "name": "intake_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 813,
+    "sql": "create policy intake_authorized_select on public.history_intake_version for select to authenticated using(exists(select 1 from public.clinical_history h where h.id=history_id and private.can_read_clinical_patient(h.patient_id)));"
+  },
+  {
+    "table": "public.specialty_form_template",
+    "name": "specialty_template_staff_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 825,
+    "sql": "create policy specialty_template_staff_select on public.specialty_form_template for select to authenticated using(private.is_any_staff());"
+  },
+  {
+    "table": "public.document_tag",
+    "name": "document_tag_authorized_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 832,
+    "sql": "create policy document_tag_authorized_select on public.document_tag for select to authenticated using(exists(select 1 from public.clinical_document d where d.id=document_id and private.can_read_document(d.id)));"
+  },
+  {
+    "table": "public.document_access_grant",
+    "name": "document_grant_auditor_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 834,
+    "sql": "create policy document_grant_auditor_select on public.document_access_grant for select to authenticated using(profile_id=(select auth.uid()) or private.has_active_role('AUDITOR'));"
+  },
+  {
+    "table": "public.exception_authorization",
+    "name": "exception_admin_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 846,
+    "sql": "create policy exception_admin_select on public.exception_authorization for select to authenticated using(private.has_active_role('ADMINISTRATIVE'));"
+  },
+  {
+    "table": "public.consent",
+    "name": "consent_clinical_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 848,
+    "sql": "create policy consent_clinical_select on public.consent for select to authenticated using(private.can_read_clinical_patient(patient_id));"
+  },
+  {
+    "table": "public.audit_event",
+    "name": "audit_auditor_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 850,
+    "sql": "create policy audit_auditor_select on public.audit_event for select to authenticated using(private.has_active_role('AUDITOR'));"
+  },
+  {
+    "table": "public.report_export",
+    "name": "export_requester_or_reporting_select",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 852,
+    "sql": "create policy export_requester_or_reporting_select on public.report_export for select to authenticated using(requested_by=(select auth.uid()) or private.has_active_role('REPORTING_OFFICER'));"
+  },
+  {
+    "table": "storage.objects",
+    "name": "clinical_documents_read",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 859,
+    "sql": "create policy clinical_documents_read on storage.objects for select to authenticated using(bucket_id='clinical-documents' and private.can_read_document_by_path(name));"
+  },
+  {
+    "table": "storage.objects",
+    "name": "clinical_documents_upload",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 861,
+    "sql": "create policy clinical_documents_upload on storage.objects for insert to authenticated with check(bucket_id='clinical-documents' and private.can_upload_document_by_path(name));"
+  },
+  {
+    "table": "storage.objects",
+    "name": "clinical_documents_update_upload",
+    "source": "supabase/migrations/20260918150000_initial_clinical_schema.sql",
+    "line": 863,
+    "sql": "create policy clinical_documents_update_upload on storage.objects for update to authenticated\nusing(bucket_id='clinical-documents' and private.can_upload_document_by_path(name))\nwith check(bucket_id='clinical-documents' and private.can_upload_document_by_path(name));"
+  },
+  {
+    "table": "public.appointment_request",
+    "name": "appointment_request_authorized_select",
+    "source": "supabase/migrations/20260918160000_admission_and_appointment_requests.sql",
+    "line": 38,
+    "sql": "create policy appointment_request_authorized_select on public.appointment_request for select to authenticated\n  using(\n    private.has_active_role('ADMINISTRATIVE')\n    or exists(select 1 from public.patient p where p.id = patient_id and p.profile_id = (select auth.uid()))\n  );"
+  },
+  {
+    "table": "public.availability_schedule",
+    "name": "availability_schedule_owner_select",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 266,
+    "sql": "create policy availability_schedule_owner_select on public.availability_schedule for select to authenticated\n  using(staff_member_id = private.current_staff_id());"
+  },
+  {
+    "table": "public.availability_block",
+    "name": "availability_block_owner_select",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 268,
+    "sql": "create policy availability_block_owner_select on public.availability_block for select to authenticated\n  using(staff_member_id = private.current_staff_id());"
+  },
+  {
+    "table": "public.availability_recurring_block",
+    "name": "availability_recurring_block_owner_select",
+    "source": "supabase/migrations/20260920130000_recurring_availability.sql",
+    "line": 270,
+    "sql": "create policy availability_recurring_block_owner_select on public.availability_recurring_block for select to authenticated\n  using(staff_member_id = private.current_staff_id());"
+  },
+  {
+    "table": "public.clinical_background_version",
+    "name": "clinical_background_authorized_select",
+    "source": "supabase/migrations/20261006100000_global_clinical_background.sql",
+    "line": 105,
+    "sql": "create policy clinical_background_authorized_select on public.clinical_background_version for select to authenticated\nusing(exists(select 1 from public.clinical_history h where h.id=history_id and private.can_read_clinical_patient(h.patient_id)));"
+  },
+  {
+    "table": "public.clinical_encounter",
+    "name": "encounter_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 60,
+    "sql": "create policy encounter_authorized_select on public.clinical_encounter for select to authenticated\nusing(private.can_read_clinical_encounter(id));"
+  },
+  {
+    "table": "public.clinical_amendment",
+    "name": "amendment_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 64,
+    "sql": "create policy amendment_authorized_select on public.clinical_amendment for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.encounter_diagnosis",
+    "name": "diagnosis_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 68,
+    "sql": "create policy diagnosis_authorized_select on public.encounter_diagnosis for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.clinical_measurement",
+    "name": "measurement_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 72,
+    "sql": "create policy measurement_authorized_select on public.clinical_measurement for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.encounter_tag",
+    "name": "encounter_tag_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 76,
+    "sql": "create policy encounter_tag_authorized_select on public.encounter_tag for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.encounter_specialty_data",
+    "name": "specialty_data_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 80,
+    "sql": "create policy specialty_data_authorized_select on public.encounter_specialty_data for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.review_history_version",
+    "name": "review_history_version_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 84,
+    "sql": "create policy review_history_version_authorized_select on public.review_history_version for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.specialty_clinical_history",
+    "name": "specialty_history_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 88,
+    "sql": "create policy specialty_history_authorized_select on public.specialty_clinical_history for select to authenticated\nusing(\n  private.has_active_role('SPECIALIST') and private.can_read_clinical_patient(patient_id) and exists(\n    select 1 from public.staff_specialty ss\n    where ss.staff_member_id=private.current_staff_id() and ss.specialty_id=specialty_clinical_history.specialty_id\n      and ss.active_from<=current_date and (ss.active_to is null or ss.active_to>=current_date)\n  )\n);"
+  },
+  {
+    "table": "public.specialty_history_intake_version",
+    "name": "specialty_history_intake_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 98,
+    "sql": "create policy specialty_history_intake_authorized_select on public.specialty_history_intake_version for select to authenticated\nusing(private.can_read_clinical_encounter(encounter_id));"
+  },
+  {
+    "table": "public.clinical_document",
+    "name": "document_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 102,
+    "sql": "create policy document_authorized_select on public.clinical_document for select to authenticated\nusing(private.can_read_document(id));"
+  },
+  {
+    "table": "public.referral",
+    "name": "referral_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 106,
+    "sql": "create policy referral_authorized_select on public.referral for select to authenticated\nusing(private.can_read_referral(id));"
+  },
+  {
+    "table": "public.referral_diagnosis",
+    "name": "referral_diagnosis_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 110,
+    "sql": "create policy referral_diagnosis_authorized_select on public.referral_diagnosis for select to authenticated\nusing(private.can_read_referral(referral_id));"
+  },
+  {
+    "table": "public.referral_document",
+    "name": "referral_document_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 114,
+    "sql": "create policy referral_document_authorized_select on public.referral_document for select to authenticated\nusing(private.can_read_referral(referral_id));"
+  },
+  {
+    "table": "public.referral_status_event",
+    "name": "referral_event_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 118,
+    "sql": "create policy referral_event_authorized_select on public.referral_status_event for select to authenticated\nusing(private.can_read_referral(referral_id));"
+  },
+  {
+    "table": "public.referral_follow_up",
+    "name": "referral_follow_up_authorized_select",
+    "source": "supabase/migrations/20261006120000_area_scoped_clinical_history.sql",
+    "line": 122,
+    "sql": "create policy referral_follow_up_authorized_select on public.referral_follow_up for select to authenticated\nusing(private.can_read_referral(referral_id));"
+  }
+]

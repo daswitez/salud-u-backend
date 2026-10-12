@@ -1,0 +1,420 @@
+openapi: 3.1.0
+info:
+  title: Salud-U API
+  version: 1.0.0-draft
+  description: |
+    Contrato base de la API Spring. Documenta rutas publicadas por T-04, BE-01, BE-CAT y BE-02.
+    Las rutas Next/Supabase heredadas permanecen fuera de /api/v1 y se comparan
+    con los fixtures de docs/reference-t01 antes de cada migración funcional.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/careers:
+    get:
+      summary: Lista carreras activas en el contrato heredado
+      operationId: listLegacyCareers
+      responses:
+        '200':
+          description: Carreras activas ordenadas por nombre y código.
+          content: {application/json: {schema: {$ref: '#/components/schemas/LegacyCatalogSuccess'}}}
+  /api/patients:
+    get:
+      summary: Busca pacientes desde administración en el contrato heredado
+      operationId: listLegacyPatients
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema: {type: string, maxLength: 80}
+      responses:
+        '200': {description: Pacientes ordenados por apellido y nombre., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyPatientListSuccess'}}}}
+        '401': {description: Forma heredada no autenticada.}
+        '403': {description: Forma heredada forbidden.}
+    post:
+      summary: Registra un paciente y su historia longitudinal única
+      operationId: createLegacyPatient
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/PatientRequest'}}}
+      responses:
+        '201': {description: Paciente creado, content: {application/json: {schema: {$ref: '#/components/schemas/LegacyPatientIdSuccess'}}}}
+        '409': {description: Carnet o código normalizado duplicado.}
+        '403': {description: Forma heredada forbidden para CSRF o actor sin rol administrativo.}
+  /api/patients/{patientId}:
+    get:
+      summary: Obtiene un paciente administrativo en el contrato heredado
+      operationId: getLegacyPatient
+      security: [{sessionCookie: []}]
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      responses:
+        '200': {description: Paciente encontrado, content: {application/json: {schema: {$ref: '#/components/schemas/LegacyPatientSuccess'}}}}
+        '404': {description: Estudiante no encontrado.}
+    patch:
+      summary: Actualiza un paciente sin cambiar su UUID
+      operationId: updateLegacyPatient
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/PatientRequest'}}}
+      responses:
+        '200': {description: Paciente actualizado, content: {application/json: {schema: {$ref: '#/components/schemas/LegacyPatientIdSuccess'}}}}
+        '404': {description: Estudiante no encontrado.}
+        '409': {description: Carnet o código normalizado duplicado.}
+        '403': {description: Forma heredada forbidden para CSRF o actor sin rol administrativo.}
+  /api/specialties:
+    get:
+      summary: Lista especialidades activas en el contrato heredado
+      operationId: listLegacySpecialties
+      security: [{sessionCookie: []}]
+      responses:
+        '200': {description: Especialidades activas, content: {application/json: {schema: {$ref: '#/components/schemas/LegacyCatalogSuccess'}}}}
+        '401': {description: Forma heredada no autenticada.}
+        '403': {description: Forma heredada forbidden.}
+  /api/my-specialties:
+    get:
+      summary: Lista especialidades vigentes del profesional actual
+      operationId: listMySpecialties
+      security: [{sessionCookie: []}]
+      responses:
+        '200': {description: Especialidades vigentes, content: {application/json: {schema: {$ref: '#/components/schemas/LegacyCatalogSuccess'}}}}
+  /api/v1/catalogs/{kind}:
+    get:
+      summary: Lista un catálogo clínico activo
+      operationId: listCatalog
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema: {type: string, enum: [CAREER, SPECIALTY, CONDITION, MEASUREMENT, TAG, DOCUMENT_TYPE]}
+      responses:
+        '200': {description: Catálogo activo, content: {application/json: {schema: {$ref: '#/components/schemas/CatalogSuccess'}}}}
+  /api/v1/admin/catalogs/{kind}:
+    post:
+      summary: Crea o actualiza lógicamente un catálogo como administrativo
+      operationId: saveCatalog
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema: {type: string, enum: [CAREER, SPECIALTY, CONDITION, MEASUREMENT, TAG, DOCUMENT_TYPE]}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CatalogSaveRequest'}}}
+      responses:
+        '200': {description: Catálogo guardado, content: {application/json: {schema: {$ref: '#/components/schemas/CatalogSuccess'}}}}
+        '403': {$ref: '#/components/responses/CsrfInvalid'}
+  /api/v1/auth/login:
+    post:
+      summary: Autentica credenciales y crea una sesión opaca en cookie HttpOnly
+      operationId: login
+      security:
+        - csrfSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Sesión creada; el token solo se entrega en cookie.
+          headers:
+            Set-Cookie: {schema: {type: string}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginSuccess'}
+        '401':
+          description: Credenciales inválidas o límite de intentos aplicado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '403': {$ref: '#/components/responses/CsrfInvalid'}
+  /api/v1/profile:
+    patch:
+      summary: Actualiza nombre y correo tras comprobar la contraseña actual
+      operationId: updateProfile
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ProfileUpdateRequest'}}}
+      responses:
+        '204':
+          description: Perfil actualizado; todas las sesiones se revocan y la cookie actual se borra.
+          headers: {Set-Cookie: {schema: {type: string}}}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '409': {description: El correo ya está usado por otra cuenta.}
+        '403': {$ref: '#/components/responses/CsrfInvalid'}
+  /api/v1/profile/password:
+    post:
+      summary: Cambia la contraseña tras comprobar la contraseña actual
+      operationId: changePassword
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/PasswordChangeRequest'}}}
+      responses:
+        '204':
+          description: Contraseña cambiada; todas las sesiones se revocan y la cookie actual se borra.
+          headers: {Set-Cookie: {schema: {type: string}}}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/CsrfInvalid'}
+  /api/v1/security/csrf:
+    get:
+      summary: Crea o recupera el token CSRF de la sesión HTTP actual
+      operationId: getCsrfToken
+      responses:
+        '200':
+          description: Token CSRF y metadatos de envío
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfSuccess'
+  /api/v1/session:
+    get:
+      summary: Inspecciona el sujeto y autoridades de una sesión autenticada
+      operationId: getSessionProbe
+      responses:
+        '200':
+          description: Sesión autenticada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionSuccess'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+  /api/v1/session/logout:
+    post:
+      summary: Invalida la sesión actual
+      operationId: logout
+      security:
+        - csrfSession: []
+      responses:
+        '204':
+          description: Sesión invalidada
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+  /api/me:
+    get:
+      summary: Contrato de compatibilidad de identidad del frontend actual
+      operationId: legacyMe
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Usuario y rol prioritario activo.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LegacyMeSuccess'}
+        '401':
+          description: Forma heredada exacta {ok:false,error:unauthenticated}.
+components:
+  parameters:
+    PatientId:
+      name: patientId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+  headers:
+    RequestId:
+      description: Identificador de trazabilidad aceptado o generado por el servidor.
+      schema:
+        type: string
+  securitySchemes:
+    csrfSession:
+      type: apiKey
+      in: header
+      name: X-CSRF-TOKEN
+      description: Requiere la cookie de sesión obtenida junto con GET /api/v1/security/csrf.
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: SALUD_U_SESSION
+  responses:
+    Unauthenticated:
+      description: Falta una sesión autenticada.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    CsrfInvalid:
+      description: Falta, expiró o no coincide el token CSRF.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    CatalogItem:
+      type: object
+      required: [id, code, name]
+      properties:
+        id: {type: string, format: uuid}
+        code: {type: string}
+        name: {type: string}
+    LegacyCatalogSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: {type: boolean, const: true}
+        data: {type: array, items: {$ref: '#/components/schemas/CatalogItem'}}
+    CatalogSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data: {oneOf: [{$ref: '#/components/schemas/CatalogItem'}, {type: array, items: {$ref: '#/components/schemas/CatalogItem'}}]}
+        error: {type: 'null'}
+    CatalogSaveRequest:
+      type: object
+      required: [code, name, active]
+      properties:
+        id: {type: string, format: uuid}
+        code: {type: string, pattern: '^[A-Za-z0-9_]{2,50}$'}
+        name: {type: string}
+        active: {type: boolean}
+    PatientRequest:
+      type: object
+      properties:
+        fullName: {type: string, maxLength: 160}
+        carnet: {type: string, maxLength: 40}
+        registrationCode: {type: string, maxLength: 40}
+        birthDate: {type: string, format: date}
+        phone: {type: string, maxLength: 40}
+        email: {type: string, format: email, maxLength: 254}
+        careerId: {type: string, format: uuid}
+        academicPeriod: {type: string, maxLength: 30}
+        enrollmentStart: {type: string, format: date}
+    LegacyPatient:
+      type: object
+      required: [id, carnet, registrationCode, fullName, academicStatus, createdAt, updatedAt]
+      properties:
+        id: {type: string, format: uuid}
+        carnet: {type: string}
+        registrationCode: {type: string}
+        fullName: {type: string}
+        birthDate: {type: [string, 'null'], format: date}
+        phone: {type: [string, 'null']}
+        email: {type: [string, 'null'], format: email}
+        academicStatus: {type: string, enum: [ACTIVE, INACTIVE, GRADUATED, SUSPENDED]}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+        career: {oneOf: [{$ref: '#/components/schemas/CatalogItem'}, {type: 'null'}]}
+        enrollment:
+          oneOf:
+            - type: 'null'
+            - type: object
+              required: [id, academicPeriod, startedOn, status]
+              properties:
+                id: {type: string, format: uuid}
+                academicPeriod: {type: string}
+                startedOn: {type: string, format: date}
+                status: {type: string}
+    LegacyPatientSuccess:
+      type: object
+      required: [ok, data]
+      properties: {ok: {type: boolean, const: true}, data: {$ref: '#/components/schemas/LegacyPatient'}}
+    LegacyPatientListSuccess:
+      type: object
+      required: [ok, data]
+      properties: {ok: {type: boolean, const: true}, data: {type: array, items: {$ref: '#/components/schemas/LegacyPatient'}}}
+    LegacyPatientIdSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: {type: boolean, const: true}
+        data: {type: object, required: [id], properties: {id: {type: string, format: uuid}}}
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string, format: password, writeOnly: true}
+    ProfileUpdateRequest:
+      type: object
+      required: [displayName, email, currentPassword]
+      properties:
+        displayName: {type: string, minLength: 1, maxLength: 160}
+        email: {type: string, format: email, maxLength: 254}
+        currentPassword: {type: string, format: password, writeOnly: true}
+    PasswordChangeRequest:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: {type: string, format: password, writeOnly: true}
+        newPassword: {type: string, format: password, writeOnly: true, minLength: 12, maxLength: 128}
+    LoginSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [user]
+          properties:
+            user: {$ref: '#/components/schemas/LegacyUser'}
+        error: {type: 'null'}
+    LegacyMeSuccess:
+      type: object
+      required: [ok, user]
+      properties:
+        ok: {type: boolean, const: true}
+        user: {$ref: '#/components/schemas/LegacyUser'}
+    LegacyUser:
+      type: object
+      required: [id, email, name, role, clinicalRole]
+      properties:
+        id: {type: string, format: uuid}
+        email: {type: string, format: email}
+        name: {type: string}
+        role: {type: string, enum: [estudiante, medico, administrativo]}
+        clinicalRole: {type: string, enum: [ADMINISTRATIVE, REVIEW_DOCTOR, SPECIALIST, STUDENT, AUDITOR]}
+    CsrfSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [token, headerName, parameterName]
+          properties:
+            token: {type: string}
+            headerName: {type: string, example: X-CSRF-TOKEN}
+            parameterName: {type: string, example: _csrf}
+        error: {type: 'null'}
+    SessionSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [subject, authorities]
+          properties:
+            subject: {type: string}
+            authorities:
+              type: array
+              items: {type: string}
+        error: {type: 'null'}
+    ErrorResponse:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: false}
+        data: {type: 'null'}
+        error:
+          type: object
+          required: [code, message, details, requestId]
+          properties:
+            code: {type: string, example: CSRF_INVALID}
+            message: {type: string}
+            details: {type: object, additionalProperties: true}
+            requestId: {type: string}

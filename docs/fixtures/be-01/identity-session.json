@@ -1,0 +1,21 @@
+{
+  "story": "BE-01 / UC-01",
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "legacy-me-active-student",
+      "request": {"method": "GET", "path": "/api/me", "session": "<opaque-valid>"},
+      "response": {"status": 200, "json": {"ok": true, "user": {"id": "00000000-0000-4000-8000-000000000001", "email": "synthetic@example.invalid", "name": "Usuario Sintético", "role": "estudiante", "clinicalRole": "STUDENT"}}}
+    },
+    {
+      "name": "legacy-me-anonymous",
+      "request": {"method": "GET", "path": "/api/me"},
+      "response": {"status": 401, "json": {"ok": false, "error": "unauthenticated"}}
+    },
+    {
+      "name": "login-invalid-or-locked",
+      "request": {"method": "POST", "path": "/api/v1/auth/login", "csrf": "<valid>", "body": {"email": "synthetic@example.invalid", "password": "<incorrect>"}},
+      "response": {"status": 401, "json": {"ok": false, "data": null, "error": {"code": "INVALID_CREDENTIALS", "message": "<localized>", "details": {}, "requestId": "<uuid>"}}}
+    }
+  ]
+}

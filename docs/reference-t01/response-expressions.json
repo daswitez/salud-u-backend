@@ -1,0 +1,552 @@
+[
+  {
+    "source": "src/app/api/administrative/referrals/route.ts",
+    "responseExpressions": [
+      {
+        "line": 14,
+        "payload": "{ ok: true, data: data ?? [] }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/appointment-requests/[requestId]/assign/route.ts",
+    "responseExpressions": [
+      {
+        "line": 14,
+        "payload": "{ ok: false, error: \"Selecciona un cupo.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 18,
+        "payload": "{ ok: true, data: { appointmentId: data } }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/appointment-requests/[requestId]/route.ts",
+    "responseExpressions": [
+      {
+        "line": 13,
+        "payload": "{ ok: false, error: \"Acción no válida.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 17,
+        "payload": "{ ok: true, data: null }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/appointment-requests/route.ts",
+    "responseExpressions": [
+      {
+        "line": 39,
+        "payload": "{ ok: true, data: requests }",
+        "options": "default 200"
+      },
+      {
+        "line": 52,
+        "payload": "{ ok: false, error: \"Selecciona un estudiante para crear la solicitud.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 55,
+        "payload": "{ ok: false, error: \"Una estudiante sólo puede solicitar su propia atención.\" }",
+        "options": "{ status: 403 }"
+      },
+      {
+        "line": 57,
+        "payload": "{ ok: false, error: \"La estudiante sólo puede solicitar una revisión inicial.\" }",
+        "options": "{ status: 403 }"
+      },
+      {
+        "line": 62,
+        "payload": "{ ok: true, data: { id: data } }",
+        "options": "{ status: 201 }"
+      }
+    ],
+    "typeDeclarations": [
+      "type EmbeddedProfile = { display_name: string | null };",
+      "type EmbeddedStaff = { profile: EmbeddedProfile | EmbeddedProfile[] | null };",
+      "type EmbeddedSlot = { starts_at: string; ends_at: string; staff: EmbeddedStaff | EmbeddedStaff[] | null };",
+      "type EmbeddedAppointment = { id: string; status: string; scheduled_for: string; checked_in_at: string | null; cancelled_at: string | null; availability_slot: EmbeddedSlot | EmbeddedSlot[] | null };",
+      "type EmbeddedPatient = { id: string; carnet: string; given_names: string; family_names: string };",
+      "type RequestRow = { id: string; appointment_type: \"INITIAL\" | \"REFERRAL\" | \"SPECIALTY\"; referral_id: string | null; specialty_id: string | null; status: string; requested_at: string; assigned_at: string | null; cancelled_at: string | null; cancellation_reason: string | null; patient: EmbeddedPatient | EmbeddedPatient[] | null; appointment: EmbeddedAppointment | EmbeddedAppointment[] | null };"
+    ]
+  },
+  {
+    "source": "src/app/api/appointments/[appointmentId]/check-in/route.ts",
+    "responseExpressions": [
+      {
+        "line": 15,
+        "payload": "{ ok: true, data: null }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/appointments/[appointmentId]/no-show/route.ts",
+    "responseExpressions": [
+      {
+        "line": 16,
+        "payload": "{ ok: true, data: null }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/availability-slots/route.ts",
+    "responseExpressions": [
+      {
+        "line": 24,
+        "payload": "{ ok: false, error: \"La agenda de disponibilidad pertenece al médico.\" }",
+        "options": "{ status: 403 }"
+      },
+      {
+        "line": 27,
+        "payload": "{ ok: false, error: \"El rango de fechas no es válido.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 30,
+        "payload": "{ ok: false, error: \"No existe una ficha de personal activa para esta cuenta.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 41,
+        "payload": "{ ok: true, data: {\n      schedules: schedules.data ?? [], recurringBlocks: recurringBlocks.data ?? [], dateBlocks: dateBlocks.data ?? [],\n      slots: slots.data ?? [],\n      appointments: (appointments.data ?? []).map((appointment) => {\n        const patient = Array.isArray(appointment.patient) ? appointment.patient[0] : appointment.patient;\n        return { id: appointment.id, slotId: appointment.slot_id, status: appointment.status, scheduledFor: appointment.scheduled_for, patientName: patient ? `${patient.given_names} ${patient.family_names}`.trim() : \"Estudiante\" };\n      }),\n    } }",
+        "options": "default 200"
+      },
+      {
+        "line": 55,
+        "payload": "{ ok: false, error: \"No existe una ficha de personal para esta cuenta.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 67,
+        "payload": "{ ok: true, data: slots }",
+        "options": "default 200"
+      },
+      {
+        "line": 82,
+        "payload": "{ ok: true, data: { generatedSlots: data } }",
+        "options": "default 200"
+      },
+      {
+        "line": 90,
+        "payload": "{ ok: false, error: \"Completa fecha, motivo y ambas horas si el bloqueo no es de todo el día.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 93,
+        "payload": "{ ok: true, data: { id: data } }",
+        "options": "{ status: 201 }"
+      },
+      {
+        "line": 98,
+        "payload": "{ ok: false, error: \"Fecha, hora y capacidad son obligatorias.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 101,
+        "payload": "{ ok: true, data: { id: data } }",
+        "options": "{ status: 201 }"
+      },
+      {
+        "line": 108,
+        "payload": "{ ok: false, error: \"Indica el bloqueo a eliminar.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 112,
+        "payload": "{ ok: true, data: null }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/careers/route.ts",
+    "responseExpressions": [
+      {
+        "line": 11,
+        "payload": "{ ok: false, error: error.message }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 12,
+        "payload": "{ ok: true, data: data ?? [] }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/health/supabase/route.ts",
+    "responseExpressions": [
+      {
+        "line": 22,
+        "payload": "{ ok: false, service: \"supabase\", error: \"database_unavailable\" }",
+        "options": "{ status: 503 }"
+      },
+      {
+        "line": 28,
+        "payload": "{\n      ok: true,\n      service: \"supabase\",\n      enabledSpecialties: count ?? 0,\n    }",
+        "options": "default 200"
+      },
+      {
+        "line": 35,
+        "payload": "{ ok: false, service: \"supabase\", error: \"configuration_error\" }",
+        "options": "{ status: 500 }"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/me/route.ts",
+    "responseExpressions": [
+      {
+        "line": 13,
+        "payload": "{ ok: false, error: \"unauthenticated\" }",
+        "options": "{ status: 401 }"
+      },
+      {
+        "line": 16,
+        "payload": "{\n    ok: true,\n    user: {\n      id: session.id,\n      email: session.email,\n      name: session.name,\n      role: session.role,\n      clinicalRole: session.clinicalRole,\n    },\n  }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/medical/appointments/[appointmentId]/start/route.ts",
+    "responseExpressions": [
+      {
+        "line": 15,
+        "payload": "{ ok: false, error: \"No existe una ficha de personal activa.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 18,
+        "payload": "{ ok: false, error: \"La cita no pertenece a este profesional.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 19,
+        "payload": "{ ok: false, error: \"Esta cita ya no puede iniciarse.\" }",
+        "options": "{ status: 409 }"
+      },
+      {
+        "line": 22,
+        "payload": "{ ok: true, data: { encounterId: existing.id, status: existing.status } }",
+        "options": "default 200"
+      },
+      {
+        "line": 25,
+        "payload": "{ ok: true, data: { encounterId, status: \"DRAFT\" } }",
+        "options": "{ status: 201 }"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/medical/appointments/route.ts",
+    "responseExpressions": [
+      {
+        "line": 49,
+        "payload": "{ ok: false, error: \"Esta cuenta no tiene una ficha de personal activa.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 88,
+        "payload": "{ ok: true, data: appointments }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": [
+      "type EmbeddedPatient = {\n  id: string;\n  carnet: string;\n  registration_code: string;\n  given_names: string;\n  family_names: string;\n  birth_date: string | null;\n  phone: string | null;\n  email: string | null;\n};",
+      "type EmbeddedSpecialty = { code: string; name: string };",
+      "type EmbeddedSlot = { starts_at: string; ends_at: string; specialty: EmbeddedSpecialty | EmbeddedSpecialty[] | null };",
+      "type AppointmentRow = {\n  id: string;\n  appointment_type: \"INITIAL\" | \"REFERRAL\" | \"SPECIALTY\";\n  status: \"SCHEDULED\" | \"CHECKED_IN\" | \"CANCELLED\" | \"NO_SHOW\" | \"ATTENDED\";\n  scheduled_for: string;\n  checked_in_at: string | null;\n  patient: EmbeddedPatient | EmbeddedPatient[] | null;\n  availability_slot: EmbeddedSlot | EmbeddedSlot[] | null;\n};"
+    ]
+  },
+  {
+    "source": "src/app/api/medical/documents/[documentId]/download/route.ts",
+    "responseExpressions": [
+      {
+        "line": 15,
+        "payload": "{ ok: false, error: \"El archivo no está disponible.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 18,
+        "payload": "{ ok: true, data: { url: data.signedUrl } }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/medical/documents/route.ts",
+    "responseExpressions": [
+      {
+        "line": 19,
+        "payload": "{ ok: false, error: \"Archivo, paciente, atención y tipo de documento son obligatorios.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 20,
+        "payload": "{ ok: false, error: \"El archivo debe ser PDF, JPG, PNG o WEBP y pesar hasta 15 MiB.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 21,
+        "payload": "{ ok: false, error: \"La fecha del estudio no es válida.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 26,
+        "payload": "{ ok: false, error: \"No se pudo preparar la carga del archivo.\" }",
+        "options": "{ status: 500 }"
+      },
+      {
+        "line": 31,
+        "payload": "{ ok: true, data: { id: upload.document_id } }",
+        "options": "{ status: 201 }"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/medical/encounters/[encounterId]/finalize/route.ts",
+    "responseExpressions": [
+      {
+        "line": 54,
+        "payload": "{ ok: false, error: \"El motivo de consulta y la evaluación son obligatorios.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 56,
+        "payload": "{ ok: false, error: \"Estado de química sanguínea inválido.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 58,
+        "payload": "{ ok: false, error: \"Completa el motivo y el resumen para el especialista.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 60,
+        "payload": "{ ok: false, error: \"Prioridad de derivación inválida.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 79,
+        "payload": "{ ok: true, data }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/medical/patients/[patientId]/clinical-background/route.ts",
+    "responseExpressions": [
+      {
+        "line": 16,
+        "payload": "{ ok: true, data }",
+        "options": "default 200"
+      },
+      {
+        "line": 24,
+        "payload": "{ ok: false, error: \"Solicitud inválida.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 28,
+        "payload": "{ ok: false, error: \"Indica el motivo de actualización.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 38,
+        "payload": "{ ok: true, data }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/medical/patients/[patientId]/route.ts",
+    "responseExpressions": [
+      {
+        "line": 18,
+        "payload": "{ ok: false, error: \"No existe una ficha de personal activa.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 25,
+        "payload": "{ ok: false, error: \"No tienes acceso clínico a este paciente.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 103,
+        "payload": "{ ok: true, data: {\n    patient: { id: patient.id, carnet: patient.carnet, registrationCode: patient.registration_code, fullName: `${patient.given_names} ${patient.family_names}`.trim(), birthDate: patient.birth_date, phone: patient.phone, email: patient.email },\n    intake,\n    clinicalBackground: currentBackground,\n    encounters: encountersWithHistory,\n    diagnoses: diagnosisRows,\n    referrals,\n    appointments: (appointmentResult.data ?? []).filter((appointment) => appointment.assigned_staff_id === staff.id).map((appointment) => {\n      const relation = appointment as typeof appointment & { availability_slot: { specialty: { name: string } | { name: string }[] | null } | { specialty: { name: string } | { name: string }[] | null }[] | null };\n      const slot = first(relation.availability_slot);\n      return { ...appointment, specialty: first(slot?.specialty)?.name ?? null, isAssignedToMe: appointment.assigned_staff_id === staff.id };\n    }),\n    documents: (documentResult.data ?? []).filter((document) => Boolean(document.encounter_id) && encounterIds.includes(document.encounter_id!)),\n  } }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/my-specialties/route.ts",
+    "responseExpressions": [
+      {
+        "line": 18,
+        "payload": "{ ok: true, data: specialties }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/patients/[patientId]/initial-history/route.ts",
+    "responseExpressions": [
+      {
+        "line": 6,
+        "payload": "{ ok: false, error: \"La ficha de revisión se registra durante la cita médica.\" }",
+        "options": "{ status: 410 }"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/patients/[patientId]/referrals/route.ts",
+    "responseExpressions": [
+      {
+        "line": 13,
+        "payload": "{ ok: false, error: \"Estudiante inválido.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 17,
+        "payload": "{ ok: true, data: data ?? [] }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/patients/[patientId]/route.ts",
+    "responseExpressions": [
+      {
+        "line": 23,
+        "payload": "{ ok: false, error: \"Estudiante no encontrado.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 26,
+        "payload": "{ ok: true, data: {\n    id: data.id, carnet: data.carnet, registrationCode: data.registration_code,\n    fullName: [data.given_names, data.family_names].filter(Boolean).join(\" \"), birthDate: data.birth_date,\n    phone: data.phone, email: data.email, academicStatus: data.academic_status,\n    createdAt: data.created_at, updatedAt: data.updated_at,\n    career: enrollment?.career?.[0] ?? null,\n    enrollment: enrollment ? { id: enrollment.id, academicPeriod: enrollment.academic_period, startedOn: enrollment.started_on, status: enrollment.status } : null,\n  } }",
+        "options": "default 200"
+      },
+      {
+        "line": 41,
+        "payload": "{ ok: false, error: \"El cuerpo debe ser JSON.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 48,
+        "payload": "{ ok: false, error: \"Estudiante no encontrado.\" }",
+        "options": "{ status: 404 }"
+      },
+      {
+        "line": 64,
+        "payload": "{ ok: true, data: { id: data } }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/patients/route.ts",
+    "responseExpressions": [
+      {
+        "line": 50,
+        "payload": "{ ok: true, data: (data ?? []).map(patientPayload) }",
+        "options": "default 200"
+      },
+      {
+        "line": 58,
+        "payload": "{ ok: false, error: \"El cuerpo debe ser JSON.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 68,
+        "payload": "{ ok: false, error: \"Completa nombre, carnet, código, carrera y período académico.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 79,
+        "payload": "{ ok: true, data: { id: data } }",
+        "options": "{ status: 201 }"
+      }
+    ],
+    "typeDeclarations": [
+      "type CareerRow = { id: string; code: string; name: string };",
+      "type EnrollmentRow = { id: string; academic_period: string; started_on: string; status: string; career: CareerRow[] | null };",
+      "type PatientRow = { id: string; carnet: string; registration_code: string; given_names: string; family_names: string; birth_date: string | null; phone: string | null; email: string | null; academic_status: string; created_at: string; updated_at: string; academic_enrollment: EnrollmentRow[] | null };"
+    ]
+  },
+  {
+    "source": "src/app/api/reports/clinical/route.ts",
+    "responseExpressions": [
+      {
+        "line": 26,
+        "payload": "{ ok: false, error: \"El período no es válido.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 27,
+        "payload": "{ ok: false, error: \"Tipo de atención inválido.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 28,
+        "payload": "{ ok: false, error: \"Hábito inválido.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 32,
+        "payload": "{ ok: true, data: data ?? [], filters: current }",
+        "options": "default 200"
+      },
+      {
+        "line": 41,
+        "payload": "{ ok: false, error: \"Exportación inválida.\" }",
+        "options": "{ status: 400 }"
+      },
+      {
+        "line": 46,
+        "payload": "{ ok: true, data: { id: data } }",
+        "options": "{ status: 201 }"
+      }
+    ],
+    "typeDeclarations": []
+  },
+  {
+    "source": "src/app/api/specialties/route.ts",
+    "responseExpressions": [
+      {
+        "line": 14,
+        "payload": "{ ok: true, data: data ?? [] }",
+        "options": "default 200"
+      }
+    ],
+    "typeDeclarations": []
+  }
+]

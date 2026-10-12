@@ -1,0 +1,3549 @@
+{
+  "mode": "real frozen route handlers; mocked Supabase, session and NextResponse; no SQL/RLS execution",
+  "clock": "2026-10-11T12:00:00.000Z",
+  "passed": 129,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "me-user",
+      "path": "/api/me",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "health",
+      "path": "/api/health/supabase",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "specialty",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id",
+                {
+                  "count": "exact",
+                  "head": true
+                }
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_enabled",
+                true
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "careers",
+      "path": "/api/careers",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "career",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id, code, name"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "order",
+              [
+                "name"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "specialties",
+      "path": "/api/specialties",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "specialty",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,code,name"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_enabled",
+                true
+              ]
+            ],
+            [
+              "order",
+              [
+                "name"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "my-specialties",
+      "path": "/api/my-specialties",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "staff_specialty(specialty:specialty_id(id,code,name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "patients-list",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "patients-create",
+      "path": "/api/patients",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_register_or_update_patient",
+          "args": {
+            "p_patient_id": null,
+            "p_carnet": "SYN-0001",
+            "p_registration_code": "SYN-REG-0001",
+            "p_given_names": "Paciente",
+            "p_family_names": "Sintético",
+            "p_birth_date": null,
+            "p_phone": null,
+            "p_email": null,
+            "p_profile_id": null,
+            "p_career_id": "00000000-0000-4000-8000-000000000004",
+            "p_academic_period": "2026",
+            "p_enrollment_start": "2026-01-01"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "patient-detail",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "patient-patch-clears-contact",
+      "path": "/api/patients/[patientId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,profile_id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_register_or_update_patient",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_carnet": "SYN-0001",
+            "p_registration_code": "SYN-REG-0001",
+            "p_given_names": "Paciente",
+            "p_family_names": "Sintético",
+            "p_birth_date": null,
+            "p_phone": null,
+            "p_email": null,
+            "p_career_id": null,
+            "p_academic_period": null,
+            "p_enrollment_start": null
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "legacy-GET",
+      "path": "/api/patients/[patientId]/initial-history",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "legacy-PUT",
+      "path": "/api/patients/[patientId]/initial-history",
+      "method": "PUT",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "patient-referrals",
+      "path": "/api/patients/[patientId]/referrals",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_list_patient_referrals_for_appointment",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "admin-referrals",
+      "path": "/api/administrative/referrals",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_list_referrals_for_administration",
+          "args": null,
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "request-list",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "appointment_request",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_type,referral_id,specialty_id,status,requested_at,assigned_at,cancelled_at,cancellation_reason,patient:patient_id(id,carnet,given_names,family_names),appointment:appointment_id(id,status,scheduled_for,checked_in_at,cancelled_at,availability_slot:slot_id(starts_at,ends_at,staff:staff_member_id(profile:profile_id(display_name))))"
+              ]
+            ],
+            [
+              "order",
+              [
+                "requested_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "request-create-student",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_initial_appointment_request",
+          "args": null,
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "request-create-admin-INITIAL",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_appointment_request_for_patient",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_appointment_type": "INITIAL",
+            "p_referral_id": "00000000-0000-4000-8000-000000000012",
+            "p_specialty_id": "00000000-0000-4000-8000-000000000005"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "request-create-admin-SPECIALTY",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_appointment_request_for_patient",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_appointment_type": "SPECIALTY",
+            "p_referral_id": "00000000-0000-4000-8000-000000000012",
+            "p_specialty_id": "00000000-0000-4000-8000-000000000005"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "request-create-admin-REFERRAL",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_appointment_request_for_patient",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_appointment_type": "REFERRAL",
+            "p_referral_id": "00000000-0000-4000-8000-000000000012",
+            "p_specialty_id": "00000000-0000-4000-8000-000000000005"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "request-cancel",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_cancel_appointment_request",
+          "args": {
+            "p_request_id": "00000000-0000-4000-8000-000000000006",
+            "p_reason": null
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "request-assign",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_assign_appointment_request",
+          "args": {
+            "p_request_id": "00000000-0000-4000-8000-000000000006",
+            "p_slot_id": "00000000-0000-4000-8000-000000000007"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "check-in",
+      "path": "/api/appointments/[appointmentId]/check-in",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_check_in_appointment",
+          "args": {
+            "p_appointment_id": "00000000-0000-4000-8000-000000000008"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "no-show",
+      "path": "/api/appointments/[appointmentId]/no-show",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_mark_appointment_no_show",
+          "args": {
+            "p_appointment_id": "00000000-0000-4000-8000-000000000008",
+            "p_reason": null
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "availability-published",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "availability_slot",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,specialty_id,starts_at,ends_at,capacity,booked_count,status,staff:staff_member_id(profile:profile_id(display_name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "PUBLISHED"
+              ]
+            ],
+            [
+              "gt",
+              [
+                "starts_at",
+                "2026-10-11T12:00:00.000Z"
+              ]
+            ],
+            [
+              "order",
+              [
+                "starts_at"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ],
+            [
+              "is",
+              [
+                "specialty_id",
+                null
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "availability-manage",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "availability_schedule",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,specialty_id,weekday,starts_at,ends_at,slot_duration_minutes"
+              ]
+            ],
+            [
+              "order",
+              [
+                "weekday"
+              ]
+            ],
+            [
+              "order",
+              [
+                "starts_at"
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "availability_recurring_block",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,weekday,starts_at,ends_at,label"
+              ]
+            ],
+            [
+              "order",
+              [
+                "weekday"
+              ]
+            ],
+            [
+              "order",
+              [
+                "starts_at"
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "availability_block",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,block_date,starts_at,ends_at,label"
+              ]
+            ],
+            [
+              "gte",
+              [
+                "block_date",
+                "2026-10-11"
+              ]
+            ],
+            [
+              "lte",
+              [
+                "block_date",
+                "2026-10-11"
+              ]
+            ],
+            [
+              "order",
+              [
+                "block_date"
+              ]
+            ],
+            [
+              "order",
+              [
+                "starts_at"
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "availability_slot",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,specialty_id,starts_at,ends_at,capacity,booked_count,status"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "staff_member_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "gte",
+              [
+                "starts_at",
+                "2026-10-11T00:00:00-04:00"
+              ]
+            ],
+            [
+              "lt",
+              [
+                "starts_at",
+                "2026-10-12T00:00:00-04:00"
+              ]
+            ],
+            [
+              "order",
+              [
+                "starts_at"
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,slot_id,status,scheduled_for,patient:patient_id(given_names,family_names)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "gte",
+              [
+                "scheduled_for",
+                "2026-10-11T00:00:00-04:00"
+              ]
+            ],
+            [
+              "lt",
+              [
+                "scheduled_for",
+                "2026-10-12T00:00:00-04:00"
+              ]
+            ],
+            [
+              "order",
+              [
+                "scheduled_for"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "availability-rules",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_replace_my_availability_schedule",
+          "args": {
+            "p_rules": [],
+            "p_recurring_blocks": []
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "availability-date-block",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_my_availability_block",
+          "args": {
+            "p_block_date": "2026-10-12",
+            "p_starts_at": null,
+            "p_ends_at": null,
+            "p_label": "Bloqueo sintético"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "availability-slot",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_publish_availability_slot",
+          "args": {
+            "p_starts_at": "2026-10-12T12:00:00Z",
+            "p_ends_at": "2026-10-12T12:30:00Z",
+            "p_capacity": 1,
+            "p_specialty_id": null
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "availability-delete",
+      "path": "/api/availability-slots",
+      "method": "DELETE",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_delete_my_availability_block",
+          "args": {
+            "p_block_id": "00000000-0000-4000-8000-000000000007"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "medical-appointments",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_type,status,scheduled_for,checked_in_at,patient:patient_id(id,carnet,registration_code,given_names,family_names,birth_date,phone,email),availability_slot:slot_id(starts_at,ends_at,specialty:specialty_id(code,name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "order",
+              [
+                "scheduled_for",
+                {
+                  "ascending": true
+                }
+              ]
+            ],
+            [
+              "limit",
+              [
+                200
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "start-new",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,patient_id,status,appointment_type,referral_id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000008"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,status"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "appointment_id",
+                "00000000-0000-4000-8000-000000000008"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_open_encounter",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_appointment_id": "00000000-0000-4000-8000-000000000008",
+            "p_referral_id": null,
+            "p_chief_complaint": "Pendiente de entrevista clínica."
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "start-reuse",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,patient_id,status,appointment_type,referral_id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000008"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,status"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "appointment_id",
+                "00000000-0000-4000-8000-000000000008"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "medical-patient-empty",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,staff_specialty(specialty_id,active_from,active_to)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_id,referral_id,specialty_id,status,encounter_type,occurred_at,closed_at,chief_complaint,assessment,instructions,follow_up_text,blood_chemistry_status,clinical_background_version_id,specialty:specialty_id(name)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "occurred_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "referral",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,source_encounter_id,specialty_id,assigned_staff_id,status,priority,reason,comment_for_specialist,created_at,specialty:specialty_id(name)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "created_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,status,appointment_type,scheduled_for,checked_in_at,assigned_staff_id,availability_slot:slot_id(specialty:specialty_id(name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "scheduled_for",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,encounter_id,document_type_code,status,original_filename,mime_type,size_bytes,study_date,description,uploaded_at"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "AVAILABLE"
+              ]
+            ],
+            [
+              "order",
+              [
+                "uploaded_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_encounter_id": null
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "background-read",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_encounter_id": null
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "background-save",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_save_clinical_background",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_data": {
+              "schemaVersion": 1,
+              "allergies": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "personalConditions": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "surgeries": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "medications": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "familyHistory": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "habits": {
+                "diet": "",
+                "physicalActivity": "",
+                "tobacco": "",
+                "alcohol": ""
+              }
+            },
+            "p_expected_version": 0,
+            "p_encounter_id": null,
+            "p_change_reason": "Caso sintético"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "finalize-REVIEW_DOCTOR",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_finalize_initial_encounter",
+          "args": {
+            "p_encounter_id": "00000000-0000-4000-8000-000000000009",
+            "p_chief_complaint": "Caso sintético",
+            "p_assessment": "Evaluación sintética",
+            "p_instructions": null,
+            "p_follow_up_text": null,
+            "p_blood_chemistry_status": "NOT_PRESENTED",
+            "p_diagnosis_text": null,
+            "p_referral_specialty_id": null,
+            "p_referral_reason": null,
+            "p_referral_comment": null,
+            "p_referral_priority": "ROUTINE",
+            "p_review_history": {
+              "schemaVersion": 1,
+              "sex": null,
+              "personalHistory": {
+                "pathological": null,
+                "surgical": null,
+                "allergic": null,
+                "regularMedications": null,
+                "familyRelevant": null
+              },
+              "habits": {
+                "diet": null,
+                "physicalActivity": null,
+                "tobacco": null,
+                "alcohol": null
+              },
+              "vitals": {
+                "bloodPressureSystolic": null,
+                "bloodPressureDiastolic": null,
+                "heartRate": null,
+                "respiratoryRate": null,
+                "temperature": null,
+                "oxygenSaturation": null,
+                "weight": null,
+                "height": null
+              },
+              "physicalExam": {
+                "generalState": null,
+                "cardiopulmonary": null,
+                "abdomen": null,
+                "otherFindings": null
+              },
+              "laboratory": {
+                "hemogram": null,
+                "bloodGroup": null,
+                "vdrl": null,
+                "chagas": null,
+                "coproparasitological": null,
+                "other": null
+              },
+              "conduct": {
+                "healthEducation": false,
+                "treatment": false,
+                "complementaryStudies": false,
+                "referral": false,
+                "medicalFollowUp": false,
+                "noObservations": false
+              },
+              "observations": null
+            }
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "finalize-SPECIALIST",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_finalize_specialty_encounter",
+          "args": {
+            "p_encounter_id": "00000000-0000-4000-8000-000000000009",
+            "p_chief_complaint": "Caso sintético",
+            "p_assessment": "Evaluación sintética",
+            "p_instructions": null,
+            "p_follow_up_text": null,
+            "p_diagnosis_text": null,
+            "p_specialty_history": {
+              "schemaVersion": 1,
+              "specialtyCode": "GYNECOLOGY",
+              "personalHistory": {
+                "pathological": null,
+                "surgical": null,
+                "allergic": null,
+                "family": null
+              },
+              "ophthalmology": {
+                "currentIllness": null,
+                "visualAcuityRight": null,
+                "visualAcuityLeft": null
+              },
+              "gynecology": {
+                "onset": null,
+                "symptoms": null,
+                "previousTreatments": null,
+                "menarcheAge": null,
+                "menstrualPattern": null,
+                "cycleDays": null,
+                "lastMenstrualPeriod": null,
+                "dysmenorrhea": null,
+                "leucorrhea": null,
+                "previousSti": null,
+                "stiDetails": null,
+                "contraceptiveMethods": [],
+                "contraceptiveOther": null,
+                "lastPap": null,
+                "papResult": null,
+                "papDetails": null,
+                "familyGynecologicalCancer": false,
+                "familyBreastCancer": false,
+                "familyDiabetes": false,
+                "familyOther": null,
+                "breastExam": null,
+                "externalGenitalExam": null,
+                "speculumExam": null,
+                "vaginalExam": null,
+                "cervixExam": null
+              }
+            }
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "document-upload",
+      "path": "/api/medical/documents",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_create_document_upload",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_encounter_id": "00000000-0000-4000-8000-000000000009",
+            "p_document_type_code": "OTHER",
+            "p_original_filename": "synthetic.pdf",
+            "p_mime_type": "application/pdf",
+            "p_study_date": null,
+            "p_description": null
+          },
+          "query": []
+        },
+        {
+          "kind": "storage-upload",
+          "name": "clinical-documents",
+          "args": [
+            "synthetic/file.pdf",
+            {
+              "name": "synthetic.pdf",
+              "type": "application/pdf",
+              "size": 26
+            },
+            {
+              "contentType": "application/pdf",
+              "upsert": false
+            }
+          ],
+          "query": []
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_finalize_document_upload",
+          "args": {
+            "p_document_id": "00000000-0000-4000-8000-000000000010"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "document-download",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "bucket,object_path"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000010"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "AVAILABLE"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "storage-sign",
+          "name": "clinical-documents",
+          "args": [
+            "synthetic/file.pdf",
+            60
+          ],
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "report-empty",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_clinical_report",
+          "args": {
+            "p_filters": {
+              "from": null,
+              "to": null,
+              "specialtyId": null,
+              "encounterType": null,
+              "diagnosis": null,
+              "allergies": [],
+              "histories": [],
+              "habitTerms": [],
+              "positiveHabits": [],
+              "search": null
+            }
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "report-export-record",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_log_clinical_report_export",
+          "args": {
+            "p_filters": {},
+            "p_format": "CSV",
+            "p_row_count": 0,
+            "p_purpose": "Gestión clínica"
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "anonymous-GET-/api/administrative/referrals",
+      "path": "/api/administrative/referrals",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/administrative/referrals",
+      "path": "/api/administrative/referrals",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/appointment-requests/[requestId]/assign",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/appointment-requests/[requestId]/assign",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-PATCH-/api/appointment-requests/[requestId]",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-PATCH-/api/appointment-requests/[requestId]",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/appointment-requests",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/appointments/[appointmentId]/check-in",
+      "path": "/api/appointments/[appointmentId]/check-in",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/appointments/[appointmentId]/check-in",
+      "path": "/api/appointments/[appointmentId]/check-in",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/appointments/[appointmentId]/no-show",
+      "path": "/api/appointments/[appointmentId]/no-show",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/appointments/[appointmentId]/no-show",
+      "path": "/api/appointments/[appointmentId]/no-show",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-DELETE-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "DELETE",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-DELETE-/api/availability-slots",
+      "path": "/api/availability-slots",
+      "method": "DELETE",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/medical/appointments/[appointmentId]/start",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/medical/appointments/[appointmentId]/start",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/medical/appointments",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/medical/appointments",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/medical/documents/[documentId]/download",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/medical/documents/[documentId]/download",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/medical/documents",
+      "path": "/api/medical/documents",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/medical/documents",
+      "path": "/api/medical/documents",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/medical/encounters/[encounterId]/finalize",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/medical/encounters/[encounterId]/finalize",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-PATCH-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-PATCH-/api/medical/patients/[patientId]/clinical-background",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/medical/patients/[patientId]",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/medical/patients/[patientId]",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/my-specialties",
+      "path": "/api/my-specialties",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/my-specialties",
+      "path": "/api/my-specialties",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/patients/[patientId]/referrals",
+      "path": "/api/patients/[patientId]/referrals",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/patients/[patientId]/referrals",
+      "path": "/api/patients/[patientId]/referrals",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-PATCH-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-PATCH-/api/patients/[patientId]",
+      "path": "/api/patients/[patientId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/patients",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/patients",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/patients",
+      "path": "/api/patients",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/patients",
+      "path": "/api/patients",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-POST-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-POST-/api/reports/clinical",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "anonymous-GET-/api/specialties",
+      "path": "/api/specialties",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "forbidden-GET-/api/specialties",
+      "path": "/api/specialties",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "me-anonymous",
+      "path": "/api/me",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-0",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-1",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-2",
+      "path": "/api/appointment-requests",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-3",
+      "path": "/api/appointment-requests/[requestId]",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-4",
+      "path": "/api/appointment-requests/[requestId]/assign",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-5",
+      "path": "/api/patients",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-6",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-7",
+      "path": "/api/medical/encounters/[encounterId]/finalize",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "validation-8",
+      "path": "/api/reports/clinical",
+      "method": "POST",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "sqlstate-42501",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sqlstate-23505",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sqlstate-40001",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sqlstate-P0002",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sqlstate-23514",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sqlstate-22023",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report-validation-0",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "report-validation-1",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "report-validation-2",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": []
+    },
+    {
+      "name": "health-database-error",
+      "path": "/api/health/supabase",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "specialty",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id",
+                {
+                  "count": "exact",
+                  "head": true
+                }
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_enabled",
+                true
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "careers-error-exception",
+      "path": "/api/careers",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "career",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id, code, name"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "order",
+              [
+                "name"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "start-invalid-status",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,patient_id,status,appointment_type,referral_id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000008"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "patient-not-found",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "patients-list-two-rows",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "patients-query-sanitized",
+      "path": "/api/patients",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "order",
+              [
+                "family_names"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ],
+            [
+              "or",
+              [
+                "carnet.ilike.%SYN%,registration_code.ilike.%SYN%,given_names.ilike.%SYN%,family_names.ilike.%SYN%"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "medical-appointments-relations",
+      "path": "/api/medical/appointments",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_type,status,scheduled_for,checked_in_at,patient:patient_id(id,carnet,registration_code,given_names,family_names,birth_date,phone,email),availability_slot:slot_id(starts_at,ends_at,specialty:specialty_id(code,name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "order",
+              [
+                "scheduled_for",
+                {
+                  "ascending": true
+                }
+              ]
+            ],
+            [
+              "limit",
+              [
+                200
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "request-list-mixed-case",
+      "path": "/api/appointment-requests",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "appointment_request",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_type,referral_id,specialty_id,status,requested_at,assigned_at,cancelled_at,cancellation_reason,patient:patient_id(id,carnet,given_names,family_names),appointment:appointment_id(id,status,scheduled_for,checked_in_at,cancelled_at,availability_slot:slot_id(starts_at,ends_at,staff:staff_member_id(profile:profile_id(display_name))))"
+              ]
+            ],
+            [
+              "order",
+              [
+                "requested_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "availability-retains-staff",
+      "path": "/api/availability-slots",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "availability_slot",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,specialty_id,starts_at,ends_at,capacity,booked_count,status,staff:staff_member_id(profile:profile_id(display_name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "PUBLISHED"
+              ]
+            ],
+            [
+              "gt",
+              [
+                "starts_at",
+                "2026-10-11T12:00:00.000Z"
+              ]
+            ],
+            [
+              "order",
+              [
+                "starts_at"
+              ]
+            ],
+            [
+              "limit",
+              [
+                100
+              ]
+            ],
+            [
+              "is",
+              [
+                "specialty_id",
+                null
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "medical-patient-area-REVIEW_DOCTOR",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,staff_specialty(specialty_id,active_from,active_to)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_id,referral_id,specialty_id,status,encounter_type,occurred_at,closed_at,chief_complaint,assessment,instructions,follow_up_text,blood_chemistry_status,clinical_background_version_id,specialty:specialty_id(name)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "occurred_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "referral",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,source_encounter_id,specialty_id,assigned_staff_id,status,priority,reason,comment_for_specialist,created_at,specialty:specialty_id(name)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "created_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,status,appointment_type,scheduled_for,checked_in_at,assigned_staff_id,availability_slot:slot_id(specialty:specialty_id(name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "scheduled_for",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,encounter_id,document_type_code,status,original_filename,mime_type,size_bytes,study_date,description,uploaded_at"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "AVAILABLE"
+              ]
+            ],
+            [
+              "order",
+              [
+                "uploaded_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "review_history_version",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "encounter_id,data,recorded_at,version_no"
+              ]
+            ],
+            [
+              "in",
+              [
+                "encounter_id",
+                [
+                  "00000000-0000-4000-8000-000000000009"
+                ]
+              ]
+            ],
+            [
+              "order",
+              [
+                "recorded_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_encounter_id": null
+          },
+          "query": []
+        },
+        {
+          "kind": "from",
+          "name": "encounter_diagnosis",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,encounter_id,free_text,diagnosis_kind,is_primary,condition:condition_id(display_name)"
+              ]
+            ],
+            [
+              "in",
+              [
+                "encounter_id",
+                [
+                  "00000000-0000-4000-8000-000000000009"
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "medical-patient-area-SPECIALIST",
+      "path": "/api/medical/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,staff_specialty(specialty_id,active_from,active_to)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_encounter",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,appointment_id,referral_id,specialty_id,status,encounter_type,occurred_at,closed_at,chief_complaint,assessment,instructions,follow_up_text,blood_chemistry_status,clinical_background_version_id,specialty:specialty_id(name)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "occurred_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "referral",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,source_encounter_id,specialty_id,assigned_staff_id,status,priority,reason,comment_for_specialist,created_at,specialty:specialty_id(name)"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "created_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,status,appointment_type,scheduled_for,checked_in_at,assigned_staff_id,availability_slot:slot_id(specialty:specialty_id(name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "order",
+              [
+                "scheduled_for",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,encounter_id,document_type_code,status,original_filename,mime_type,size_bytes,study_date,description,uploaded_at"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "patient_id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "AVAILABLE"
+              ]
+            ],
+            [
+              "order",
+              [
+                "uploaded_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "review_history_version",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "encounter_id,data,recorded_at,version_no"
+              ]
+            ],
+            [
+              "in",
+              [
+                "encounter_id",
+                [
+                  "00000000-0000-4000-8000-000000000009"
+                ]
+              ]
+            ],
+            [
+              "order",
+              [
+                "recorded_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "specialty_history_intake_version",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "encounter_id,data,recorded_at,version_no"
+              ]
+            ],
+            [
+              "in",
+              [
+                "encounter_id",
+                [
+                  "00000000-0000-4000-8000-000000000010"
+                ]
+              ]
+            ],
+            [
+              "order",
+              [
+                "recorded_at",
+                {
+                  "ascending": false
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "rpc",
+          "name": "rpc_get_clinical_background",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_encounter_id": null
+          },
+          "query": []
+        },
+        {
+          "kind": "from",
+          "name": "encounter_diagnosis",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,encounter_id,free_text,diagnosis_kind,is_primary,condition:condition_id(display_name)"
+              ]
+            ],
+            [
+              "in",
+              [
+                "encounter_id",
+                [
+                  "00000000-0000-4000-8000-000000000009",
+                  "00000000-0000-4000-8000-000000000010"
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report-terms-deduplicate",
+      "path": "/api/reports/clinical",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_clinical_report",
+          "args": {
+            "p_filters": {
+              "from": null,
+              "to": null,
+              "specialtyId": null,
+              "encounterType": null,
+              "diagnosis": null,
+              "allergies": [
+                "Caso"
+              ],
+              "histories": [],
+              "habitTerms": [],
+              "positiveHabits": [],
+              "search": null
+            }
+          },
+          "query": []
+        }
+      ]
+    },
+    {
+      "name": "patient-relation-object-drops-career",
+      "path": "/api/patients/[patientId]",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "patient",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,carnet,registration_code,given_names,family_names,birth_date,phone,email,academic_status,created_at,updated_at,academic_enrollment(id,academic_period,started_on,status,career:career_id(id,code,name))"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000002"
+              ]
+            ],
+            [
+              "is",
+              [
+                "archived_at",
+                null
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "start-new-not-found",
+      "path": "/api/medical/appointments/[appointmentId]/start",
+      "method": "POST",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "staff_member",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "profile_id",
+                "00000000-0000-4000-8000-000000000001"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "is_active",
+                true
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        },
+        {
+          "kind": "from",
+          "name": "appointment",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "id,patient_id,status,appointment_type,referral_id"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000008"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "assigned_staff_id",
+                "00000000-0000-4000-8000-000000000003"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "document-download-not-found",
+      "path": "/api/medical/documents/[documentId]/download",
+      "method": "GET",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "from",
+          "name": "clinical_document",
+          "args": null,
+          "query": [
+            [
+              "select",
+              [
+                "bucket,object_path"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "id",
+                "00000000-0000-4000-8000-000000000010"
+              ]
+            ],
+            [
+              "eq",
+              [
+                "status",
+                "AVAILABLE"
+              ]
+            ],
+            [
+              "maybeSingle",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "background-version-conflict",
+      "path": "/api/medical/patients/[patientId]/clinical-background",
+      "method": "PATCH",
+      "status": "pass",
+      "calls": [
+        {
+          "kind": "rpc",
+          "name": "rpc_save_clinical_background",
+          "args": {
+            "p_patient_id": "00000000-0000-4000-8000-000000000002",
+            "p_data": {
+              "schemaVersion": 1,
+              "allergies": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "personalConditions": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "surgeries": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "medications": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "familyHistory": {
+                "status": "UNKNOWN",
+                "items": []
+              },
+              "habits": {
+                "diet": "",
+                "physicalActivity": "",
+                "tobacco": "",
+                "alcohol": ""
+              }
+            },
+            "p_expected_version": 0,
+            "p_encounter_id": null,
+            "p_change_reason": "Caso sintético"
+          },
+          "query": []
+        }
+      ]
+    }
+  ]
+}

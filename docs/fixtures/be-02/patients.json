@@ -1,0 +1,16 @@
+{
+  "story": "BE-02 / UC-02",
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "create-patient",
+      "request": {"method": "POST", "path": "/api/patients", "csrf": "<valid>", "role": "ADMINISTRATIVE", "body": {"fullName": "Ana Mercado", "carnet": "12 34 56", "registrationCode": "reg 001", "birthDate": "2002-01-15", "careerId": "<active-career-uuid>", "academicPeriod": "2026-II", "enrollmentStart": "2026-07-01", "email": "ana@example.invalid", "phone": "70000000"}},
+      "response": {"status": 201, "json": {"ok": true, "data": {"id": "<uuid>"}}}
+    },
+    {
+      "name": "duplicate-normalized-carnet",
+      "request": {"method": "POST", "path": "/api/patients", "csrf": "<valid>", "role": "ADMINISTRATIVE", "body": {"fullName": "Otra Persona", "carnet": "123456", "registrationCode": "other-001", "careerId": "<active-career-uuid>", "academicPeriod": "2026-II", "enrollmentStart": "2026-07-01"}},
+      "response": {"status": 409, "json": {"ok": false, "error": "El carnet o código de registro ya existe."}}
+    }
+  ]
+}

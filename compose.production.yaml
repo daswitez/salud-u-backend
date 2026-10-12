@@ -1,0 +1,66 @@
+name: salud-u
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: ${DB_NAME:-salud_u}
+      POSTGRES_USER: ${DB_MIGRATOR_USER:-salud_u_migrator}
+      POSTGRES_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Define DB_MIGRATOR_PASSWORD en .env}
+      APP_DB_USER: ${DB_APP_USER:-salud_u_runtime}
+      APP_DB_PASSWORD: ${DB_APP_PASSWORD:?Define DB_APP_PASSWORD en .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init/01-create-runtime-role.sh:/docker-entrypoint-initdb.d/01-create-runtime-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  backend:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-salud_u}
+      DB_APP_USER: ${DB_APP_USER:-salud_u_runtime}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Define DB_APP_PASSWORD en .env}
+      DB_MIGRATOR_USER: ${DB_MIGRATOR_USER:-salud_u_migrator}
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Define DB_MIGRATOR_PASSWORD en .env}
+      DOCUMENTS_ROOT: /var/lib/salud-u/documents
+      SESSION_COOKIE_SECURE: "true"
+    volumes:
+      - clinical_documents:/var/lib/salud-u/documents
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  caddy:
+    image: caddy:2.10-alpine
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?Define PUBLIC_DOMAIN en .env}
+      TLS_EMAIL: ${TLS_EMAIL:?Define TLS_EMAIL en .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+  clinical_documents:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,17 @@
+{
+  "story": "BE-04 / UC-04",
+  "synthetic": true,
+  "timezone": "America/La_Paz",
+  "cases": [
+    {
+      "name": "replace-weekly-schedule",
+      "request": {"method": "POST", "path": "/api/availability-slots", "csrf": "<valid>", "role": "REVIEW_DOCTOR", "body": {"rules": [{"weekday": 1, "startsAt": "08:00", "endsAt": "09:00", "slotDurationMinutes": 30, "specialtyId": null}], "recurringBlocks": []}},
+      "response": {"status": 200, "json": {"ok": true, "data": {"generatedSlots": "<integer>"}}}
+    },
+    {
+      "name": "whole-day-block",
+      "request": {"method": "POST", "path": "/api/availability-slots", "csrf": "<valid>", "role": "REVIEW_DOCTOR", "body": {"dateBlock": true, "blockDate": "<future-la-paz-date>", "startsAt": null, "endsAt": null, "label": "Feriado sintético"}},
+      "response": {"status": 201, "json": {"ok": true, "data": {"id": "<uuid>"}}}
+    }
+  ]
+}

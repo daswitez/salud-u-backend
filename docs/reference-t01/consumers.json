@@ -1,0 +1,357 @@
+[
+  {
+    "source": "src/app/actions/session.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/administrativo/check-in/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/appointment-requests",
+      "/api/appointment-requests/${activeRequest.id}/assign",
+      "/api/appointments/${appointmentId}/${actionName}",
+      "/api/availability-slots",
+      "/api/patients/${patientId}",
+      "/api/patients/${patientId}/referrals",
+      "/api/specialties"
+    ]
+  },
+  {
+    "source": "src/app/administrativo/estudiantes/[patientId]/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/careers",
+      "/api/patients/${patientId}"
+    ]
+  },
+  {
+    "source": "src/app/administrativo/estudiantes/nuevo/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/careers",
+      "/api/patients"
+    ]
+  },
+  {
+    "source": "src/app/administrativo/estudiantes/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/patients"
+    ]
+  },
+  {
+    "source": "src/app/administrativo/page.tsx",
+    "rpc": [
+      "rpc_daily_activity",
+      "rpc_list_referrals_for_administration"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/administrativo/reportes/cumplimiento/page.tsx",
+    "rpc": [
+      "rpc_compliance_report"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/administrative/referrals/route.ts",
+    "rpc": [
+      "rpc_list_referrals_for_administration"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/appointment-requests/[requestId]/assign/route.ts",
+    "rpc": [
+      "rpc_assign_appointment_request"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/appointment-requests/[requestId]/route.ts",
+    "rpc": [
+      "rpc_cancel_appointment_request"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/appointment-requests/route.ts",
+    "rpc": [
+      "rpc_create_appointment_request_for_patient",
+      "rpc_create_initial_appointment_request"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/appointments/[appointmentId]/check-in/route.ts",
+    "rpc": [
+      "rpc_check_in_appointment"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/appointments/[appointmentId]/no-show/route.ts",
+    "rpc": [
+      "rpc_mark_appointment_no_show"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/availability-slots/route.ts",
+    "rpc": [
+      "rpc_create_my_availability_block",
+      "rpc_delete_my_availability_block",
+      "rpc_publish_availability_slot",
+      "rpc_replace_my_availability_schedule"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/careers/route.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/health/supabase/route.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/appointments/[appointmentId]/start/route.ts",
+    "rpc": [
+      "rpc_open_encounter"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/appointments/route.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/documents/[documentId]/download/route.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/documents/route.ts",
+    "rpc": [
+      "rpc_create_document_upload",
+      "rpc_finalize_document_upload"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/encounters/[encounterId]/finalize/route.ts",
+    "rpc": [
+      "rpc_finalize_initial_encounter",
+      "rpc_finalize_specialty_encounter"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/patients/[patientId]/clinical-background/route.ts",
+    "rpc": [
+      "rpc_get_clinical_background",
+      "rpc_save_clinical_background"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/medical/patients/[patientId]/route.ts",
+    "rpc": [
+      "rpc_get_clinical_background"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/my-specialties/route.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/patients/[patientId]/referrals/route.ts",
+    "rpc": [
+      "rpc_list_patient_referrals_for_appointment"
+    ],
+    "supabase": true,
+    "apiPaths": [
+      "/api/patients/[patientId]/referrals"
+    ]
+  },
+  {
+    "source": "src/app/api/patients/[patientId]/route.ts",
+    "rpc": [
+      "rpc_register_or_update_patient"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/patients/route.ts",
+    "rpc": [
+      "rpc_register_or_update_patient"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/reports/clinical/route.ts",
+    "rpc": [
+      "rpc_clinical_report",
+      "rpc_log_clinical_report_export"
+    ],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/api/specialties/route.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/app/estudiante/citas/[id]/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/appointment-requests",
+      "/api/appointment-requests/${id}"
+    ]
+  },
+  {
+    "source": "src/app/estudiante/citas/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/appointment-requests"
+    ]
+  },
+  {
+    "source": "src/app/estudiante/reservar/page.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/appointment-requests"
+    ]
+  },
+  {
+    "source": "src/components/administrative-referral-inbox.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/administrative/referrals"
+    ]
+  },
+  {
+    "source": "src/components/clinical-report-builder.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/reports/clinical",
+      "/api/reports/clinical?",
+      "/api/specialties"
+    ]
+  },
+  {
+    "source": "src/components/medical-appointments.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/medical/appointments"
+    ]
+  },
+  {
+    "source": "src/components/medical-document-uploader.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/medical/documents"
+    ]
+  },
+  {
+    "source": "src/components/medical-patient-record.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/medical/documents/${id}/download",
+      "/api/medical/patients/${patientId}",
+      "/api/medical/patients/${patientId}/clinical-background"
+    ]
+  },
+  {
+    "source": "src/components/medical-review-workflow.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/medical/appointments",
+      "/api/medical/appointments/${appointmentId}/start",
+      "/api/medical/documents/${documentId}/download",
+      "/api/medical/encounters/${encounterId}/finalize",
+      "/api/medical/patients/${current.patient.id}",
+      "/api/medical/patients/${record.patient.id}/clinical-background",
+      "/api/specialties"
+    ]
+  },
+  {
+    "source": "src/components/medical-schedule-manager.tsx",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": [
+      "/api/availability-slots",
+      "/api/availability-slots?blockId=${encodeURIComponent(blockId)}",
+      "/api/availability-slots?manage=true&from=${day}&to=${day}",
+      "/api/my-specialties"
+    ]
+  },
+  {
+    "source": "src/lib/api/client.ts",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": []
+  },
+  {
+    "source": "src/lib/demo-session.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  },
+  {
+    "source": "src/lib/report-branding.ts",
+    "rpc": [],
+    "supabase": false,
+    "apiPaths": []
+  },
+  {
+    "source": "src/lib/supabase/server.ts",
+    "rpc": [],
+    "supabase": true,
+    "apiPaths": []
+  }
+]
