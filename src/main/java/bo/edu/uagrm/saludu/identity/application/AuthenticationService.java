@@ -71,7 +71,7 @@ public class AuthenticationService {
 
     private static AuthenticationRow authenticationRow(ResultSet resultSet) throws SQLException {
         return new AuthenticationRow(
-            resultSet.getString("auth_status"),
+            resultSet.getString("autenticacion_status"),
             resultSet.getObject("id_principal", UUID.class),
             resultSet.getString("email"),
             resultSet.getString("nombre_mostrado"),
@@ -80,7 +80,7 @@ public class AuthenticationService {
     }
 
     private static List<String> roles(ResultSet resultSet) throws SQLException {
-        java.sql.Array array = resultSet.getArray("roles");
+        java.sql.Array array = resultSet.getArray("rols");
         if (array == null) {
             return List.of();
         }

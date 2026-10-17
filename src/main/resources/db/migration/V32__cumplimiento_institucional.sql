@@ -1,0 +1,1 @@
+ALTER TYPE salud_u.codigo_rol_aplicacion ADD VALUE IF NOT EXISTS 'REPORTING_OFFICER';

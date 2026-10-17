@@ -8,6 +8,8 @@ import bo.edu.uagrm.saludu.shared.persistence.DatabaseActorContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -66,7 +68,7 @@ public class AvailabilityService {
     public int replace(SessionPrincipal principal, JsonNode rules, JsonNode recurringBlocks) {
         requireClinician(principal);
         apply(principal);
-        int generated = jdbcTemplate.queryForObject("select salud_u.reemplazar_mi_horario_disponibilidad(cast(? as jsonb), cast(? as jsonb))", Integer.class, json(rules), json(recurringBlocks));
+        int generated = jdbcTemplate.queryForObject("select salud_u.reemplazar_mi_horario_disponibilidad(cast(? as jsonb), cast(? as jsonb))", Integer.class, json(normalizeRules(rules)), json(normalizeRecurringBlocks(recurringBlocks)));
         auditWriter.append("AVAILABILITY_SCHEDULE_REPLACED", "availability_schedule", null, AuditOutcome.SUCCESS, Map.of("generatedSlots", generated));
         return generated;
     }
@@ -113,6 +115,33 @@ public class AvailabilityService {
         } catch (JsonProcessingException exception) {
             throw new AvailabilityException(400, "La configuración de disponibilidad no es válida.");
         }
+    }
+
+    private ArrayNode normalizeRules(JsonNode rules) {
+        return normalizeScheduleItems(rules, "slotDurationMinutes", "cupoDurationMinutes", "specialtyId", "especialidadId", null, null);
+    }
+
+    private ArrayNode normalizeRecurringBlocks(JsonNode blocks) {
+        return normalizeScheduleItems(blocks, null, null, null, null, "label", "etiqueta");
+    }
+
+    private ArrayNode normalizeScheduleItems(JsonNode items, String sourceDuration, String targetDuration, String sourceSpecialty, String targetSpecialty, String sourceLabel, String targetLabel) {
+        ArrayNode normalized = objectMapper.createArrayNode();
+        if (items == null || !items.isArray()) return normalized;
+        for (JsonNode item : items) {
+            if (!item.isObject()) { normalized.add(item); continue; }
+            ObjectNode value = ((ObjectNode) item).deepCopy();
+            rename(value, "weekday", "dia_semana");
+            rename(value, sourceDuration, targetDuration);
+            rename(value, sourceSpecialty, targetSpecialty);
+            rename(value, sourceLabel, targetLabel);
+            normalized.add(value);
+        }
+        return normalized;
+    }
+
+    private static void rename(ObjectNode value, String source, String target) {
+        if (source != null && target != null && value.has(source) && !value.has(target)) value.set(target, value.get(source));
     }
 
     public record PublishedSlot(UUID id, UUID specialtyId, OffsetDateTime startsAt, OffsetDateTime endsAt, int capacity, int bookedCount, String status, String doctorName) {

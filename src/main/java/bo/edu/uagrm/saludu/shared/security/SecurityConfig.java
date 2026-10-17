@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/openapi/**", "/api/v1/security/csrf").permitAll()
                         .requestMatchers("/api/careers").permitAll()
                         .requestMatchers("/api/v1/auth/login", "/api/v1/session/logout").permitAll()
-                        .requestMatchers("/api/v1/session", "/api/me", "/api/specialties", "/api/my-specialties", "/api/v1/catalogs/**", "/api/v1/admin/**", "/api/v1/profile/**", "/api/patients/**", "/api/availability-slots/**", "/api/appointment-requests/**", "/api/appointments/**", "/api/medical/appointments/**", "/api/medical/patients/**", "/api/medical/encounters/**").authenticated()
+                        .requestMatchers("/api/v1/session", "/api/me", "/api/specialties", "/api/my-specialties", "/api/v1/catalogs/**", "/api/v1/admin/**", "/api/v1/profile/**", "/api/patients/**", "/api/availability-slots/**", "/api/appointment-requests/**", "/api/appointments/**", "/api/medical/appointments/**", "/api/medical/patients/**", "/api/medical/encounters/**", "/api/medical/documents/**", "/api/reports/**", "/api/audit-events/**").authenticated()
                         .anyRequest().denyAll())
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())

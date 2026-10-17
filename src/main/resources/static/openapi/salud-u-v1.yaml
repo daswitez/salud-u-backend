@@ -217,6 +217,80 @@ paths:
               schema: {$ref: '#/components/schemas/LegacyMeSuccess'}
         '401':
           description: Forma heredada exacta {ok:false,error:unauthenticated}.
+  /api/reports/compliance:
+    get:
+      summary: Consulta cumplimiento institucional por carrera y período académico
+      operationId: institutionalCompliance
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: careerId
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+        - name: period
+          in: query
+          required: false
+          schema: {type: string, maxLength: 80}
+      responses:
+        '200': {description: Cumplimiento por paciente inscrito, incluyendo pendientes., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyComplianceSuccess'}}}}
+        '400': {description: Período académico inválido.}
+        '403': {description: Sólo administración o responsable de reportes.}
+  /api/reports/daily-activity:
+    get:
+      summary: Agrega atenciones cerradas por día, tipo y especialidad
+      operationId: dailyInstitutionalActivity
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema: {type: string, format: date}
+        - name: to
+          in: query
+          required: false
+          schema: {type: string, format: date}
+      responses:
+        '200': {description: Agregados de sólo encuentros cerrados., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyDailyActivitySuccess'}}}}
+        '400': {description: Rango inválido o superior a 366 días.}
+        '403': {description: Sólo administración o responsable de reportes.}
+  /api/audit-events:
+    get:
+      summary: Consulta evidencia de auditoría sin exponer contenido clínico ni detalles sensibles
+      operationId: listAuditEvents
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema: {type: string, format: date}
+        - name: to
+          in: query
+          required: false
+          schema: {type: string, format: date}
+        - name: actorId
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+        - name: action
+          in: query
+          required: false
+          schema: {type: string}
+        - name: resource
+          in: query
+          required: false
+          schema: {type: string}
+        - name: outcome
+          in: query
+          required: false
+          schema: {type: string, enum: [SUCCESS, DENIED, FAILURE]}
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, minimum: 1, maximum: 500, default: 100}
+      responses:
+        '200': {description: Eventos ordenados de más reciente a más antiguo., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyAuditEventListSuccess'}}}}
+        '400': {description: Filtros inválidos.}
+        '403': {description: Sólo Auditor.}
 components:
   parameters:
     PatientId:
@@ -376,7 +450,69 @@ components:
         email: {type: string, format: email}
         name: {type: string}
         role: {type: string, enum: [estudiante, medico, administrativo]}
-        clinicalRole: {type: string, enum: [ADMINISTRATIVE, REVIEW_DOCTOR, SPECIALIST, STUDENT, AUDITOR]}
+        clinicalRole: {type: string, enum: [ADMINISTRATIVE, REPORTING_OFFICER, REVIEW_DOCTOR, SPECIALIST, STUDENT, AUDITOR]}
+    LegacyComplianceSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: array
+          items:
+            type: object
+            required: [patientId, carnet, fullName, careerId, careerName, academicPeriod, firstClosedEncounterAt, complianceStatus]
+            properties:
+              patientId: {type: string, format: uuid}
+              carnet: {type: string}
+              fullName: {type: string}
+              careerId: {type: string, format: uuid}
+              careerName: {type: string}
+              academicPeriod: {type: string}
+              firstClosedEncounterAt: {type: [string, 'null'], format: date-time}
+              complianceStatus: {type: string, enum: [COMPLIANT, PENDING]}
+        error: {type: 'null'}
+    LegacyDailyActivitySuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: array
+          items:
+            type: object
+            required: [activityDay, encounterType, specialtyName, totalClosed]
+            properties:
+              activityDay: {type: string, format: date}
+              encounterType: {type: string, enum: [INITIAL, SPECIALTY]}
+              specialtyName: {type: [string, 'null']}
+              totalClosed: {type: integer, format: int64, minimum: 0}
+        error: {type: 'null'}
+    LegacyAuditEventListSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: array
+          items:
+            type: object
+            required: [id, occurredAt, actor, action, resource, resourceId, outcome, context]
+            properties:
+              id: {type: string, format: uuid}
+              occurredAt: {type: string, format: date-time}
+              actor:
+                type: object
+                required: [id, name, roles]
+                properties:
+                  id: {type: string, format: uuid}
+                  name: {type: string}
+                  roles: {type: array, items: {type: string}}
+              action: {type: string}
+              resource: {type: string}
+              resourceId: {type: [string, 'null'], format: uuid}
+              outcome: {type: string, enum: [SUCCESS, DENIED, FAILURE]}
+              context: {type: string, description: Descripción operacional derivada; no contiene metadata cruda.}
+        error: {type: 'null'}
     CsrfSuccess:
       type: object
       required: [ok, data, error]

@@ -1,0 +1,4 @@
+CREATE FUNCTION salud_u.obtener_ficha_exportable(p_encuentro uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=salud_u,pg_temp AS $$
+DECLARE paciente uuid; historia jsonb; ficha jsonb;
+BEGIN SELECT id_paciente INTO paciente FROM salud_u.encuentro_clinico WHERE id=p_encuentro; IF paciente IS NULL THEN RAISE EXCEPTION 'FICHA_NO_AUTORIZADA' USING ERRCODE='P0002'; END IF; historia:=salud_u.obtener_historia_longitudinal_area(paciente); SELECT value INTO ficha FROM jsonb_array_elements(historia->'encounters') WHERE value->>'id'=p_encuentro::text; IF ficha IS NULL THEN RAISE EXCEPTION 'FICHA_NO_AUTORIZADA' USING ERRCODE='42501'; END IF; RETURN jsonb_build_object('patient',historia->'patient','encounter',ficha,'diagnoses',COALESCE((SELECT jsonb_agg(x) FROM jsonb_array_elements(historia->'diagnoses') x WHERE x->>'encounter_id'=p_encuentro::text),'[]'::jsonb)); END $$;
+GRANT EXECUTE ON FUNCTION salud_u.obtener_ficha_exportable(uuid) TO ${runtime_role};
