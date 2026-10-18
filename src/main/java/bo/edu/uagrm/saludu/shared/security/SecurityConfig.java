@@ -14,7 +14,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
-import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
@@ -24,7 +25,13 @@ import org.springframework.security.web.csrf.MissingCsrfTokenException;
 public class SecurityConfig {
     @Bean
     CsrfTokenRepository csrfTokenRepository() {
-        return new HttpSessionCsrfTokenRepository();
+        // No usar HttpSession: su cookie compite con la sesión opaca de dominio
+        // y rompe la continuidad del token al atravesar el proxy de Next.
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieName("SALUD_U_CSRF");
+        repository.setHeaderName("X-CSRF-TOKEN");
+        repository.setCookiePath("/");
+        return repository;
     }
 
     @Bean
@@ -37,12 +44,17 @@ public class SecurityConfig {
     ) throws Exception {
         sessionAuthenticationFilter.ifAvailable(filter -> http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class));
         return http
-                .csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository)
+                        // El endpoint /security/csrf entrega el token del repositorio;
+                        // conservarlo sin ofuscación permite que navegador y SSR lo
+                        // reenvíen de forma determinista en X-CSRF-TOKEN.
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/actuator/health/**", "/openapi/**", "/api/v1/security/csrf").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/openapi/**", "/api/health", "/api/v1/security/csrf").permitAll()
                         .requestMatchers("/api/careers").permitAll()
                         .requestMatchers("/api/v1/auth/login", "/api/v1/session/logout").permitAll()
-                        .requestMatchers("/api/v1/session", "/api/me", "/api/specialties", "/api/my-specialties", "/api/v1/catalogs/**", "/api/v1/admin/**", "/api/v1/profile/**", "/api/patients/**", "/api/availability-slots/**", "/api/appointment-requests/**", "/api/appointments/**", "/api/medical/appointments/**", "/api/medical/patients/**", "/api/medical/encounters/**", "/api/medical/documents/**", "/api/reports/**", "/api/audit-events/**").authenticated()
+                        .requestMatchers("/api/v1/session", "/api/me", "/api/specialties", "/api/my-specialties", "/api/v1/catalogs/**", "/api/v1/admin/**", "/api/v1/profile/**", "/api/patients/**", "/api/availability-slots/**", "/api/appointment-requests/**", "/api/appointments/**", "/api/medical/appointments/**", "/api/medical/patients/**", "/api/medical/encounters/**", "/api/medical/documents/**", "/api/reports/**", "/api/research/**", "/api/audit-events/**", "/api/vaccines/**", "/api/vaccinations/**", "/api/vaccination-card").authenticated()
                         .anyRequest().denyAll())
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())

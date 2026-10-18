@@ -2,9 +2,9 @@
 
 ## Alcance y compatibilidad
 
-Los contratos heredados de Next permanecen congelados en `docs/reference-t01`: varios responden `{ "ok": true, "data": ..., "error": null }`, mientras que `/api/me` responde `{ "ok": true, "user": ... }` y algunos errores usan un texto plano. No se reescriben ni se publican bajo las mismas rutas en este incremento.
+Spring publica dos superficies. La de compatibilidad `/api/**` conserva las rutas que consume el frontend Next durante la transición; la versión nueva `/api/v1/**` concentra identidad, sesión, perfil y catálogos administrativos. Las rutas de compatibilidad se contrastan con `docs/reference-t01`; sus errores tienen `error` textual. No se deben sustituir por el objeto de error de v1.
 
-Spring publica únicamente contratos nuevos bajo `/api/v1`. Su envoltura estable es:
+En `/api/v1/**` la envoltura estable es:
 
 ```json
 {"ok": true, "data": {}, "error": null}
@@ -16,13 +16,14 @@ o, para un error:
 {"ok": false, "data": null, "error": {"code": "CSRF_INVALID", "message": "…", "details": {}, "requestId": "…"}}
 ```
 
-La forma `ok/data/error` permite reutilizar los consumidores que ya conocen ese patrón; el objeto detallado de `error` solo pertenece a v1. Cada historia funcional añadirá su DTO, fixture sintética y comparación con los casos de T-01 sin modificar la API heredada. Los UUID y tiempos generados se comparan por tipo o con una correspondencia declarada.
+La forma `ok/data/error` permite reutilizar los consumidores que ya conocen ese patrón; el objeto detallado de `error` solo pertenece a v1. Cada historia funcional añade su DTO, fixture sintética y comparación con T-01. Los UUID y tiempos generados se comparan por tipo o con una correspondencia declarada.
 
 ## Rutas publicadas
 
 | Método | Ruta | Sesión | CSRF | Resultado |
 | --- | --- | --- | --- | --- |
 | GET | `/api/v1/security/csrf` | no | no | Crea/recupera token y sesión HTTP, sin caché. |
+| GET | `/api/health` | no | no | Estado agregado del backend (`backend`/`UP`); reemplaza el chequeo técnico de Supabase. |
 | POST | `/api/v1/auth/login` | no | sí | Valida credenciales y envía la cookie opaca HttpOnly. |
 | GET | `/api/me` | sí | no | Conserva la forma heredada `ok/user` y sus cinco campos. |
 | GET | `/api/v1/session` | sí | no | Expone sujeto y autoridades de una sesión ya autenticada. |

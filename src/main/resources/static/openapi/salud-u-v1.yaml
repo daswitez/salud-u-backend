@@ -3,12 +3,42 @@ info:
   title: Salud-U API
   version: 1.0.0-draft
   description: |
-    Contrato base de la API Spring. Documenta rutas publicadas por T-04, BE-01, BE-CAT y BE-02.
-    Las rutas Next/Supabase heredadas permanecen fuera de /api/v1 y se comparan
-    con los fixtures de docs/reference-t01 antes de cada migración funcional.
+    Contrato base de la API Spring. Publica rutas de compatibilidad /api para el
+    frontend Next actual y contratos versionados /api/v1 para identidad y
+    administración. Las rutas de compatibilidad se comparan con los fixtures de
+    docs/reference-t01 antes de cada migración funcional.
 servers:
   - url: http://localhost:8080
 paths:
+  /api/health:
+    get:
+      summary: Estado agregado del backend, sin dependencia de Supabase
+      operationId: backendHealth
+      responses:
+        '200':
+          description: Backend disponible.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, service, status]
+                properties:
+                  ok: {type: boolean, const: true}
+                  service: {type: string, const: backend}
+                  status: {type: string, const: UP}
+                  error: {type: 'null'}
+        '503':
+          description: Alguna dependencia crítica no está disponible.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, service, status, error]
+                properties:
+                  ok: {type: boolean, const: false}
+                  service: {type: string, const: backend}
+                  status: {type: string}
+                  error: {type: string, const: backend_unavailable}
   /api/careers:
     get:
       summary: Lista carreras activas en el contrato heredado
@@ -291,6 +321,106 @@ paths:
         '200': {description: Eventos ordenados de más reciente a más antiguo., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyAuditEventListSuccess'}}}}
         '400': {description: Filtros inválidos.}
         '403': {description: Sólo Auditor.}
+  /api/vaccines:
+    get:
+      summary: Lista vacunas y su última versión de esquema
+      operationId: listVaccines
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: includeInactive
+          in: query
+          required: false
+          schema: {type: boolean, default: false}
+      responses:
+        '200': {description: Catálogo administrativo de vacunas., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccineListSuccess'}}}}
+        '403': {description: Sólo Administración.}
+    post:
+      summary: Crea una vacuna y la primera versión de su esquema de dosis
+      operationId: createVaccine
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/VaccineRequest'}}}
+      responses:
+        '201': {description: Vacuna creada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccineIdSuccess'}}}}
+        '400': {description: Esquema inválido.}
+        '403': {description: Sólo Administración.}
+  /api/vaccines/{vaccineId}:
+    put:
+      summary: Crea una versión de esquema y permite activar o desactivar una vacuna sin borrar historia
+      operationId: updateVaccine
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - name: vaccineId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/VaccineRequest'}}}
+      responses:
+        '200': {description: Vacuna actualizada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccineIdSuccess'}}}}
+        '400': {description: Esquema inválido o vacuna inexistente.}
+        '403': {description: Sólo Administración.}
+  /api/vaccinations:
+    post:
+      summary: Registra una dosis aplicada y conserva aplicador, registrador y versión del esquema
+      operationId: applyVaccinationDose
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/VaccinationApplicationRequest'}}}
+      responses:
+        '201': {description: Dosis registrada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationApplicationSuccess'}}}}
+        '400': {description: Dosis, orden, fecha o intervalo inválidos.}
+        '403': {description: Sólo Administración o Médico de revisión; el aplicador debe ser válido.}
+        '404': {description: Paciente inexistente.}
+        '409': {description: Ya existe esa dosis para el paciente y vacuna.}
+  /api/vaccination-card:
+    get:
+      summary: Consulta el carnet y estado de vacunación autorizado
+      operationId: getVaccinationCard
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: patientId
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+          description: Requerido para Administración; un estudiante sólo puede consultar su propio carnet.
+      responses:
+        '200': {description: Carnet y estado calculado por esquema., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationCardSuccess'}}}}
+        '403': {description: No autorizado para ese carnet.}
+        '404': {description: Paciente inexistente.}
+  /api/reports/vaccination-coverage:
+    get:
+      summary: Cobertura agregada por vacuna, carrera y período académico
+      operationId: getVaccinationCoverage
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: careerId
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+        - name: academicPeriod
+          in: query
+          required: false
+          schema: {type: string, maxLength: 80}
+      responses:
+        '200': {description: Cobertura institucional agregada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationCoverageSuccess'}}}}
+        '403': {description: Sólo Administración o Reportes.}
+        '400': {description: Filtros inválidos.}
+  /api/research/exports:
+    post:
+      summary: Descarga un conjunto de investigación seudonimizado y su diccionario
+      operationId: exportPseudonymizedResearchDataset
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ResearchExportRequest'}}}
+      responses:
+        '200': {description: CSV dentro de ZIP o XLSX con hoja Dictionary; sin identificadores directos.}
+        '400': {description: Finalidad, filtros o formato inválidos.}
+        '403': {description: Sólo Administración o Responsable de Reportes.}
 components:
   parameters:
     PatientId:
@@ -513,6 +643,116 @@ components:
               outcome: {type: string, enum: [SUCCESS, DENIED, FAILURE]}
               context: {type: string, description: Descripción operacional derivada; no contiene metadata cruda.}
         error: {type: 'null'}
+    VaccineRequest:
+      type: object
+      required: [code, name, active, doses]
+      properties:
+        code: {type: string, minLength: 2, maxLength: 60}
+        name: {type: string, minLength: 2, maxLength: 160}
+        active: {type: boolean}
+        doses:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: object
+            required: [doseNumber, minimumIntervalDays]
+            properties:
+              doseNumber: {type: integer, minimum: 1, maximum: 20}
+              minimumIntervalDays: {type: integer, minimum: 0, maximum: 3650}
+    LegacyVaccineIdSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data: {type: object, required: [id], properties: {id: {type: string, format: uuid}}}
+        error: {type: 'null'}
+    LegacyVaccineListSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: array
+          items:
+            type: object
+            required: [id, code, name, active, schemaVersion, doses]
+            properties:
+              id: {type: string, format: uuid}
+              code: {type: string}
+              name: {type: string}
+              active: {type: boolean}
+              schemaVersion: {type: integer}
+              doses: {type: array, items: {type: object, required: [doseNumber, minimumIntervalDays]}}
+        error: {type: 'null'}
+    VaccinationApplicationRequest:
+      type: object
+      required: [patientId, vaccineId, doseNumber, appliedOn, lot]
+      properties:
+        patientId: {type: string, format: uuid}
+        vaccineId: {type: string, format: uuid}
+        doseNumber: {type: integer, minimum: 1, maximum: 20}
+        appliedOn: {type: string, format: date}
+        lot: {type: string, minLength: 1, maxLength: 100}
+        applicatorStaffId: {type: string, format: uuid, description: Obligatorio para Administración; un médico sólo puede indicar su propio personal.}
+        intervalOverrideJustification: {type: string, minLength: 1, maxLength: 500, description: Obligatoria si no se cumple el intervalo mínimo.}
+    LegacyVaccinationApplicationSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [id, intervalWarning, applicatorStaffId, registeredBy, appliedOn]
+          properties:
+            id: {type: string, format: uuid}
+            intervalWarning: {type: boolean}
+            applicatorStaffId: {type: string, format: uuid}
+            registeredBy: {type: string, format: uuid}
+            appliedOn: {type: string, format: date}
+        error: {type: 'null'}
+    LegacyVaccinationCardSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [patientId, carnet, fullName, vaccines]
+          properties:
+            patientId: {type: string, format: uuid}
+            carnet: {type: string}
+            fullName: {type: string}
+            careerId: {type: [string, 'null'], format: uuid}
+            careerName: {type: [string, 'null']}
+            academicPeriod: {type: [string, 'null']}
+            vaccines: {type: array, items: {type: object, required: [vaccineId, code, name, active, requiredDoseCount, completedDoseCount, status, appliedDoses]}}
+        error: {type: 'null'}
+    LegacyVaccinationCoverageSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: array
+          items:
+            type: object
+            required: [vaccineId, vaccineCode, vaccineName, careerId, careerName, academicPeriod, totalStudents, completedSchedules, coveragePercentage]
+        error: {type: 'null'}
+    ResearchExportRequest:
+      type: object
+      required: [purpose, filters, format]
+      properties:
+        purpose: {type: string, minLength: 3, maxLength: 300}
+        filters:
+          type: object
+          properties:
+            from: {type: string, format: date}
+            to: {type: string, format: date}
+            careerId: {type: string, format: uuid}
+            specialtyId: {type: string, format: uuid}
+            vaccineId: {type: string, format: uuid}
+        format: {type: string, enum: [CSV, XLSX], description: CSV produce ZIP con research-data.csv y dictionary.csv.}
     CsrfSuccess:
       type: object
       required: [ok, data, error]

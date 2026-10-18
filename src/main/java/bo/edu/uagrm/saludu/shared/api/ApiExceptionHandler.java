@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiEnvelope<Void>> validation(MethodArgumentNotValidException exception, HttpServletRequest request) {
+    ResponseEntity<?> validation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         Map<String, String> violations = new LinkedHashMap<>();
         for (FieldError error : exception.getBindingResult().getFieldErrors()) {
             violations.putIfAbsent(error.getField(), error.getDefaultMessage());
@@ -31,17 +31,17 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, IllegalArgumentException.class})
-    ResponseEntity<ApiEnvelope<Void>> invalidRequest(Exception exception, HttpServletRequest request) {
+    ResponseEntity<?> invalidRequest(Exception exception, HttpServletRequest request) {
         return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "La solicitud no tiene un formato válido.", Map.of(), request);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    ResponseEntity<ApiEnvelope<Void>> invalidCredentials(InvalidCredentialsException exception, HttpServletRequest request) {
+    ResponseEntity<?> invalidCredentials(InvalidCredentialsException exception, HttpServletRequest request) {
         return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Las credenciales no son válidas.", Map.of(), request);
     }
 
     @ExceptionHandler(EmailAlreadyUsedException.class)
-    ResponseEntity<ApiEnvelope<Void>> emailAlreadyUsed(EmailAlreadyUsedException exception, HttpServletRequest request) {
+    ResponseEntity<?> emailAlreadyUsed(EmailAlreadyUsedException exception, HttpServletRequest request) {
         return error(HttpStatus.CONFLICT, "EMAIL_ALREADY_USED", "El correo ya está asociado a otra cuenta.", Map.of(), request);
     }
 
@@ -65,9 +65,12 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(exception.status()).body(LegacyAvailabilityResponse.failure(exception.getMessage()));
     }
 
-    private ResponseEntity<ApiEnvelope<Void>> error(
+    private ResponseEntity<?> error(
         HttpStatus status, String code, String message, Map<String, ?> details, HttpServletRequest request
     ) {
+        if (ApiSecurityErrorWriter.isLegacyApi(request.getRequestURI())) {
+            return ResponseEntity.status(status).body(LegacyAvailabilityResponse.failure(message));
+        }
         return ResponseEntity.status(status).body(ApiEnvelope.failure(code, message, details, RequestIdFilter.from(request)));
     }
 }

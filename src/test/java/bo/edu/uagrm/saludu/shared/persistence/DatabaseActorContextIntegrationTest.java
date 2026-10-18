@@ -619,6 +619,149 @@ class DatabaseActorContextIntegrationTest {
     }
 
     @Test
+    void administrativeActorVersionsAndDeactivatesVaccineSchedulesWithoutDeletingThem() {
+        String code = "BE25-" + UUID.randomUUID().toString().substring(0, 8);
+        String twoDoses = "[{\"doseNumber\":1,\"minimumIntervalDays\":0},{\"doseNumber\":2,\"minimumIntervalDays\":28}]";
+        UUID vaccineId = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            return runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(null, ?, ?, true, cast(? as jsonb))", UUID.class, code, "Vacuna BE-25", twoDoses);
+        });
+        assertEquals(2, migratorJdbc.queryForObject("select count(*) from salud_u.dosis_esquema_vacuna d join salud_u.esquema_vacuna e on e.id=d.id_esquema_vacuna where e.id_vacuna=?", Integer.class, vaccineId));
+        transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, false, cast(? as jsonb))", UUID.class, vaccineId, code, "Vacuna BE-25", twoDoses);
+        });
+        assertFalse(migratorJdbc.queryForObject("select activo from salud_u.vacuna where id=?", Boolean.class, vaccineId));
+        assertEquals(2, migratorJdbc.queryForObject("select count(*) from salud_u.esquema_vacuna where id_vacuna=?", Integer.class, vaccineId));
+        assertEquals(4, migratorJdbc.queryForObject("select count(*) from salud_u.dosis_esquema_vacuna d join salud_u.esquema_vacuna e on e.id=d.id_esquema_vacuna where e.id_vacuna=?", Integer.class, vaccineId));
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, true, cast(? as jsonb))", UUID.class, vaccineId, code, "Vacuna inválida", "[{\"doseNumber\":2,\"minimumIntervalDays\":0}]");
+        }));
+        assertEquals("Vacuna BE-25", migratorJdbc.queryForObject("select nombre from salud_u.vacuna where id=?", String.class, vaccineId));
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(availabilityClinicianId, java.util.Set.of("REVIEW_DOCTOR")));
+            runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(null, ?, ?, true, cast(? as jsonb))", UUID.class, "NO-PE25", "No permitida", twoDoses);
+        }));
+    }
+
+    @Test
+    void vaccinationDosePreservesResponsiblePeopleAndRejectsInvalidOrConcurrentDuplicates() throws Exception {
+        UUID patient = UUID.randomUUID();
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?, ?, ?, ?, ?, 'Paciente', 'Vacunación', ?, ?)", patient, "VAC-" + suffix, "VAC" + suffix, "REG-VAC-" + suffix, "REGVAC" + suffix, administratorId, administratorId);
+        UUID vaccine = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            return runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(null, ?, ?, true, cast(? as jsonb))", UUID.class, "VX-" + suffix, "Vacuna BE-26", "[{\"doseNumber\":1,\"minimumIntervalDays\":0},{\"doseNumber\":2,\"minimumIntervalDays\":28}]");
+        });
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 2, ?, 'L-2', ?, 'Sin primera dosis')", UUID.class, patient, vaccine, LocalDate.now(), availabilityStaffId);
+        }));
+        LocalDate firstDate = LocalDate.now().minusDays(2);
+        UUID first = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            return runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 1, ?, 'L-1', ?, null)", UUID.class, patient, vaccine, firstDate, availabilityStaffId);
+        });
+        assertNotNull(first);
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(availabilityClinicianId, java.util.Set.of("REVIEW_DOCTOR")));
+            runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 2, ?, 'L-2', null, null)", UUID.class, patient, vaccine, LocalDate.now());
+        }));
+        UUID second = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(availabilityClinicianId, java.util.Set.of("REVIEW_DOCTOR")));
+            return runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 2, ?, 'L-2', null, 'Aplicación anticipada justificada')", UUID.class, patient, vaccine, LocalDate.now());
+        });
+        assertEquals(availabilityStaffId, migratorJdbc.queryForObject("select id_personal_aplicador from salud_u.dosis_vacuna_aplicada where id=?", UUID.class, second));
+        assertEquals(availabilityClinicianId, migratorJdbc.queryForObject("select id_registrado_por from salud_u.dosis_vacuna_aplicada where id=?", UUID.class, second));
+        assertTrue(migratorJdbc.queryForObject("select advertencia_intervalo from salud_u.dosis_vacuna_aplicada where id=?", Boolean.class, second));
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 2, ?, 'L-2', ?, 'Duplicada')", UUID.class, patient, vaccine, LocalDate.now(), availabilityStaffId);
+        }));
+
+        UUID concurrentPatient = UUID.randomUUID();
+        migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?, ?, ?, ?, ?, 'Paciente', 'Concurrente', ?, ?)", concurrentPatient, "VCC-" + suffix, "VCC" + suffix, "REG-VCC-" + suffix, "REGVCC" + suffix, administratorId, administratorId);
+        var gate = new CountDownLatch(1);
+        var workers = Executors.newFixedThreadPool(2);
+        try {
+            var attempts = java.util.List.of(0, 1).stream().map(ignored -> workers.submit(() -> {
+                gate.await(5, TimeUnit.SECONDS);
+                try {
+                    return transaction.execute(status -> {
+                        actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+                        runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 1, ?, 'LC-1', ?, null)", UUID.class, concurrentPatient, vaccine, LocalDate.now(), availabilityStaffId);
+                        return true;
+                    });
+                } catch (DataAccessException exception) { return false; }
+            })).toList();
+            gate.countDown();
+            assertEquals(1L, attempts.stream().filter(attempt -> {
+                try { return attempt.get(10, TimeUnit.SECONDS); } catch (Exception exception) { return false; }
+            }).count());
+        } finally { workers.shutdownNow(); }
+        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.dosis_vacuna_aplicada where id_paciente=? and id_vacuna=? and numero_dosis=1", Integer.class, concurrentPatient, vaccine));
+        transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, false, cast(? as jsonb))", UUID.class, vaccine, "VX-" + suffix, "Vacuna BE-26", "[{\"doseNumber\":1,\"minimumIntervalDays\":0},{\"doseNumber\":2,\"minimumIntervalDays\":28}]");
+        });
+        UUID inactivePatient = UUID.randomUUID();
+        migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?, ?, ?, ?, ?, 'Paciente', 'Inactiva', ?, ?)", inactivePatient, "VXI-" + suffix, "VXI" + suffix, "REG-VXI-" + suffix, "REGVXI" + suffix, administratorId, administratorId);
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 1, ?, 'LI-1', ?, null)", UUID.class, inactivePatient, vaccine, LocalDate.now(), availabilityStaffId);
+        }));
+    }
+
+    @Test
+    void vaccinationCardIsPrivateToStudentAndCoverageCountsEachEnrolledStudentOnce() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8), period = "2026-VAC-" + suffix;
+        UUID student = UUID.randomUUID(), reporter = UUID.randomUUID(), patient = UUID.randomUUID(), pendingPatient = UUID.randomUUID();
+        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?),(?,?,?)", student, "be27-student-" + suffix + "@example.invalid", "Estudiante BE-27", reporter, "be27-report-" + suffix + "@example.invalid", "Reportes BE-27");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'STUDENT'),(?,'REPORTING_OFFICER')", student, reporter);
+        migratorJdbc.update("insert into salud_u.paciente(id,id_principal,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?,?, ?, ?, ?, ?, 'Estudiante','Vacunado',?,?),(?,null, ?, ?, ?, ?, 'Estudiante','Pendiente',?,?)", patient, student, "VC-" + suffix, "VC" + suffix, "REG-VC-" + suffix, "REGVC" + suffix, administratorId, administratorId, pendingPatient, "VP-" + suffix, "VP" + suffix, "REG-VP-" + suffix, "REGVP" + suffix, administratorId, administratorId);
+        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, ?, current_date, 'ACTIVE'), (?, ?, ?, current_date, 'ACTIVE')", patient, patientCareerId, period, pendingPatient, patientCareerId, period);
+        UUID vaccine = transaction.execute(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); return runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(null, ?, ?, true, cast(? as jsonb))", UUID.class, "VC-" + suffix, "Vacuna cobertura", "[{\"doseNumber\":1,\"minimumIntervalDays\":0}]"); });
+        transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 1, current_date, 'CARD-1', ?, null)", UUID.class, patient, vaccine, availabilityStaffId); });
+        transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, true, cast(? as jsonb))", UUID.class, vaccine, "VC-" + suffix, "Vacuna cobertura", "[{\"doseNumber\":1,\"minimumIntervalDays\":0}]"); });
+        String ownCard = transaction.execute(status -> { actorContext.apply(new DatabaseActor(student, java.util.Set.of("STUDENT"))); return runtimeJdbc.queryForObject("select salud_u.obtener_carnet_vacunacion(null)::text", String.class); });
+        assertTrue(ownCard.contains("\"carnet\": \"VC-" + suffix + "\"") || ownCard.contains("\"carnet\":\"VC-" + suffix + "\""));
+        assertTrue(ownCard.contains("\"currentSchemaVersion\": 2") || ownCard.contains("\"currentSchemaVersion\":2"));
+        assertTrue(ownCard.contains("\"schemaVersion\": 1") || ownCard.contains("\"schemaVersion\":1"));
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(student, java.util.Set.of("STUDENT"))); runtimeJdbc.queryForObject("select salud_u.obtener_carnet_vacunacion(?)::text", String.class, pendingPatient); }));
+        var coverage = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select * from salud_u.reporte_cobertura_vacunacion(?, ?)", patientCareerId, period); });
+        assertEquals(1, coverage.size());
+        assertEquals(2L, ((Number) coverage.getFirst().get("total_estudiantes")).longValue());
+        assertEquals(1L, ((Number) coverage.getFirst().get("esquemas_completos")).longValue());
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(student, java.util.Set.of("STUDENT"))); runtimeJdbc.queryForList("select * from salud_u.reporte_cobertura_vacunacion(?, ?)", patientCareerId, period); }));
+    }
+
+    @Test
+    void researchDatasetIsPseudonymizedAuditedAndRestricted() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        UUID reporter = UUID.randomUUID(), patient = UUID.randomUUID(), slot = UUID.randomUUID(), appointment = UUID.randomUUID(), encounter = UUID.randomUUID();
+        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?)", reporter, "research-" + suffix + "@example.invalid", "Reportes investigación");
+        migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'REPORTING_OFFICER')", reporter);
+        migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,fecha_nacimiento,creado_por,actualizado_por) values (?, 'CARNET-SECRETO', 'CARNETSECRETO" + suffix + "', 'REGISTRO-SECRETO', 'REGISTROSECRETO" + suffix + "', 'Nombre Reservado', 'Apellido Reservado', current_date - interval '22 years', ?, ?)", patient, administratorId, administratorId);
+        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, '2026-II', current_date - 1, 'ACTIVE')", patient, patientCareerId);
+        migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, now()-interval '2 days', now()-interval '2 days'+interval '30 minutes', 1, 'CLOSED', now()-interval '3 days', ?)", slot, availabilityStaffId, availabilityClinicianId);
+        migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,estado,id_personal_asignado,programada_para) values (?, ?, ?, 'INITIAL', 'ATTENDED', ?, now()-interval '2 days')", appointment, patient, slot, availabilityStaffId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,cerrado_por) values (?, ?, ?, ?, 'INITIAL', 'CLOSED', now()-interval '2 days', ?)", encounter, appointment, patient, availabilityStaffId, availabilityClinicianId);
+        migratorJdbc.update("insert into salud_u.diagnostico_encuentro(id_encuentro,texto_libre,creado_por) values (?, 'Nombre Reservado no debe salir', ?)", encounter, availabilityClinicianId);
+        var first = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb))", "{}"); });
+        var second = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb))", "{}"); });
+        Map<String, Object> row = first.stream().filter(value -> "INITIAL".equals(value.get("tipo_encuentro"))).findFirst().orElseThrow();
+        assertTrue(((String) row.get("seudonimo")).matches("R-[A-F0-9]{20}"));
+        assertEquals(row.get("seudonimo"), second.stream().filter(value -> "INITIAL".equals(value.get("tipo_encuentro"))).findFirst().orElseThrow().get("seudonimo"));
+        String serialized = row.toString();
+        assertFalse(serialized.contains("CARNET-SECRETO") || serialized.contains("REGISTRO-SECRETO") || serialized.contains("Nombre Reservado") || serialized.contains("Apellido Reservado"));
+        UUID export = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForObject("select salud_u.registrar_exportacion_investigacion(?, cast(? as jsonb), 'CSV', ?)", UUID.class, "Análisis epidemiológico institucional", "{}", first.size()); });
+        assertEquals(reporter, migratorJdbc.queryForObject("select id_solicitante from salud_u.exportacion_investigacion where id=?", UUID.class, export));
+        assertTrue(migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='RESEARCH_EXPORT_COMPLETED'", Integer.class, export) == 1);
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(studentId, java.util.Set.of("STUDENT"))); runtimeJdbc.queryForList("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb))", "{}"); }));
+    }
+
+    @Test
     void actorSettingsAreTransactionLocalWhenConnectionReturnsToPool() {
         try (HikariDataSource oneConnectionPool = dataSource("salud_u_runtime", "runtime-test-password", 1)) {
             var jdbc = new JdbcTemplate(oneConnectionPool);

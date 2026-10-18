@@ -21,11 +21,15 @@ public class ApiSecurityErrorWriter {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         String path = request.getRequestURI();
-        if ("/api/me".equals(path) || "/api/specialties".equals(path) || "/api/my-specialties".equals(path) || path.startsWith("/api/patients") || path.startsWith("/api/availability-slots")) {
+        if (isLegacyApi(path)) {
             String legacyError = status == HttpServletResponse.SC_UNAUTHORIZED ? "unauthenticated" : "forbidden";
             objectMapper.writeValue(response.getOutputStream(), Map.of("ok", false, "error", legacyError));
             return;
         }
         objectMapper.writeValue(response.getOutputStream(), ApiEnvelope.failure(code, message, RequestIdFilter.from(request)));
+    }
+
+    static boolean isLegacyApi(String path) {
+        return path.startsWith("/api/") && !path.startsWith("/api/v1/");
     }
 }

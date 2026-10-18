@@ -41,7 +41,9 @@ server:
     session:
       timeout: 30m
       cookie:
-        name: SALUD_U_SESSION
+        # Esta sesión HTTP sólo guarda CSRF. La cookie SALUD_U_SESSION pertenece
+        # exclusivamente a la sesión opaca persistente de la aplicación.
+        name: SALUD_U_CSRF
         http-only: true
         secure: ${SESSION_COOKIE_SECURE:true}
         same-site: lax
