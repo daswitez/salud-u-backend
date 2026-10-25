@@ -22,6 +22,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    ResponseEntity<?> uploadTooLarge(Exception exception,HttpServletRequest request) {
+        return error(HttpStatus.PAYLOAD_TOO_LARGE,"UPLOAD_TOO_LARGE","El archivo debe pesar hasta 15 MiB.",Map.of(),request);
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<?> validation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         Map<String, String> violations = new LinkedHashMap<>();

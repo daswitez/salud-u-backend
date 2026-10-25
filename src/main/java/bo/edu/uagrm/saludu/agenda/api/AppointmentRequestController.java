@@ -85,7 +85,17 @@ public class AppointmentRequestController {
             if (!principal.roles().contains("ADMINISTRATIVE")) throw new AvailabilityException(403, "Sólo administración puede programar una derivación.");
             Object raw = body.get("referralId");
             if (!(raw instanceof String referralId) || referralId.isBlank()) throw new AvailabilityException(400, "Selecciona una derivación.");
-            UUID saved = jdbc.queryForObject("select salud_u.crear_solicitud_derivacion(?)", UUID.class, UUID.fromString(referralId));
+            if (!(body.get("patientId") instanceof String patientValue) || patientValue.isBlank()) throw new AvailabilityException(400,"Selecciona el estudiante de la derivación.");
+            if (body.get("specialtyId") instanceof String value && !value.isBlank()) throw new AvailabilityException(400,"La especialidad se obtiene de la derivación.");
+            UUID saved;
+            try { saved = jdbc.queryForObject("select salud_u.crear_solicitud_derivacion(?,?)", UUID.class, UUID.fromString(referralId), UUID.fromString(patientValue)); }
+            catch(DataAccessException exception) {
+                String detail=String.valueOf(exception.getMostSpecificCause().getMessage());
+                if(detail.contains("SOLICITUD_DERIVACION_PENDIENTE")) throw new AvailabilityException(409,"Ya existe una solicitud pendiente para esta derivación. Actualiza la agenda para recuperarla.");
+                if(detail.contains("DERIVACION_NO_PROGRAMABLE")) throw new AvailabilityException(409,"La derivación no está disponible para este estudiante o ya fue programada.");
+                if(detail.contains("PACIENTE_NO_DISPONIBLE")) throw new AvailabilityException(404,"El estudiante no está disponible.");
+                throw exception;
+            }
             audit.append("REFERRAL_SCHEDULE_REQUEST_CREATED", "appointment_request", saved, AuditOutcome.SUCCESS, Map.of("referralId", referralId));
             return org.springframework.http.ResponseEntity.status(201).body(LegacyAvailabilityResponse.success(Map.of("id", saved)));
         }

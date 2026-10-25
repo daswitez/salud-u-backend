@@ -44,9 +44,12 @@ class SecurityConfigTest {
     @Test
     void writesRequireCsrfAndRemainDeniedWithToken() throws Exception {
         mvc.perform(post("/api/private").with(user("test")))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("X-Error-Code","CSRF_INVALID"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.error").value("forbidden"));
         mvc.perform(post("/api/private").with(user("test")).with(csrf()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("X-Error-Code","FORBIDDEN"));
     }
 
     @RestController

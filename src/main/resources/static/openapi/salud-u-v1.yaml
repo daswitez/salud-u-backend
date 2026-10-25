@@ -10,6 +10,253 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /api/administrative/referrals:
+    get:
+      summary: Bandeja e historial administrativo de derivaciones
+      description: Solo ADMINISTRATIVE. Conserva los campos RPC y null. Todos los estados; PENDING_ASSIGNMENT, ASSIGNED, IN_PROGRESS y resto, luego requested_at DESC/id DESC. El contenido clínico se consulta sin edición y el acceso se audita.
+      responses:
+        '200':
+          description: ok/data lista, vacía []
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: {const: true}
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, patient_id, patient_name, patient_carnet, specialty_id, specialty_name, priority, reason, comment_for_specialist, status, requested_at, requested_by_name, assigned_staff_name, appointment_id, scheduled_for]
+                      properties:
+                        id: {type: string, format: uuid}
+                        patient_id: {type: string, format: uuid}
+                        patient_name: {type: string}
+                        patient_carnet: {type: string}
+                        specialty_id: {type: string, format: uuid}
+                        specialty_name: {type: string}
+                        priority: {type: string, enum: [ROUTINE, PRIORITY, URGENT]}
+                        reason: {type: string}
+                        comment_for_specialist: {type: string}
+                        status: {type: string, enum: [PENDING_ASSIGNMENT, ASSIGNED, IN_PROGRESS, CLOSED, RETURNED, CANCELLED]}
+                        requested_at: {type: string, format: date-time}
+                        requested_by_name: {type: string}
+                        assigned_staff_name: {type: [string, 'null']}
+                        appointment_id: {type: [string, 'null'], format: uuid}
+                        scheduled_for: {type: [string, 'null'], format: date-time}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+  /api/patients/{patientId}/referrals:
+    get:
+      summary: Derivaciones disponibles para seleccionar en programación
+      description: Solo ADMINISTRATIVE. Lista PENDING_ASSIGNMENT/ASSIGNED del paciente, requested_at DESC/id DESC. ASSIGNED se conserva para consulta; crear otra solicitud o asignar de nuevo se rechaza. Lectura auditada.
+      parameters:
+        - {name: patientId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: ok/data con id, specialty_id, specialty_name, status; lista vacía []
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: {const: true}
+                  data: {type: array, items: {type: object, required: [id, specialty_id, specialty_name, status]}}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+  /api/appointment-requests:
+    get:
+      summary: Consultar solicitudes y citas autorizadas
+      description: STUDENT propio o ADMINISTRATIVE. Conserva id/appointment_type/referral_id/specialty_id/status/requested_at/cancelled_at/cancellation_reason/patient/appointment; fechas y relaciones ausentes null.
+      responses:
+        '200': {description: 'ok/data lista de solicitudes con cita, o []'}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+    post:
+      summary: Crear solicitud de revisión, especialidad directa o derivación
+      description: Para REFERRAL exige ADMINISTRATIVE, patientId y referralId; specialtyId debe ser null/ausente porque la especialidad procede de la derivación. Valida pertenencia al paciente, paciente no archivado, estado PENDING_ASSIGNMENT y una sola solicitud pendiente concurrente. No modifica el contenido de la derivación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appointmentType: {type: string, enum: [INITIAL, SPECIALTY, REFERRAL], default: INITIAL}
+                patientId: {type: [string, 'null'], format: uuid}
+                referralId: {type: [string, 'null'], format: uuid}
+                specialtyId: {type: [string, 'null'], format: uuid}
+      responses:
+        '201': {description: 'Contrato heredado: {ok:true,data:{id:uuid}}'}
+        '400': {description: Parámetros ausentes o inválidos}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol o CSRF sin permiso}
+        '404': {description: Paciente no disponible para solicitar derivación}
+        '409': {description: REFERRAL no programable, otro paciente o solicitud pendiente duplicada; sin cambios parciales}
+  /api/appointment-requests/{requestId}/assign:
+    post:
+      summary: Asignar solicitud pendiente a un cupo compatible
+      description: Solo ADMINISTRATIVE. Para REFERRAL actualiza solicitud, cita SPECIALTY, cupo, estado/profesional de derivación y eventos/auditoría en una transacción. Exige derivación PENDING_ASSIGNMENT del mismo paciente y especialidad compatible. Contenido y encuentro de origen intactos; doble asignación rechazada.
+      parameters:
+        - {name: requestId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [slotId], properties: {slotId: {type: string, format: uuid}}}
+      responses:
+        '200': {description: 'Contrato heredado: {ok:true,data:{appointmentId:uuid}}'}
+        '400': {description: Cuerpo inválido o cupo incompatible}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol o CSRF sin permiso}
+        '409': {description: Cupo lleno, solicitud no pendiente, derivación no programable o paciente con cita incompatible; rollback completo}
+  /api/medical/referrals:
+    get:
+      summary: Consultar derivaciones emitidas por el médico de revisión
+      description: Rol REVIEW_DOCTOR y personal activo. Solo emisor y atención INITIAL propia cerrada. ok/data lista, vacía [] y orden createdAt DESC/id DESC; no requiere consultar historia longitudinal. Registra acceso sin texto clínico.
+      responses:
+        '200':
+          description: Lista de derivaciones emitidas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {const: true}
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, patient, specialty, priority, status, reason, comment, createdAt, sourceAppointmentId, sourceEncounterId, diagnosisCount, documentCount]
+                      properties:
+                        id: {type: string, format: uuid}
+                        patient: {type: object, description: 'id/fullName/carnet del paciente autorizado'}
+                        specialty: {type: object, description: 'id/name de la especialidad, conservados aunque se desactive'}
+                        priority: {type: string, enum: [ROUTINE, PRIORITY, URGENT]}
+                        status: {type: string, enum: [PENDING_ASSIGNMENT, ASSIGNED, IN_PROGRESS, RETURNED, CLOSED, CANCELLED]}
+                        reason: {type: string}
+                        comment: {type: string}
+                        createdAt: {type: string, format: date-time}
+                        sourceAppointmentId: {type: string, format: uuid}
+                        sourceEncounterId: {type: string, format: uuid}
+                        diagnosisCount: {type: integer}
+                        documentCount: {type: integer}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+        '404': {description: Personal no disponible}
+  /api/medical/referrals/{id}:
+    get:
+      summary: Consultar contexto y elementos compartidos de una derivación propia emitida
+      description: Solo emisor de revisión y origen propio cerrado. Los diagnósticos y documentos pertenecen al mismo paciente; documentos AVAILABLE. Conserva null y listas vacías. Sin edición del contenido clínico y con auditoría de consulta.
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: ok/data con identidad, prioridad, contexto de origen y elementos compartidos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {const: true}
+                  data:
+                    type: object
+                    required: [id, patient, specialty, priority, status, reason, comment, createdAt, source, diagnoses, documents]
+                    properties:
+                      id: {type: string, format: uuid}
+                      patient: {type: object, description: 'id/fullName/carnet'}
+                      specialty: {type: object, description: 'id/name'}
+                      priority: {type: string, enum: [ROUTINE, PRIORITY, URGENT]}
+                      status: {type: string}
+                      reason: {type: string}
+                      comment: {type: string}
+                      createdAt: {type: string, format: date-time}
+                      source: {type: object, description: 'id/appointmentId/status=CLOSED, chiefComplaint/assessment/instructions/followUpText/reviewHistoryVersion. Campos históricos ausentes conservan null.'}
+                      diagnoses: {type: array, items: {type: object}, description: 'id/label/isPrimary; orden de creación/id ascendente'}
+                      documents: {type: array, items: {type: object}, description: 'id/documentType/filename/mimeType/sizeBytes/studyDate/description; opcionales null y orden de carga/id ascendente'}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+        '404': {description: Derivación ajena o inexistente; sin contenido clínico}
+  /api/medical/documents:
+    get:
+      summary: Listar documentos disponibles de una atención propia
+      description: Solo médico asignado activo. Orden cargado_en descendente e id descendente; vacío devuelve data []. No contiene rutas de almacenamiento ni tokens. Registra consulta autorizada.
+      parameters:
+        - {name: encounterId, in: query, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: ok/data con lista de metadatos; Cache-Control no-store private.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: {const: true}
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, documentType, filename, mimeType, sizeBytes, studyDate, description, uploadedAt]
+                      properties:
+                        id: {type: string, format: uuid}
+                        documentType: {type: string}
+                        filename: {type: string}
+                        mimeType: {type: string}
+                        sizeBytes: {type: integer}
+                        studyDate: {type: [string, 'null'], format: date}
+                        description: {type: [string, 'null']}
+                        uploadedAt: {type: string, format: date-time}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+        '404': {description: Atención ajena o inexistente; sin contenido clínico}
+    post:
+      summary: Adjuntar documento privado a una atención propia en borrador
+      description: Requiere cookie Spring y CSRF. PDF/JPG/PNG/WEBP no vacío hasta 15 MiB. Comprueba firma MIME, tamaño real y SHA-256. Carga y cierre se serializan; el fallo no publica un archivo parcial.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, patientId, encounterId, documentType]
+              properties:
+                file: {type: string, format: binary}
+                patientId: {type: string, format: uuid}
+                encounterId: {type: string, format: uuid}
+                documentType: {type: string, enum: [BLOOD_CHEMISTRY, LAB_RESULT, RADIOGRAPH, PRESCRIPTION, CLINICAL_PHOTO, REFERRAL_DOCUMENT, OTHER]}
+                description: {type: string, maxLength: 1000}
+                studyDate: {type: string, format: date}
+      responses:
+        '201': {description: 'Contrato heredado: {ok:true,data:{id:uuid}}'}
+        '400': {description: Archivo vacío, contenido/MIME/tamaño/fecha inválidos}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol, CSRF, paciente ajeno o encuentro cerrado sin permiso}
+        '413': {description: Límite multipart superado}
+  /api/medical/documents/{id}/download:
+    get:
+      summary: Obtener enlace privado para un documento autorizado
+      description: data.url relativa de mismo origen, de un uso, ligada al actor/documento y válida durante 60 segundos. No se almacena en caché. Solicitar otra URL para cada acceso o reintento.
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: 'Contrato heredado: {ok:true,data:{url:string}}'}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+        '404': {description: Documento ajeno o no disponible}
+  /api/medical/documents/{id}/content:
+    get:
+      summary: Descargar contenido privado completo
+      description: Revalida la relación clínica vigente y consume el token. Respuesta binaria con tipo MIME y nombre original; no-store private y nosniff. Registra descarga sin texto clínico. El frontend usa Blob en memoria para previsualización y descarga.
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {name: token, in: query, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Archivo privado íntegro}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol sin permiso}
+        '404': {description: Enlace expirado, consumido, ajeno o archivo no disponible}
   /api/medical/encounters/{encounterId}:
     get:
       summary: Contexto del encuentro propio para editar o consultar su ficha
@@ -42,6 +289,7 @@ paths:
                       diagnoses: {type: array, items: {type: object}}
                       measurements: {type: array, items: {type: object}}
                       documents: {type: array, items: {type: object}}
+                      referral: {type: [object, 'null'], description: Derivación emitida con contexto y elementos compartidos; null si no se emitió.}
         '401': {description: Sesión ausente o caducada.}
         '403': {description: Actor sin rol clínico.}
         '404': {description: Encuentro ajeno/inexistente, sin exposición clínica.}
@@ -73,8 +321,8 @@ paths:
                 followUpText: {type: [string, 'null'], maxLength: 4000}
                 bloodChemistryStatus: {type: string, enum: [NOT_PRESENTED, PENDING, ATTACHED]}
                 referralSpecialtyId: {type: [string, 'null'], format: uuid}
-                referralReason: {type: [string, 'null']}
-                referralComment: {type: [string, 'null']}
+                referralReason: {type: [string, 'null'], maxLength: 2000}
+                referralComment: {type: [string, 'null'], maxLength: 4000}
                 referralPriority: {type: string, enum: [ROUTINE, PRIORITY, URGENT]}
       responses:
         '200':

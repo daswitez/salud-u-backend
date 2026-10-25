@@ -272,6 +272,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-11 · UC-11 — Adjuntar, clasificar, previsualizar y descargar documentos privados de la atención
 
+**Extensión de integración FE-11 (2026-10-25):** V49 incorpora listado autorizado de metadatos y serialización carga/cierre; descarga revalida acceso y registra auditoría. Se conservan multipart/201/data.id y data.url. Pasan 114 pruebas Java y navegador con 15 MiB, permisos, caducidad real de 60 s y recuperación de sesión/CSRF. [Contrato y evidencia](fe11-documentos-integracion.md).
+
 - **Actor:** Médico autorizado.
 - **Historia:** Como Médico autorizado, quiero adjuntar, clasificar, previsualizar y descargar documentos privados de la atención, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-11: adjuntar, clasificar, previsualizar y descargar documentos privados de la atención; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -291,6 +293,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-12 · UC-12 — Cerrar revisión conservando ficha inmutable y cita atendida
+
+**Aceptación desde FE-12 (2026-10-25):** cierre/recarga con cita ATTENDED, JSON RPC exacto, dos pestañas con 200/409 y un solo evento/auditoría, rechazo tardío sin datos parciales y checksum lógico intacto. Backend vigente validado con 114 pruebas; integración sin nueva migración ni cambios en las reglas SQL. [Evidencia frontend](../../salud-u/docs/evidencia-fe12.md).
 
 - **Actor:** Médico de revisión.
 - **Historia:** Como Médico de revisión, quiero cerrar revisión conservando ficha inmutable y cita atendida, para completar el flujo con integridad y acceso autorizado.
@@ -312,6 +316,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-13 · UC-13 — Emitir derivación con contexto de revisión, prioridad y elementos compartidos
 
+**Aceptación de integración FE-13 (2026-10-25):** V50 completa lectura propia, contexto recuperable y evento/auditoría de emisión atómica. Se conservan la firma de finalización y los elementos automáticos de referencia. Pasan 118 pruebas Java, con carrera 200/409 y rollback al fallar la derivación después del cierre interno; Chromium verifica tres prioridades, límites de acceso y recarga. [Evidencia frontend](../../salud-u/docs/evidencia-fe13.md).
+
 - **Actor:** Médico de revisión.
 - **Historia:** Como Médico de revisión, quiero emitir derivación con contexto de revisión, prioridad y elementos compartidos, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-13: emitir derivación con contexto de revisión, prioridad y elementos compartidos; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -329,6 +335,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-14 · UC-14 — Programar una derivación activa sin cambiar su contenido clínico
+
+**Verificación de integración FE-14 (2026-10-25):** V51 recupera bandeja/historial y orden de referencia, valida paciente/derivación al crear solicitud y agrega evento/auditoría de asignación en su transacción. Contratos HTTP y permisos documentados en OpenAPI. 124 pruebas Java pasan, incluidas creación/asignación concurrentes, rechazo de derivación cerrada e invariancia del origen. Chromium comprobó la integración administrativa y la regresión de asistencia. [Evidencia frontend y comandos](../../salud-u/docs/evidencia-fe14.md).
 
 - **Actor:** Administrativo.
 - **Historia:** Como Administrativo, quiero programar una derivación activa sin cambiar su contenido clínico, para completar el flujo con integridad y acceso autorizado.

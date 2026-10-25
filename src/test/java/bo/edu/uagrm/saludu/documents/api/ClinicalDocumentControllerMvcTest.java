@@ -32,6 +32,32 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(ClinicalDocumentController.class)
 @Import({SecurityConfig.class, ApiSecurityErrorWriter.class, RequestIdFilter.class, ApiExceptionHandler.class})
 class ClinicalDocumentControllerMvcTest {
+    @Test void listKeepsNullMetadataAndForeignEncounterIsHidden() throws Exception {
+        UUID encounter=UUID.randomUUID(),id=UUID.randomUUID();
+        when(service.list(any(),any())).thenReturn(List.of(new ClinicalDocumentService.DocumentMetadata(id,"LAB_RESULT","resultado.pdf","application/pdf",12,null,null,java.time.OffsetDateTime.now())));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/medical/documents").param("encounterId",encounter.toString()).with(authentication(doctor())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].id").value(id.toString())).andExpect(jsonPath("$.data[0].studyDate").isEmpty())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Cache-Control","no-store, private"));
+        when(service.list(any(),any())).thenThrow(new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(404,"No se encontró una atención accesible para consultar documentos."));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/medical/documents").param("encounterId",encounter.toString()).with(authentication(doctor())))
+            .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").isString()).andExpect(jsonPath("$.data").doesNotExist());
+    }
+    @Test void studentCannotListAndExpiredContentKeepsTextErrorContract() throws Exception {
+        var student=new SessionPrincipal(UUID.randomUUID(),"student@example.invalid","Estudiante",List.of("STUDENT"));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/medical/documents").param("encounterId",UUID.randomUUID().toString()).with(authentication(new UsernamePasswordAuthenticationToken(student,null,List.of(new SimpleGrantedAuthority("ROLE_STUDENT")))))).andExpect(status().isForbidden());
+        when(service.consume(any(SessionPrincipal.class),any(),any())).thenThrow(new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(404,"El enlace del archivo expiró."));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/medical/documents/"+UUID.randomUUID()+"/content").param("token","expired").with(authentication(doctor())))
+            .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").value("El enlace del archivo expiró."));
+    }
+    @Test void downloadUsesRelativePrivateLinkAndBadStudyDateIs400() throws Exception {
+        UUID id=UUID.randomUUID();String url="/api/medical/documents/"+id+"/content?token=test";
+        when(service.signedUrl(any(),any())).thenReturn(url);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/medical/documents/"+id+"/download").with(authentication(doctor())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.url").value(url));
+        mvc.perform(multipart("/api/medical/documents").file(new MockMultipartFile("file","file.pdf","application/pdf","%PDF".getBytes()))
+            .param("patientId",UUID.randomUUID().toString()).param("encounterId",UUID.randomUUID().toString()).param("documentType","OTHER").param("studyDate","2026-02-30").with(authentication(doctor())).with(csrf()))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").isString());
+    }
     @Autowired MockMvc mvc;
     @MockBean ClinicalDocumentService service;
     @MockBean AuthenticationService authenticationService;

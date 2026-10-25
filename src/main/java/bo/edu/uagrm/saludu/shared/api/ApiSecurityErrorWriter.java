@@ -19,6 +19,7 @@ public class ApiSecurityErrorWriter {
     public void write(HttpServletRequest request, HttpServletResponse response, int status, String code, String message)
         throws IOException {
         response.setStatus(status);
+        response.setHeader("X-Error-Code", code);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         String path = request.getRequestURI();
         if (isLegacyApi(path)) {
