@@ -55,6 +55,6 @@ public class CatalogController {
         @PathVariable CatalogKind kind, @Valid @RequestBody CatalogSaveRequest request, @AuthenticationPrincipal SessionPrincipal principal
     ) {
         UUID id = catalogService.saveCatalog(principal, kind, request.id(), request.code(), request.name(), request.active());
-        return ResponseEntity.ok(ApiEnvelope.success(new CatalogItem(id, request.code().toUpperCase(), request.name().trim())));
+        return ResponseEntity.ok(ApiEnvelope.success(new CatalogItem(id, request.code().toUpperCase(), request.name().trim(), request.active())));
     }
 }

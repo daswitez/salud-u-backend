@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -63,6 +64,14 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AvailabilityException.class)
     ResponseEntity<LegacyAvailabilityResponse<Void>> availability(AvailabilityException exception) {
         return ResponseEntity.status(exception.status()).body(LegacyAvailabilityResponse.failure(exception.getMessage()));
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    ResponseEntity<?> persistenceFailure(DataAccessException exception, HttpServletRequest request) {
+        // Un fallo interno de persistencia no invalida la sesión. No exponer SQL
+        // ni detalles de conexión en la respuesta enviada al navegador.
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "PERSISTENCE_FAILURE",
+            "No se pudo completar la operación. Inténtalo nuevamente.", Map.of(), request);
     }
 
     private ResponseEntity<?> error(

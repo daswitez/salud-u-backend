@@ -3,6 +3,7 @@ package bo.edu.uagrm.saludu.agenda.api;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.any;
@@ -87,5 +88,38 @@ class MedicalEncounterControllerMvcTest {
     private static UsernamePasswordAuthenticationToken reviewDoctorAuthentication() {
         SessionPrincipal doctor = new SessionPrincipal(UUID.fromString("00000000-0000-4000-8000-000000000100"), "doctor@example.invalid", "Médico", List.of("REVIEW_DOCTOR"));
         return new UsernamePasswordAuthenticationToken(doctor, null, List.of(new SimpleGrantedAuthority("ROLE_REVIEW_DOCTOR")));
+    }
+
+    @Test void ownContextIsReturnedAndForeignContextIsHidden() throws Exception {
+        UUID id=UUID.randomUUID();
+        when(jdbcTemplate.queryForObject(eq("select salud_u.obtener_contexto_encuentro_propio(?)::text"),eq(String.class),eq(id)))
+            .thenReturn("{\"encounter\":{\"status\":\"DRAFT\"},\"diagnoses\":[],\"documents\":[],\"measurements\":[]}")
+            .thenThrow(new org.springframework.dao.DataIntegrityViolationException("ENCUENTRO_AJENO_O_INEXISTENTE"));
+        mvc.perform(get("/api/medical/encounters/{id}",id).with(authentication(reviewDoctorAuthentication())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.encounter.status").value("DRAFT")).andExpect(jsonPath("$.data.diagnoses").isEmpty());
+        mvc.perform(get("/api/medical/encounters/{id}",id).with(authentication(reviewDoctorAuthentication())))
+            .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").isString());
+    }
+
+    @Test void closedReviewReturnsConflictWithoutSuccess() throws Exception {
+        when(jdbcTemplate.queryForObject(anyString(),eq(String.class),any(Object[].class)))
+            .thenThrow(new org.springframework.dao.DataIntegrityViolationException("ENCUENTRO_CERRADO"));
+        mvc.perform(post("/api/medical/encounters/{id}/finalize",UUID.randomUUID()).with(authentication(reviewDoctorAuthentication())).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON).content("{\"chiefComplaint\":\"Control\",\"assessment\":\"Estable\",\"reviewHistory\":{}}"))
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.ok").value(false));
+    }
+
+    @Test void characterizedT01PayloadWithOmittedHistoryUsesNormalizedEmptyRecord() throws Exception {
+        UUID id=UUID.randomUUID();
+        when(jdbcTemplate.queryForObject(anyString(),eq(String.class),any(Object[].class))).thenAnswer(invocation->{
+            Object[] args=(Object[])invocation.getRawArguments()[2];
+            var history=new com.fasterxml.jackson.databind.ObjectMapper().readTree((String)args[7]);
+            org.junit.jupiter.api.Assertions.assertEquals(1,history.path("versionEsquema").asInt());
+            org.junit.jupiter.api.Assertions.assertTrue(history.path("signosVitales").path("peso").isNull());
+            return "{\"encounterId\":\""+id+"\",\"referralId\":null,\"reviewHistoryVersion\":1}";
+        });
+        mvc.perform(post("/api/medical/encounters/{id}/finalize",id).with(authentication(reviewDoctorAuthentication())).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON).content("{\"chiefComplaint\":\"Caso sintético\",\"assessment\":\"Evaluación sintética\",\"specialtyHistory\":{\"specialtyCode\":\"GYNECOLOGY\"}}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.referralId").hasJsonPath()).andExpect(jsonPath("$.data.reviewHistoryVersion").value(1));
     }
 }

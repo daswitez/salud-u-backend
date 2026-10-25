@@ -1,0 +1,143 @@
+{
+  "keys": {
+    "schemaVersion": "versionEsquema",
+    "sex": "sexo",
+    "personalHistory": "antecedentesPersonales",
+    "pathological": "patologicos",
+    "surgical": "quirurgicos",
+    "allergic": "alergicos",
+    "regularMedications": "medicacionHabitual",
+    "familyRelevant": "familiaresRelevantes",
+    "habits": "habitos",
+    "diet": "alimentacion",
+    "physicalActivity": "actividadFisica",
+    "tobacco": "tabaco",
+    "alcohol": "alcohol",
+    "vitals": "signosVitales",
+    "bloodPressureSystolic": "presionSistolica",
+    "bloodPressureDiastolic": "presionDiastolica",
+    "heartRate": "frecuenciaCardiaca",
+    "respiratoryRate": "frecuenciaRespiratoria",
+    "temperature": "temperatura",
+    "oxygenSaturation": "saturacionOxigeno",
+    "weight": "peso",
+    "height": "talla",
+    "physicalExam": "examenFisico",
+    "generalState": "estadoGeneral",
+    "cardiopulmonary": "cardiopulmonar",
+    "abdomen": "abdomen",
+    "otherFindings": "otrosHallazgos",
+    "laboratory": "laboratorio",
+    "hemogram": "hemograma",
+    "bloodGroup": "grupoSanguineo",
+    "vdrl": "vdrl",
+    "chagas": "chagas",
+    "coproparasitological": "coproparasitologico",
+    "other": "otros",
+    "conduct": "conducta",
+    "healthEducation": "educacionSalud",
+    "treatment": "tratamiento",
+    "complementaryStudies": "estudiosComplementarios",
+    "referral": "derivacion",
+    "medicalFollowUp": "seguimientoMedico",
+    "noObservations": "sinObservaciones",
+    "observations": "observaciones",
+    "specialtyCode": "codigoEspecialidad",
+    "family": "familiares",
+    "ophthalmology": "oftalmologia",
+    "currentIllness": "enfermedadActual",
+    "visualAcuityRight": "agudezaVisualDerecha",
+    "visualAcuityLeft": "agudezaVisualIzquierda",
+    "gynecology": "ginecologia",
+    "onset": "inicio",
+    "symptoms": "sintomas",
+    "previousTreatments": "tratamientosPrevios",
+    "menarcheAge": "edadMenarca",
+    "menstrualPattern": "ritmoMenstrual",
+    "cycleDays": "diasCiclo",
+    "lastMenstrualPeriod": "fechaUltimaMenstruacion",
+    "dysmenorrhea": "dismenorrea",
+    "leucorrhea": "leucorrea",
+    "previousSti": "itsPrevia",
+    "stiDetails": "detalleIts",
+    "contraceptiveMethods": "metodosAnticonceptivos",
+    "contraceptiveOther": "otroAnticonceptivo",
+    "lastPap": "fechaUltimoPap",
+    "papResult": "resultadoPap",
+    "papDetails": "detallePap",
+    "familyGynecologicalCancer": "cancerGinecologicoFamiliar",
+    "familyBreastCancer": "cancerMamaFamiliar",
+    "familyDiabetes": "diabetesFamiliar",
+    "familyOther": "otrosFamiliares",
+    "breastExam": "examenMamas",
+    "externalGenitalExam": "examenGenitalesExternos",
+    "speculumExam": "especuloscopia",
+    "vaginalExam": "tactoVaginal",
+    "cervixExam": "examenCuelloUterino",
+    "allergies": "alergias",
+    "personalConditions": "enfermedadesPersonales",
+    "surgeries": "cirugias",
+    "medications": "medicamentos",
+    "familyHistory": "antecedentesFamiliares",
+    "status": "estado",
+    "items": "elementos",
+    "details": "detalle"
+  },
+  "values": {
+    "status": {
+      "PRESENT": "PRESENTE",
+      "NONE": "NINGUNO",
+      "UNKNOWN": "DESCONOCIDO"
+    },
+    "diet": {
+      "ADEQUATE": "ADECUADA",
+      "REGULAR": "REGULAR",
+      "INADEQUATE": "INADECUADA"
+    },
+    "physicalActivity": {
+      "YES": "SI",
+      "NO": "NO"
+    },
+    "tobacco": {
+      "YES": "SI",
+      "NO": "NO"
+    },
+    "alcohol": {
+      "YES": "SI",
+      "NO": "NO"
+    },
+    "onset": {
+      "ACUTE": "AGUDO",
+      "SUBACUTE": "SUBAGUDO",
+      "CHRONIC": "CRONICO"
+    },
+    "menstrualPattern": {
+      "REGULAR": "REGULAR",
+      "IRREGULAR": "IRREGULAR"
+    },
+    "dysmenorrhea": {
+      "YES": "SI",
+      "NO": "NO"
+    },
+    "leucorrhea": {
+      "YES": "SI",
+      "NO": "NO"
+    },
+    "previousSti": {
+      "YES": "SI",
+      "NO": "NO"
+    },
+    "contraceptiveMethods": {
+      "NONE": "NINGUNO",
+      "ORAL": "ORAL",
+      "INJECTABLE": "INYECTABLE",
+      "IUD": "DIU",
+      "IMPLANT": "IMPLANTE",
+      "CONDOM": "PRESERVATIVO"
+    },
+    "papResult": {
+      "NORMAL": "NORMAL",
+      "ALTERED": "ALTERADO"
+    }
+  }
+}

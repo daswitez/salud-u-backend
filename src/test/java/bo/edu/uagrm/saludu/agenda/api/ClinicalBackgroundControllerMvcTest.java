@@ -3,6 +3,9 @@ package bo.edu.uagrm.saludu.agenda.api;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -53,5 +56,26 @@ class ClinicalBackgroundControllerMvcTest {
     private static UsernamePasswordAuthenticationToken doctorAuthentication() {
         SessionPrincipal doctor = new SessionPrincipal(UUID.fromString("00000000-0000-4000-8000-000000000030"), "doctor@example.invalid", "Médico", List.of("REVIEW_DOCTOR"));
         return new UsernamePasswordAuthenticationToken(doctor, null, List.of(new SimpleGrantedAuthority("ROLE_REVIEW_DOCTOR")));
+    }
+
+    @Test void emptyReadRetainsCurrentAndEncounterNull() throws Exception {
+        when(jdbcTemplate.queryForObject(eq("select salud_u.consultar_antecedentes_clinicos(?,?)::text"), eq(String.class), any(UUID.class), isNull()))
+            .thenReturn("{\"current\":null,\"encounter\":null}");
+        mvc.perform(get("/api/medical/patients/{id}/clinical-background", UUID.randomUUID()).with(authentication(doctorAuthentication())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.current").hasJsonPath()).andExpect(jsonPath("$.data.encounter").hasJsonPath());
+    }
+
+    @Test void rejectsFractionalVersionBeforeWriting() throws Exception {
+        mvc.perform(patch("/api/medical/patients/{id}/clinical-background", UUID.randomUUID()).with(authentication(doctorAuthentication())).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON).content("{\"data\":{},\"changeReason\":\"Prueba\",\"expectedVersion\":0.5}"))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").isString());
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test void foreignPatientIsHidden() throws Exception {
+        when(jdbcTemplate.queryForObject(eq("select salud_u.consultar_antecedentes_clinicos(?,?)::text"), eq(String.class), any(UUID.class), isNull()))
+            .thenThrow(new org.springframework.dao.DataIntegrityViolationException("PACIENTE_AJENO_O_INEXISTENTE"));
+        mvc.perform(get("/api/medical/patients/{id}/clinical-background", UUID.randomUUID()).with(authentication(doctorAuthentication())))
+            .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").isString());
     }
 }

@@ -8,6 +8,7 @@ import bo.edu.uagrm.saludu.shared.persistence.DatabaseActor;
 import bo.edu.uagrm.saludu.shared.persistence.DatabaseActorContext;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -41,13 +42,31 @@ public class MedicalAppointmentController {
     @Transactional(readOnly = true)
     public LegacyAvailabilityResponse<List<Map<String, Object>>> list(@AuthenticationPrincipal SessionPrincipal principal) {
         apply(principal);
-        return LegacyAvailabilityResponse.success(jdbcTemplate.query("select * from salud_u.listar_mis_citas_medicas()", (rs, row) -> Map.of(
-            "id", rs.getObject("id", UUID.class), "appointmentType", rs.getString("tipo_cita"), "status", rs.getString("estado_cita"),
-            "scheduledFor", rs.getObject("programada_para", OffsetDateTime.class), "endsAt", rs.getObject("termina_a", OffsetDateTime.class),
-            "specialty", rs.getString("nombre_especialidad") == null ? "Revisión estudiantil" : rs.getString("nombre_especialidad"),
-            "patient", Map.of("id", rs.getObject("id_paciente", UUID.class), "carnet", rs.getString("carnet"),
-                "fullName", (rs.getString("nombres") + " " + rs.getString("apellidos")).trim())
-        )));
+        try {
+            return LegacyAvailabilityResponse.success(jdbcTemplate.query("select * from salud_u.listar_mis_citas_medicas()", (rs, row) -> {
+                Map<String, Object> patient = new LinkedHashMap<>();
+                patient.put("id", rs.getObject("id_paciente", UUID.class));
+                patient.put("carnet", rs.getString("carnet"));
+                patient.put("registrationCode", rs.getString("codigo_registro"));
+                patient.put("fullName", (rs.getString("nombres") + " " + rs.getString("apellidos")).trim());
+                patient.put("birthDate", rs.getObject("fecha_nacimiento", java.time.LocalDate.class));
+                patient.put("phone", rs.getString("telefono"));
+                patient.put("email", rs.getString("email"));
+                Map<String, Object> appointment = new LinkedHashMap<>();
+                appointment.put("id", rs.getObject("id", UUID.class));
+                appointment.put("appointmentType", rs.getString("tipo_cita"));
+                appointment.put("status", rs.getString("estado_cita"));
+                appointment.put("scheduledFor", rs.getObject("programada_para", OffsetDateTime.class));
+                appointment.put("endsAt", rs.getObject("termina_a", OffsetDateTime.class));
+                appointment.put("checkedInAt", rs.getObject("ingreso_registrado_en", OffsetDateTime.class));
+                appointment.put("specialty", rs.getString("nombre_especialidad") == null ? "Revisión estudiantil" : rs.getString("nombre_especialidad"));
+                appointment.put("specialtyCode", rs.getString("codigo_especialidad"));
+                appointment.put("patient", patient);
+                UUID encounterId = rs.getObject("id_encuentro", UUID.class);
+                appointment.put("encounter", encounterId == null ? null : Map.of("id", encounterId, "status", rs.getString("estado_encuentro")));
+                return appointment;
+            }));
+        } catch (DataAccessException exception) { throw translate(exception); }
     }
 
     @PostMapping("/{appointmentId}/start")
@@ -78,6 +97,8 @@ public class MedicalAppointmentController {
         if (detail != null && detail.contains("CITA_AJENA_O_INEXISTENTE")) return new AvailabilityException(404, "La cita no pertenece a este profesional.");
         if (detail != null && detail.contains("CITA_NO_INICIABLE")) return new AvailabilityException(409, "Esta cita ya no puede iniciarse.");
         if (detail != null && detail.contains("MEDICO_NO_AUTORIZADO")) return new AvailabilityException(403, "No tiene permiso para iniciar esta cita.");
+        if (detail != null && detail.contains("ESPECIALIDAD_AJENA_O_INACTIVA")) return new AvailabilityException(403, "La especialidad no está activa para este profesional.");
+        if (detail != null && detail.contains("No existe una ficha de personal activa")) return new AvailabilityException(404, "Esta cuenta no tiene una ficha de personal activa.");
         return new AvailabilityException(400, "No se pudo iniciar el encuentro clínico.");
     }
 }

@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bo.edu.uagrm.saludu.catalogs.application.CatalogItem;
 import bo.edu.uagrm.saludu.catalogs.application.CatalogKind;
 import bo.edu.uagrm.saludu.catalogs.application.CatalogService;
+import bo.edu.uagrm.saludu.catalogs.application.AdministrativePrincipal;
 import bo.edu.uagrm.saludu.identity.application.AuthenticationService;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionCookieService;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,7 +44,7 @@ class CatalogControllerMvcTest {
     @Test
     void careersRemainPublicAndKeepLegacyOrderingShape() throws Exception {
         when(catalogService.list(CatalogKind.CAREER, null)).thenReturn(List.of(
-            new CatalogItem(UUID.fromString("00000000-0000-4000-8000-000000000004"), "SYN", "Carrera Sintética")
+            new CatalogItem(UUID.fromString("00000000-0000-4000-8000-000000000004"), "SYN", "Carrera Sintética", true)
         ));
         mvc.perform(get("/api/careers"))
             .andExpect(status().isOk())
@@ -63,7 +65,7 @@ class CatalogControllerMvcTest {
     void specialistOnlyReceivesCurrentSpecialties() throws Exception {
         SessionPrincipal specialist = principal("specialist@example.invalid", "SPECIALIST");
         when(catalogService.mySpecialties(specialist)).thenReturn(List.of(
-            new CatalogItem(UUID.fromString("00000000-0000-4000-8000-000000000005"), "GYNECOLOGY", "Especialidad Sintética")
+            new CatalogItem(UUID.fromString("00000000-0000-4000-8000-000000000005"), "GYNECOLOGY", "Especialidad Sintética", true)
         ));
         mvc.perform(get("/api/my-specialties").with(authentication(token(specialist, "SPECIALIST"))))
             .andExpect(status().isOk())
@@ -92,6 +94,45 @@ class CatalogControllerMvcTest {
             .andExpect(jsonPath("$.ok").value(true))
             .andExpect(jsonPath("$.data.id").value(specialtyId.toString()));
         verify(catalogService).saveCatalog(administrator, CatalogKind.SPECIALTY, null, "NUTRITION", "Nutrición", true);
+    }
+
+    @Test
+    void administrativeAccountsRetainRoleListsAndDenyOtherActors() throws Exception {
+        SessionPrincipal administrator = principal("admin@example.invalid", "ADMINISTRATIVE");
+        when(catalogService.principals(administrator)).thenReturn(List.of(
+            new AdministrativePrincipal(UUID.randomUUID(), "multiple@example.invalid", "Dos roles", true, List.of("REVIEW_DOCTOR", "SPECIALIST")),
+            new AdministrativePrincipal(UUID.randomUUID(), "empty@example.invalid", "Sin roles", false, List.of())
+        ));
+        mvc.perform(get("/api/v1/admin/principals").with(authentication(token(administrator, "ADMINISTRATIVE"))))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.ok").value(true))
+            .andExpect(jsonPath("$.data[0].roles[0]").value("REVIEW_DOCTOR"))
+            .andExpect(jsonPath("$.data[0].roles[1]").value("SPECIALIST"))
+            .andExpect(jsonPath("$.data[1].roles").isEmpty())
+            .andExpect(jsonPath("$.data[1].active").value(false));
+        mvc.perform(get("/api/v1/admin/principals").with(authentication(token("student@example.invalid", "STUDENT"))))
+            .andExpect(status().isForbidden()).andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
+        mvc.perform(get("/api/v1/admin/principals"))
+            .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void persistenceFailureIs500WithoutSqlDetailsAndDoesNotChangeIdentity() throws Exception {
+        SessionPrincipal administrator = principal("admin@example.invalid", "ADMINISTRATIVE");
+        when(catalogService.principals(administrator))
+            .thenThrow(new DataAccessResourceFailureException("SQL password=secret connection jdbc:postgresql private_column"))
+            .thenReturn(List.of());
+        mvc.perform(get("/api/v1/admin/principals").with(authentication(token(administrator, "ADMINISTRATIVE"))))
+            .andExpect(status().isInternalServerError())
+            .andExpect(jsonPath("$.error.code").value("PERSISTENCE_FAILURE"))
+            .andExpect(jsonPath("$.error.message").value("No se pudo completar la operación. Inténtalo nuevamente."))
+            .andExpect(jsonPath("$.error.details").isEmpty());
+        mvc.perform(get("/api/v1/admin/principals").with(authentication(token(administrator, "ADMINISTRATIVE"))))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data").isEmpty());
+        when(catalogService.list(CatalogKind.CAREER, null))
+            .thenThrow(new DataAccessResourceFailureException("Internal SQL diagnostic"));
+        mvc.perform(get("/api/careers"))
+            .andExpect(status().isInternalServerError())
+            .andExpect(jsonPath("$.error").value("No se pudo completar la operación. Inténtalo nuevamente."));
     }
 
     private static SessionPrincipal principal(String email, String role) {

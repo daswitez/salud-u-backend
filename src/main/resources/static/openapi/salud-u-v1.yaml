@@ -10,6 +10,191 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /api/medical/encounters/{encounterId}:
+    get:
+      summary: Contexto del encuentro propio para editar o consultar su ficha
+      description: Lectura nueva y acotada al médico asignado. Incluye paciente, cita, encuentro, antecedentes current/encounter, diagnósticos, mediciones y metadatos de documentos disponibles, sin consultar toda la historia longitudinal.
+      operationId: getOwnEncounterContext
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Contexto autorizado; listas vacías y campos null conservados. Lectura auditada sin texto clínico en detalles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [encounter, patient, appointment, clinicalBackground, diagnoses, measurements, documents]
+                    properties:
+                      encounter: {type: object, description: 'id/status/type, chiefComplaint, assessment, instructions, followUpText, bloodChemistryStatus, reviewHistory y reviewHistoryVersion; null antes del cierre.'}
+                      patient: {type: object}
+                      appointment: {type: object}
+                      clinicalBackground: {type: object}
+                      diagnoses: {type: array, items: {type: object}}
+                      measurements: {type: array, items: {type: object}}
+                      documents: {type: array, items: {type: object}}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Actor sin rol clínico.}
+        '404': {description: Encuentro ajeno/inexistente, sin exposición clínica.}
+  /api/medical/encounters/{encounterId}/finalize:
+    post:
+      summary: Persiste y cierra la ficha del encuentro propio de forma atómica
+      description: Conserva el contrato de cierre caracterizado. No guarda borradores; la ficha de revisión se normaliza en Spring (incluidos null y número vacío como cero del handler heredado). La versión aumenta por paciente; mediciones incluyen talla en cm e IMC. Atención cerrada inmutable y doble cierre rechazado.
+      operationId: finalizeOwnEncounter
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - name: encounterId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chiefComplaint, assessment]
+              properties:
+                chiefComplaint: {type: string, minLength: 1, maxLength: 4000}
+                assessment: {type: string, minLength: 1, maxLength: 8000}
+                reviewHistory: {type: object, description: 'JSON clínico canónico en español: versionEsquema=1, sexo, antecedentesPersonales, habitos, signosVitales, examenFisico, laboratorio, conducta y observaciones. Opciones SI/NO, ADECUADA/REGULAR/INADECUADA. Si se omite se aplican valores predeterminados. Claves heredadas aceptadas como entrada; salida siempre en español. No mezclar alias.'}
+                specialtyHistory: {type: object, description: 'Obligatorio para especialista: versionEsquema=1, codigoEspecialidad, antecedentesPersonales, oftalmologia y ginecologia. Opciones estructuradas en español; codigoEspecialidad conserva el código del catálogo. Claves heredadas aceptadas solo como compatibilidad de entrada.'}
+                diagnosisText: {type: [string, 'null'], maxLength: 2000}
+                instructions: {type: [string, 'null'], maxLength: 8000}
+                followUpText: {type: [string, 'null'], maxLength: 4000}
+                bloodChemistryStatus: {type: string, enum: [NOT_PRESENTED, PENDING, ATTACHED]}
+                referralSpecialtyId: {type: [string, 'null'], format: uuid}
+                referralReason: {type: [string, 'null']}
+                referralComment: {type: [string, 'null']}
+                referralPriority: {type: string, enum: [ROUTINE, PRIORITY, URGENT]}
+      responses:
+        '200':
+          description: Para revisión, data conserva encounterId/referralId (null sin derivación)/reviewHistoryVersion. Ficha/diagnóstico/mediciones/cita/eventos se confirman en una transacción.
+          content: {application/json: {schema: {type: object, required: [ok, data], properties: {ok: {type: boolean, const: true}, data: {type: object}}}}}
+        '400': {description: Motivo/evaluación/ficha o datos de derivación inválidos.}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol/CSRF sin permiso.}
+        '404': {description: Encuentro ajeno/inexistente.}
+        '409': {description: Atención cerrada, cita no atendible, antecedentes requeridos o documento ATTACHED no disponible; sin cambios parciales.}
+  /api/medical/patients/{patientId}/clinical-background:
+    parameters:
+      - name: patientId
+        in: path
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      summary: Antecedentes globales y versión vinculada a una atención propia
+      operationId: getClinicalBackground
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: encounterId
+          in: query
+          required: false
+          description: Extensión para consultar la versión vinculada a una atención propia, incluso cerrada.
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Mantiene data.current y data.encounter, ambos null si no existe una versión. Sin encounterId, encounter es null.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [current, encounter]
+                    properties:
+                      current: {oneOf: [{$ref: '#/components/schemas/ClinicalBackgroundVersion'}, {type: 'null'}]}
+                      encounter: {oneOf: [{$ref: '#/components/schemas/ClinicalBackgroundVersion'}, {type: 'null'}]}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol sin permiso clínico.}
+        '404': {description: Paciente o encuentro ajeno/inexistente, sin exposición clínica.}
+    patch:
+      summary: Actualiza antecedentes con motivo y versión esperada
+      operationId: saveClinicalBackground
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, changeReason, expectedVersion]
+              properties:
+                data: {type: object, description: 'versionEsquema=1; alergias/enfermedadesPersonales/cirugias/medicamentos/antecedentesFamiliares con estado PRESENTE/NINGUNO/DESCONOCIDO y elementos ordenados (máx. 50 de 500 caracteres); habitos con alimentacion/actividadFisica/tabaco/alcohol. Opciones ADECUADA/REGULAR/INADECUADA y SI/NO. Claves heredadas admitidas como entrada, sin mezclar alias; datos persistidos y respuestas en español.'}
+                changeReason: {type: string, minLength: 1, maxLength: 500}
+                expectedVersion: {type: integer, minimum: 0}
+                encounterId: {type: [string, 'null'], format: uuid}
+      responses:
+        '200':
+          description: Nueva versión, autor, fecha y motivo; vinculación solo a encuentro propio DRAFT, en una transacción.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {$ref: '#/components/schemas/ClinicalBackgroundVersion'}
+        '400': {description: Motivo/datos inválidos o versión esperada ausente, negativa o fraccionaria.}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol/CSRF sin permiso.}
+        '404': {description: Paciente o encuentro ajeno/inexistente.}
+        '409': {description: Versión desactualizada o encuentro cerrado; sin cambios parciales.}
+  /api/medical/appointments:
+    get:
+      summary: Agenda del profesional autenticado, con identidad y referencia al encuentro
+      description: Conserva los campos heredados y agrega encounter (null o id/status). Orden ascendente por horario e id, máximo 200 citas. No crea encuentros.
+      operationId: listMyMedicalAppointments
+      security: [{sessionCookie: []}]
+      responses:
+        '200':
+          description: Lista autorizada; sin citas devuelve data vacío.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {type: array, items: {$ref: '#/components/schemas/MedicalAgendaAppointment'}}
+        '401': {description: Sesión ausente o caducada; error como texto.}
+        '403': {description: Rol distinto de médico de revisión o especialista.}
+        '404': {description: Cuenta médica sin ficha de personal activa.}
+  /api/medical/appointments/{appointmentId}/start:
+    post:
+      summary: Inicia o recupera el encuentro de una cita propia
+      description: Solo cita SCHEDULED o CHECKED_IN del profesional autorizado. La apertura concurrente crea un único encuentro y un único evento de creación. Especialistas requieren especialidad propia vigente.
+      operationId: startMyMedicalEncounter
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '201':
+          description: Encuentro creado.
+          content: {application/json: {schema: {$ref: '#/components/schemas/MedicalEncounterStartSuccess'}}}
+        '200':
+          description: Encuentro existente recuperado, con el mismo UUID.
+          content: {application/json: {schema: {$ref: '#/components/schemas/MedicalEncounterStartSuccess'}}}
+        '400': {description: UUID o solicitud inválidos.}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol, especialidad o CSRF no autorizados.}
+        '404': {description: Cita ajena o inexistente, sin exposición clínica.}
+        '409': {description: Estado de cita no iniciable.}
   /api/health:
     get:
       summary: Estado agregado del backend, sin dependencia de Supabase
@@ -457,6 +642,59 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    ClinicalBackgroundVersion:
+      type: object
+      required: [id, versionNo, data, verificationStatus, recordedAt, recordedBy, changeReason]
+      properties:
+        id: {type: string, format: uuid}
+        versionNo: {type: integer, minimum: 1}
+        data: {type: object}
+        verificationStatus: {type: string, enum: [CONFIRMED, NEEDS_REVIEW]}
+        recordedAt: {type: string, format: date-time}
+        recordedBy: {type: [string, 'null'], description: Nombre o correo del actor, según contrato de referencia.}
+        changeReason: {type: string}
+    MedicalAgendaAppointment:
+      type: object
+      required: [id, appointmentType, status, scheduledFor, checkedInAt, endsAt, specialty, specialtyCode, patient, encounter]
+      properties:
+        id: {type: string, format: uuid}
+        appointmentType: {type: string, enum: [INITIAL, SPECIALTY, REFERRAL]}
+        status: {type: string, enum: [SCHEDULED, CHECKED_IN, CANCELLED, NO_SHOW, ATTENDED]}
+        scheduledFor: {type: string, format: date-time}
+        checkedInAt: {type: [string, 'null'], format: date-time}
+        endsAt: {type: [string, 'null'], format: date-time}
+        specialty: {type: string}
+        specialtyCode: {type: [string, 'null']}
+        patient:
+          type: object
+          required: [id, carnet, registrationCode, fullName, birthDate, phone, email]
+          properties:
+            id: {type: string, format: uuid}
+            carnet: {type: string}
+            registrationCode: {type: string}
+            fullName: {type: string}
+            birthDate: {type: [string, 'null'], format: date}
+            phone: {type: [string, 'null']}
+            email: {type: [string, 'null']}
+        encounter:
+          oneOf:
+            - type: 'null'
+            - type: object
+              required: [id, status]
+              properties:
+                id: {type: string, format: uuid}
+                status: {type: string, enum: [DRAFT, CLOSED, VOIDED]}
+    MedicalEncounterStartSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [encounterId, status]
+          properties:
+            encounterId: {type: string, format: uuid}
+            status: {type: string, enum: [DRAFT, CLOSED, VOIDED]}
     CatalogItem:
       type: object
       required: [id, code, name]

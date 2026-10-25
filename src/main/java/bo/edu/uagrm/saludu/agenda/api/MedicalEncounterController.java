@@ -1,6 +1,7 @@
 package bo.edu.uagrm.saludu.agenda.api;
 
 import bo.edu.uagrm.saludu.agenda.application.AvailabilityException;
+import bo.edu.uagrm.saludu.agenda.application.ClinicalHistoryData;
 import bo.edu.uagrm.saludu.governance.application.AuditWriter;
 import bo.edu.uagrm.saludu.governance.domain.AuditOutcome;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
@@ -53,13 +54,15 @@ public class MedicalEncounterController {
         String referralComment = text(body.get("referralComment"), 4000);
         String referralPriority = text(body.get("referralPriority"), 20);
         boolean specialist = principal.roles().contains("SPECIALIST") && !principal.roles().contains("REVIEW_DOCTOR");
-        if (chiefComplaint == null || assessment == null || (!specialist && body.get("reviewHistory") == null) || (specialist && !(body.get("specialtyHistory") instanceof Map<?, ?>))) throw new AvailabilityException(400, specialist ? "El motivo de consulta, la evaluación y la ficha de especialidad son obligatorios." : "El motivo de consulta, la evaluación y la ficha de revisión son obligatorios.");
+        if (chiefComplaint == null || assessment == null || (specialist && !(body.get("specialtyHistory") instanceof Map<?, ?>))) throw new AvailabilityException(400, specialist ? "El motivo de consulta, la evaluación y la ficha de especialidad son obligatorios." : "El motivo de consulta, la evaluación y la ficha de revisión son obligatorios.");
         if (referralSpecialtyId != null && (referralReason == null || referralComment == null)) throw new AvailabilityException(400, "Completa el motivo y el resumen para el especialista.");
+        if (bloodStatus != null && !Set.of("ATTACHED","PENDING","NOT_PRESENTED").contains(bloodStatus)) throw new AvailabilityException(400,"Estado de química sanguínea inválido.");
+        if (referralPriority != null && !Set.of("ROUTINE","PRIORITY","URGENT").contains(referralPriority)) throw new AvailabilityException(400,"Prioridad de derivación inválida.");
         apply(principal);
         try {
             String completed = specialist
-                ? jdbcTemplate.queryForObject("select salud_u.finalizar_encuentro_especialidad(?, ?, ?, ?, ?, ?, cast(? as jsonb))", String.class, encounterId, chiefComplaint, assessment, text(body.get("instructions"), 8000), text(body.get("followUpText"), 4000), text(body.get("diagnosisText"), 2000), objectMapper.writeValueAsString(body.get("specialtyHistory")))
-                : jdbcTemplate.queryForObject("select salud_u.finalizar_encuentro_revision(?, ?, ?, ?, ?, ?, ?, cast(? as jsonb), ?, ?, ?, ?)", String.class, encounterId, chiefComplaint, assessment, text(body.get("instructions"), 8000), text(body.get("followUpText"), 4000), bloodStatus == null ? "NOT_PRESENTED" : bloodStatus, text(body.get("diagnosisText"), 2000), objectMapper.writeValueAsString(body.get("reviewHistory")), referralSpecialtyId, referralReason, referralComment, referralPriority == null ? "ROUTINE" : referralPriority);
+                ? jdbcTemplate.queryForObject("select salud_u.finalizar_encuentro_especialidad(?, ?, ?, ?, ?, ?, cast(? as jsonb))", String.class, encounterId, chiefComplaint, assessment, text(body.get("instructions"), 8000), text(body.get("followUpText"), 4000), text(body.get("diagnosisText"), 2000), objectMapper.writeValueAsString(ClinicalHistoryData.specialty(objectMapper.valueToTree(body.get("specialtyHistory")))))
+                : jdbcTemplate.queryForObject("select salud_u.finalizar_encuentro_revision(?, ?, ?, ?, ?, ?, ?, cast(? as jsonb), ?, ?, ?, ?)", String.class, encounterId, chiefComplaint, assessment, text(body.get("instructions"), 8000), text(body.get("followUpText"), 4000), bloodStatus == null ? "NOT_PRESENTED" : bloodStatus, text(body.get("diagnosisText"), 2000), objectMapper.writeValueAsString(ClinicalHistoryData.review(objectMapper.valueToTree(body.get("reviewHistory")))), referralSpecialtyId, referralReason, referralComment, referralPriority == null ? "ROUTINE" : referralPriority);
             Map<String, Object> contract = objectMapper.readValue(completed, Map.class);
             auditWriter.append(specialist ? "ENCUENTRO_ESPECIALIDAD_CERRADO" : "ENCUENTRO_REVISION_CERRADO", "encuentro_clinico", encounterId, AuditOutcome.SUCCESS, Map.of());
             return ResponseEntity.ok(LegacyAvailabilityResponse.success(contract));
@@ -79,12 +82,26 @@ public class MedicalEncounterController {
         catch (JsonProcessingException exception) { throw new AvailabilityException(400, "No se pudo leer el contexto de origen."); }
     }
 
+    @GetMapping("/{encounterId}")
+    @PreAuthorize("hasAnyRole('REVIEW_DOCTOR','SPECIALIST')")
+    @Transactional
+    public LegacyAvailabilityResponse<Object> context(@PathVariable UUID encounterId,@AuthenticationPrincipal SessionPrincipal principal) {
+        apply(principal);
+        try {
+            Object data=objectMapper.readTree(jdbcTemplate.queryForObject("select salud_u.obtener_contexto_encuentro_propio(?)::text",String.class,encounterId));
+            auditWriter.append("ENCUENTRO_CONSULTADO","encuentro_clinico",encounterId,AuditOutcome.SUCCESS,Map.of());
+            return LegacyAvailabilityResponse.success(data);
+        } catch(DataAccessException exception){throw translate(exception);}
+        catch(JsonProcessingException exception){throw new AvailabilityException(500,"No se pudo leer la ficha de atención.");}
+    }
+
     private void apply(SessionPrincipal principal) { actorContext.apply(new DatabaseActor(principal.id(), Set.copyOf(principal.roles()))); }
-    private static String text(Object value, int max) { return value instanceof String text && !text.trim().isEmpty() && text.trim().length() <= max ? text.trim() : null; }
+    private static String text(Object value, int max) { if(!(value instanceof String text)||text.trim().isEmpty())return null;String trimmed=text.trim();return trimmed.substring(0,Math.min(max,trimmed.length())); }
     private static UUID uuid(Object value) { try { return value instanceof String text && !text.isBlank() ? UUID.fromString(text) : null; } catch (IllegalArgumentException exception) { throw new AvailabilityException(400, "La especialidad de derivación no es válida."); } }
     private AvailabilityException translate(DataAccessException exception) {
         String detail = exception.getMostSpecificCause().getMessage();
         if (detail != null && detail.contains("ENCUENTRO_AJENO_O_INEXISTENTE")) return new AvailabilityException(404, "No se encontró un encuentro de revisión accesible.");
+        if (detail != null && detail.contains("No existe una ficha de personal activa")) return new AvailabilityException(404,"No se encontró un encuentro accesible.");
         if (detail != null && detail.contains("ENCUENTRO_CERRADO")) return new AvailabilityException(409, "La ficha de una atención cerrada no puede modificarse.");
         if (detail != null && detail.contains("ANTECEDENTE_REQUERIDO")) return new AvailabilityException(409, "Registra los antecedentes globales antes de cerrar la atención.");
         if (detail != null && detail.contains("QUIMICA_SANGUINEA_REQUERIDA")) return new AvailabilityException(409, "Adjunta una química sanguínea disponible antes de marcarla como presentada.");

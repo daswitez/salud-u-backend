@@ -28,15 +28,19 @@ public class CatalogService {
     @Transactional(readOnly = true)
     public List<CatalogItem> list(CatalogKind kind, SessionPrincipal principal) {
         apply(principal);
+        if (principal != null && principal.roles().contains("ADMINISTRATIVE")) {
+            return jdbcTemplate.query("select * from salud_u.listar_catalogo_administracion(?)", (resultSet, rowNumber) ->
+                new CatalogItem(resultSet.getObject("id", UUID.class), resultSet.getString("codigo"), resultSet.getString("nombre"), resultSet.getBoolean("activo")), kind.name());
+        }
         return jdbcTemplate.query("select * from salud_u.listar_catalogo(?)", (resultSet, rowNumber) ->
-            new CatalogItem(resultSet.getObject("id", UUID.class), resultSet.getString("codigo"), resultSet.getString("nombre")), kind.name());
+            new CatalogItem(resultSet.getObject("id", UUID.class), resultSet.getString("codigo"), resultSet.getString("nombre"), true), kind.name());
     }
 
     @Transactional(readOnly = true)
     public List<CatalogItem> mySpecialties(SessionPrincipal principal) {
         apply(principal);
         return jdbcTemplate.query("select * from salud_u.listar_mis_especialidades()", (resultSet, rowNumber) ->
-            new CatalogItem(resultSet.getObject("id", UUID.class), resultSet.getString("codigo"), resultSet.getString("nombre")));
+            new CatalogItem(resultSet.getObject("id", UUID.class), resultSet.getString("codigo"), resultSet.getString("nombre"), true));
     }
 
     @Transactional
@@ -90,7 +94,7 @@ public class CatalogService {
     @Transactional(readOnly = true)
     public List<AdministrativePrincipal> principals(SessionPrincipal principal) {
         apply(principal);
-        return jdbcTemplate.query("select * from salud_u.listar_principales_administracion()", (resultSet, rowNumber) -> {
+        return jdbcTemplate.query("select id, email, nombre_mostrado, activo, rols as roles from salud_u.listar_principales_administracion()", (resultSet, rowNumber) -> {
             java.sql.Array roles = resultSet.getArray("roles");
             String[] values = roles == null ? new String[0] : (String[]) roles.getArray();
             return new AdministrativePrincipal(resultSet.getObject("id", UUID.class), resultSet.getString("email"), resultSet.getString("nombre_mostrado"), resultSet.getBoolean("activo"), List.of(values));

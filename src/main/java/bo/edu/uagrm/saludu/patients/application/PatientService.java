@@ -82,14 +82,15 @@ public class PatientService {
 
     private static PatientSummary summary(ResultSet resultSet) throws SQLException {
         UUID careerId = resultSet.getObject("id_carrera", UUID.class);
-        UUID enrollmentId = resultSet.getObject("enrollment_id", UUID.class);
+        // Los nombres son los del contrato SQL de listar_pacientes/obtener_paciente.
+        UUID enrollmentId = resultSet.getObject("inscripcion_id", UUID.class);
         return new PatientSummary(
             resultSet.getObject("id_paciente", UUID.class), resultSet.getString("carnet"), resultSet.getString("codigo_registro"),
             (resultSet.getString("nombres") + " " + resultSet.getString("apellidos")).trim(),
             resultSet.getObject("fecha_nacimiento", LocalDate.class), resultSet.getString("telefono"), resultSet.getString("email"),
             resultSet.getString("estado_academico"), resultSet.getObject("creado_en", OffsetDateTime.class).toInstant(), resultSet.getObject("actualizado_en", OffsetDateTime.class).toInstant(),
-            careerId == null ? null : new PatientSummary.Career(careerId, resultSet.getString("career_code"), resultSet.getString("career_name")),
-            enrollmentId == null ? null : new PatientSummary.Enrollment(enrollmentId, resultSet.getString("periodo_academico"), resultSet.getObject("enrollment_started_on", LocalDate.class), resultSet.getString("enrollment_status"))
+            careerId == null ? null : new PatientSummary.Career(careerId, resultSet.getString("carrera_code"), resultSet.getString("carrera_name")),
+            enrollmentId == null ? null : new PatientSummary.Enrollment(enrollmentId, resultSet.getString("periodo_academico"), resultSet.getObject("inscripcion_started_on", LocalDate.class), resultSet.getString("inscripcion_status"))
         );
     }
 
