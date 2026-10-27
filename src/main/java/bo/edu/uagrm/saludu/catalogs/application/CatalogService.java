@@ -28,6 +28,7 @@ public class CatalogService {
     @Transactional(readOnly = true)
     public List<CatalogItem> list(CatalogKind kind, SessionPrincipal principal) {
         apply(principal);
+        if(principal!=null&&principal.roles().contains("REPORTING_OFFICER")&&!principal.roles().contains("ADMINISTRATIVE")&&kind==CatalogKind.SPECIALTY){return jdbcTemplate.query("select * from salud_u.especialidades_para_reporte()",(r,n)->new CatalogItem(r.getObject("id",UUID.class),r.getString("codigo"),r.getString("nombre"),true));}
         if (principal != null && principal.roles().contains("ADMINISTRATIVE")) {
             return jdbcTemplate.query("select * from salud_u.listar_catalogo_administracion(?)", (resultSet, rowNumber) ->
                 new CatalogItem(resultSet.getObject("id", UUID.class), resultSet.getString("codigo"), resultSet.getString("nombre"), resultSet.getBoolean("activo")), kind.name());

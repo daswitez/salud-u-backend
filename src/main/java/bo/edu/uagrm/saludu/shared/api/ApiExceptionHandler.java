@@ -26,6 +26,14 @@ public class ApiExceptionHandler {
     ResponseEntity<?> uploadTooLarge(Exception exception,HttpServletRequest request) {
         return error(HttpStatus.PAYLOAD_TOO_LARGE,"UPLOAD_TOO_LARGE","El archivo debe pesar hasta 15 MiB.",Map.of(),request);
     }
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    ResponseEntity<?> unsupportedMethod(org.springframework.web.HttpRequestMethodNotSupportedException exception, HttpServletRequest request) {
+        var response = error(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "Este recurso no admite esa operación.", Map.of(), request);
+        var headers = new org.springframework.http.HttpHeaders();
+        if (exception.getSupportedHttpMethods() != null) headers.setAllow(exception.getSupportedHttpMethods());
+        return new ResponseEntity<>(response.getBody(), headers, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<?> validation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         Map<String, String> violations = new LinkedHashMap<>();

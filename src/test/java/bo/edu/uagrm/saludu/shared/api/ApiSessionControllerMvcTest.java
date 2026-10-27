@@ -64,6 +64,22 @@ class ApiSessionControllerMvcTest {
     }
 
     @Test
+    void databaseOutageWhileResolvingSessionIsUnavailableNotUnauthenticated() throws Exception {
+        given(sessionCookieService.read(org.mockito.ArgumentMatchers.any())).willReturn(java.util.Optional.of("token"));
+        given(authenticationService.resolve("token")).willThrow(new org.springframework.dao.DataAccessResourceFailureException("PostgreSQL detenido"));
+
+        mvc.perform(get("/api/medical/appointments"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(header().string("X-Error-Code", "SERVICE_UNAVAILABLE"))
+            .andExpect(jsonPath("$.ok").value(false))
+            .andExpect(jsonPath("$.error").value(org.hamcrest.Matchers.startsWith("El servicio no está disponible")));
+        mvc.perform(get("/api/v1/me"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"));
+        org.mockito.Mockito.verify(sessionCookieService, org.mockito.Mockito.never()).clear(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
     void legacyClinicalRoutesKeepStringAuthenticationErrors() throws Exception {
         mvc.perform(get("/api/medical/appointments"))
             .andExpect(status().isUnauthorized())

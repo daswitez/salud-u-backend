@@ -50,7 +50,7 @@ docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" up
 wait_for_readiness
 
 saludu_migration_count="$(docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
-  sh -ceu 'psql --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -c "SELECT count(*) FROM flyway_schema_history WHERE success"')"
+  sh -ceu 'psql --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -c "SELECT count(*) FROM salud_u.flyway_schema_history WHERE success AND type = '\''SQL'\''"')"
 [[ "$saludu_migration_count" == "$saludu_expected_migration_count" ]] || { printf 'Flyway aplicó %s de %s migraciones esperadas.\n' "$saludu_migration_count" "$saludu_expected_migration_count" >&2; exit 1; }
 
 docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T backend \
@@ -74,7 +74,7 @@ saludu_restored_value="$(docker compose --env-file "$saludu_env_file" --project-
   sh -ceu 'psql --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -c "SELECT string_agg(value, '\'', '\'' ORDER BY value) FROM salud_u.t02_restore_probe"')"
 [[ "$saludu_restored_value" == "$saludu_probe_value" ]] || { printf 'La restauración no recuperó el estado esperado: %s\n' "$saludu_restored_value" >&2; exit 1; }
 saludu_restored_migration_count="$(docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
-  sh -ceu 'psql --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -c "SELECT count(*) FROM flyway_schema_history WHERE success"')"
+  sh -ceu 'psql --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -c "SELECT count(*) FROM salud_u.flyway_schema_history WHERE success AND type = '\''SQL'\''"')"
 [[ "$saludu_restored_migration_count" == "$saludu_expected_migration_count" ]] || { printf 'Flyway no quedó restaurado correctamente: %s de %s.\n' "$saludu_restored_migration_count" "$saludu_expected_migration_count" >&2; exit 1; }
 
 printf 'T-02 OK: build, Flyway, health/readiness, persistencia y respaldo/restauración verificados.\n'

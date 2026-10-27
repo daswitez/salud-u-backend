@@ -4,7 +4,7 @@
 
 Se conserva `GET`, `POST` y `DELETE /api/availability-slots`. `GET?manage=true&from=YYYY-MM-DD&to=YYYY-MM-DD` devuelve `schedules`, `recurringBlocks`, `dateBlocks`, `slots` y `appointments`, en el orden que consume el gestor de agenda. La lista de `appointments` permanece vacía hasta BE-07, que incorporará las reservas; los cupos ya conservan `booked_count` para impedir que disponibilidad destruya una reserva futura.
 
-Médicos de revisión y especialistas pueden crear reglas, bloqueos o cupos manuales. Administración puede consultar cupos publicados, pero no administrar la agenda de un médico. Las operaciones de escritura requieren CSRF. Los errores del contrato heredado conservan `{ok:false,error:"..."}`.
+Médicos de revisión y especialistas pueden crear reglas, bloqueos o cupos manuales. Un cupo manual que se superpone con otro propio o con un bloqueo responde `409`, y un rango pasado, una capacidad inválida o una especialidad no habilitada responden `400`, siempre con el mensaje de PostgreSQL (antes de FE-CORTE llegaban como `500` genérico). Administración puede consultar todos los cupos futuros publicados (V71 retiró el límite de 100 heredado de Supabase, que ocultaba cupos asignables), pero no administrar la agenda de un médico. Las operaciones de escritura requieren CSRF. Los errores del contrato heredado conservan `{ok:false,error:"..."}`.
 
 ## Reglas de negocio y tiempo
 

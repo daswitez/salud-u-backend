@@ -23,7 +23,7 @@ public class ApiSecurityErrorWriter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         String path = request.getRequestURI();
         if (isLegacyApi(path)) {
-            String legacyError = status == HttpServletResponse.SC_UNAUTHORIZED ? "unauthenticated" : "forbidden";
+            String legacyError = status == HttpServletResponse.SC_UNAUTHORIZED ? "unauthenticated" : status == HttpServletResponse.SC_FORBIDDEN ? "forbidden" : message;
             objectMapper.writeValue(response.getOutputStream(), Map.of("ok", false, "error", legacyError));
             return;
         }

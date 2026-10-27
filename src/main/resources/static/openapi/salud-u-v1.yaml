@@ -10,6 +10,239 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /api/reports/administrative-summary:
+    get:
+      summary: Panorama administrativo sin contenido clínico
+      description: Solo ADMINISTRATIVE. Cuenta pacientes sin archivar, citas SCHEDULED/CHECKED_IN y cupos PUBLISHED disponibles globales, derivaciones PENDING_ASSIGNMENT y cierres de hoy Bolivia. No devuelve textos clínicos ni identidades. Lectura auditada, no-store/private.
+      responses:
+        '200':
+          description: ok/data con day, registeredPatients, scheduledAppointments, closedToday, pendingReferrals, availableSlots; números cero válidos
+        '401': {description: Sesión ausente/caducada}
+        '403': {description: Rol no permitido}
+        '500': {description: Error recuperable; no presenta métricas cero como sustituto}
+  /api/reports/clinical:
+    get:
+      operationId: queryClinicalReport
+      summary: Reporte clínico autorizado por período y criterios combinados
+      description: |
+        Conserva ok/data/filters. ADMINISTRATIVE y REPORTING_OFFICER consultan
+        el conjunto institucional; médicos solo atenciones propias cerradas, con
+        especialidad vigente para SPECIALIST. Fechas inclusivas de Bolivia.
+        Sin fecha: últimos 30 días hasta hoy. Texto parcial normalizado sin
+        acentos, con espacios compactados; porcentajes/guiones bajos son literales.
+        Todas las listas se combinan por AND. Los antecedentes son los vinculados;
+        el fallback de revisión se limita al mismo encuentro/origen remitido autorizado.
+        Orden closed_at DESC, encounter_id ASC en empates. null se conserva.
+        Habits y specialty_history usan JSON clínico en español.
+        La respuesta agrega presentation solo al indicar columns o groupBy.
+        Columns ordena la presentación; data conserva las 17 claves de referencia.
+        Groups contiene key (null para especialidad ausente), count y encounterIds
+        en el orden del detalle. Orden de grupos por primera aparición; ningún
+        agregado incluye filas excluidas por autorización o filtros.
+        Se audita actor, cantidad de filas y nombres de columnas/dimensiones,
+        sin términos de búsqueda, diagnósticos ni contenido clínico.
+      parameters:
+        - {in: query, name: from, schema: {type: string, format: date}}
+        - {in: query, name: to, schema: {type: string, format: date}}
+        - {in: query, name: specialtyId, schema: {type: string, format: uuid}}
+        - {in: query, name: encounterType, schema: {type: string, enum: [INITIAL, SPECIALTY]}}
+        - {in: query, name: diagnosis, schema: {type: string, maxLength: 200}}
+        - {in: query, name: search, schema: {type: string, maxLength: 200}}
+        - {in: query, name: allergies, description: Array JSON de hasta 15 textos (200 caracteres); todos deben coincidir, schema: {type: string}}
+        - {in: query, name: histories, description: Array JSON de hasta 15 textos; todos deben coincidir, schema: {type: string}}
+        - {in: query, name: habitTerms, description: Array JSON de hasta 15 textos contra hábitos en español, schema: {type: string}}
+        - {in: query, name: positiveHabits, description: 'Array JSON con tobacco/alcohol/physicalActivity; todos deben ser SI', schema: {type: string}}
+        - in: query
+          name: columns
+          description: 'Array JSON ordenado, no vacío y sin duplicados: closed_at, patient_name, carnet, encounter_type, specialty_name, diagnoses, allergies, background_summary, habits, chief_complaint, assessment, instructions, follow_up_text, birth_date, specialty_history.'
+          schema: {type: string}
+        - in: query
+          name: groupBy
+          description: 'Array JSON de cero a dos dimensiones distintas: day, month, encounterType, specialty. day y month no se combinan.'
+          schema: {type: string}
+      responses:
+        '200':
+          description: Reporte completo; sin coincidencias data [] y groups []. Cache-Control no-store/private.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data, filters]
+                properties:
+                  ok: {const: true}
+                  filters: {type: object, description: 'Todos los filtros canónicos; escalares ausentes null y listas ausentes []'}
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [encounter_id, closed_at, encounter_type, specialty_name, patient_id, carnet, patient_name, birth_date, chief_complaint, assessment, instructions, follow_up_text, diagnoses, allergies, background_summary, habits, specialty_history]
+                  presentation:
+                    type: object
+                    required: [columns, groupBy, groups]
+                    properties:
+                      columns: {type: array, items: {type: string}}
+                      groupBy: {type: array, items: {type: string}}
+                      groups:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, count, encounterIds]
+                          properties:
+                            key: {type: array, items: {type: [string, 'null']}}
+                            count: {type: integer, minimum: 1}
+                            encounterIds: {type: array, items: {type: string, format: uuid}}
+        '400': {description: Fechas/tipo/listas/columnas/agrupación inválidos; error texto sin clínica}
+        '401': {description: Sesión ausente/caducada; error texto}
+        '403': {description: Rol o personal no autorizado; error texto}
+        '500': {description: Fallo recuperable; no se responde como lista vacía exitosa}
+    post:
+      summary: Registro compatible de descarga clínica existente
+      description: Preserva 201/data.id persistido como evento de auditoría. Formato CSV/XLSX/PDF y rowCount entero 0..10000. No genera archivos ni acredita una exportación completada; el archivo usa el endpoint separado POST /api/reports/clinical/export.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format, rowCount]
+              properties:
+                format: {type: string, enum: [CSV, XLSX, PDF]}
+                rowCount: {type: integer, minimum: 0, maximum: 10000}
+                purpose: {type: string, maxLength: 300, default: Gestión clínica}
+                filters: {type: object}
+      responses:
+        '201': {description: ok true y data.id UUID de auditoría persistida}
+        '400': {description: Exportación inválida; error texto}
+        '401': {description: Sesión ausente/caducada}
+        '403': {description: Rol no permitido o CSRF inválido}
+  /api/reports/clinical/export:
+    post:
+      operationId: exportAuthorizedClinicalReport
+      summary: Generar CSV, XLSX o PDF del conjunto recalculado y autorizado
+      description: |
+        ADMINISTRATIVE/REPORTING_OFFICER: ámbito institucional; médicos: ámbito
+        propio y área vigente de GET /api/reports/clinical. Requiere sesión y CSRF.
+        No recibe filas ni cantidades del navegador: rechaza rows/rowCount y campos
+        desconocidos. Recalcula con la misma función/orden/filtros del reporte.
+        Acepta 0..10000 atenciones; si supera el límite, rechaza sin truncar ni publicar.
+        Columnas y groupBy usan las listas permitidas de GET. Los grupos se presentan
+        como columna Grupo con etiqueta/cantidad, y las filas siguen el orden de cada
+        grupo de la pantalla. Los tres formatos contienen la misma tabla y metadatos.
+        CSV UTF-8 BOM/CRLF entre registros, campos entre comillas y neutralización
+        de fórmulas con apóstrofo inicial. XLSX usa celdas STRING, emblemas, filtros,
+        encabezado fijo y pie confidencial. PDF A3 apaisado con emblemas/fuente Unicode,
+        tablas y encabezados repetidos; no recorta texto, continúa en otras páginas.
+        Celdas de más de 30000 caracteres se continúan en filas con columna Parte en
+        los tres formatos, sin truncar. Esas filas físicas no aumentan rowCount.
+        Genera bytes completos antes de registrar COMPLETED/checksum y devolverlos.
+        Fallo de generación autorizado registra FAILED sin archivo; fallo de auditoría
+        revierte la publicación. No hay archivo público ni URL persistente.
+        Cada envío explícito produce una exportación independiente; no hay reintento
+        automático tras respuesta perdida. La auditoría indica actor/finalidad/formato/
+        estado/cantidad y nombres de filtros; valores completos quedan en procedencia
+        privada, consultable solo por el solicitante con rol vigente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [format, purpose, filters]
+              properties:
+                format: {type: string, enum: [CSV, XLSX, PDF]}
+                purpose: {type: string, minLength: 1, maxLength: 300}
+                filters:
+                  type: object
+                  description: Los filtros canónicos del GET, con listas JSON reales. Admite null para filtros ausentes.
+                columns: {type: array, minItems: 1, maxItems: 15, items: {type: string}, description: Columnas permitidas del GET en orden; omisión incluye las quince}
+                groupBy: {type: array, maxItems: 2, items: {type: string}, description: Mismas dimensiones y restricciones del GET}
+      responses:
+        '200':
+          description: Archivo completo con cantidad real y procedencia privada; Cache-Control no-store/private y nosniff.
+          headers:
+            Content-Disposition: {schema: {type: string}, description: attachment; filename=reporte-clinico-UUID.ext}
+            X-Export-Id: {schema: {type: string, format: uuid}}
+            X-Export-Row-Count: {schema: {type: integer, minimum: 0, maximum: 10000}}
+            X-Content-SHA256: {schema: {type: string, pattern: '^[0-9a-f]{64}$'}}
+            Content-Length: {schema: {type: integer, minimum: 1}}
+          content:
+            text/csv: {schema: {type: string, format: binary}}
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {schema: {type: string, format: binary}}
+            application/pdf: {schema: {type: string, format: binary}}
+        '400': {description: Finalidad/formato/filtros/presentación inválidos o más de 10000 atenciones; error texto}
+        '401': {description: Sesión ausente/caducada; error texto}
+        '403': {description: Rol/área/personal o CSRF no permitidos; error texto}
+        '500': {description: Generación/auditoría fallida; error texto y ningún attachment parcial}
+  /api/reports/clinical/exports/{id}:
+    get:
+      operationId: getPrivateClinicalExportReceipt
+      summary: Consultar procedencia propia de una exportación
+      description: Solo solicitante con rol exportador vigente; sin archivo ni filas clínicas. Otro actor/inexistente devuelve el mismo 404. Lectura auditada; no-store/private.
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: ok/data con procedencia privada, filtros canónicos, formato, finalidad, estado y checksum del archivo completado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {const: true}
+                  data:
+                    type: object
+                    required: [id, requestedBy, createdAt, purpose, filters, columns, groupBy, format, state, rowCount, sha256]
+                    properties:
+                      id: {type: string, format: uuid}
+                      requestedBy: {type: string, format: uuid}
+                      createdAt: {type: string, format: date-time}
+                      purpose: {type: string}
+                      filters: {type: object}
+                      columns: {type: array, items: {type: string}}
+                      groupBy: {type: array, items: {type: string}}
+                      format: {type: string, enum: [CSV, XLSX, PDF]}
+                      state: {type: string, enum: [COMPLETED, FAILED]}
+                      rowCount: {type: integer, minimum: 0, maximum: 10000}
+                      sha256: {type: [string, 'null']}
+        '401': {description: Sesión ausente/caducada}
+        '403': {description: Rol no permitido}
+        '404': {description: Exportación ajena o inexistente; error texto sin exponer filtros}
+  /api/medical/encounters/{id}/export.docx:
+    get:
+      operationId: exportAuthorizedClinicalWord
+      summary: Exportar una ficha cerrada autorizada con sus adendas
+      description: |
+        REVIEW_DOCTOR o SPECIALIST con relación clínica y ámbito FE-17 vigente.
+        Una ficha individual con su versión, plantilla histórica, antecedentes vinculados,
+        diagnósticos, mediciones y metadatos de documentos. Las adendas se incluyen
+        por número en sección separada con motivo, contenido, actor y fecha Bolivia.
+        No incluye el antecedente global posterior ni otras atenciones/áreas.
+        Genera todo el DOCX antes de responder y audita FICHA_WORD_EXPORTADA con
+        actor, finalidad, formato, versión y cantidad de adendas sin contenido clínico.
+        Repetir GET genera otra exportación auditada; no modifica la ficha.
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+        - in: query
+          name: purpose
+          required: false
+          description: Finalidad auditada; por omisión Consulta clínica autorizada. Espacios se recortan.
+          schema: {type: string, minLength: 1, maxLength: 500}
+      responses:
+        '200':
+          description: DOCX completo, emblemas institucionales y pie confidencial. Comparar contenido, no bytes ZIP.
+          headers:
+            Content-Disposition: {schema: {type: string}, description: attachment; filename=ficha-clinica-UUID.docx}
+            Cache-Control: {schema: {const: 'no-store, private'}}
+          content:
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema: {type: string, format: binary}
+        '400': {description: Finalidad inválida; ok false y error texto}
+        '401': {description: Sesión ausente o caducada; error texto}
+        '403': {description: Rol no permitido; error texto}
+        '404': {description: Ficha inexistente, no cerrada o fuera del ámbito; mismo error sin exponer clínica}
+        '500': {description: Error recuperable de generación/auditoría; no publica archivo parcial}
   /api/administrative/referrals:
     get:
       summary: Bandeja e historial administrativo de derivaciones
@@ -179,6 +412,55 @@ paths:
         '401': {description: Sesión requerida}
         '403': {description: Rol sin permiso}
         '404': {description: Derivación ajena o inexistente; sin contenido clínico}
+    patch:
+      summary: Resolver o devolver una derivación asignada propia
+      description: 'SPECIALIST con personal activo y especialidad/afiliación vigentes. ASSIGNED o IN_PROGRESS. RESOLVE exige encuentro SPECIALTY propio CLOSED; RETURN exige motivo. Conserva el origen clínico y no cancela la cita ni reescribe la ficha. Estado/evento/motivo/seguimiento/actor/fecha/auditoría atómicos. Repetición o transición inválida 403 sin duplicar.'
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: {type: string, enum: [RESOLVE, RETURN]}
+                reason: {type: [string, 'null'], maxLength: 2000, description: Obligatorio y no vacío para RETURN.}
+                followUpText: {type: [string, 'null'], maxLength: 4000, description: Opcional; espacios o vacío se guardan null.}
+      responses:
+        '200':
+          description: 'Contrato BE-16 exacto: ok/data(referralId,status=CLOSED o RETURNED).'
+          content: {application/json: {schema: {type: object, required: [ok, data], properties: {ok: {const: true}, data: {type: object, required: [referralId, status], properties: {referralId: {type: string, format: uuid}, status: {enum: [CLOSED, RETURNED]}}}}}}}
+        '400': {description: Acción/motivo/seguimiento inválidos; error texto.}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol/relación/especialidad o transición no permitidos; incluye repetición.}
+        '409': {description: RESOLVE requiere una atención especializada cerrada propia.}
+  /api/medical/assigned-referrals:
+    get:
+      summary: Consultar derivaciones recibidas por el especialista actual
+      description: 'Solo SPECIALIST con personal activo. Devuelve todos los estados asignados propios, orden createdAt/id descendente, listas vacías [] y opcionales null. Audita la lectura sin texto clínico.'
+      security: [{sessionCookie: []}]
+      responses:
+        '200':
+          description: ok/data con lista de derivaciones asignadas propias.
+          content: {application/json: {schema: {type: object, properties: {ok: {const: true}, data: {type: array, items: {$ref: '#/components/schemas/AssignedReferral'}}}}}}
+        '401': {description: Sesión requerida.}
+        '403': {description: Rol sin permiso.}
+  /api/medical/assigned-referrals/{id}:
+    get:
+      summary: Consultar estado persistido y seguimiento de una derivación asignada propia
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Contrato explícito de detalle para gestión y recuperación de respuesta perdida.
+          content: {application/json: {schema: {type: object, properties: {ok: {const: true}, data: {$ref: '#/components/schemas/AssignedReferral'}}}}}
+        '401': {description: Sesión requerida.}
+        '403': {description: Rol sin permiso.}
+        '404': {description: Ajena/inexistente sin exposición clínica.}
   /api/medical/documents:
     get:
       summary: Listar documentos disponibles de una atención propia
@@ -282,7 +564,9 @@ paths:
                     type: object
                     required: [encounter, patient, appointment, clinicalBackground, diagnoses, measurements, documents]
                     properties:
-                      encounter: {type: object, description: 'id/status/type, chiefComplaint, assessment, instructions, followUpText, bloodChemistryStatus, reviewHistory y reviewHistoryVersion; null antes del cierre.'}
+                      encounter: {type: object, description: 'id/status/type, chiefComplaint, assessment, instructions, followUpText, bloodChemistryStatus, reviewHistory/reviewHistoryVersion y specialtyHistory/specialtyHistoryVersion/specialtyHistoryId; fichas null antes del cierre. JSON clínico en español.'}
+                      specialty: {type: [object, 'null'], description: 'id/code/name para SPECIALTY; null para revisión.'}
+                      template: {type: [object, 'null'], description: 'id/version/schema. Plantilla activa en DRAFT o plantilla histórica exacta en CLOSED. null si no existe.'}
                       patient: {type: object}
                       appointment: {type: object}
                       clinicalBackground: {type: object}
@@ -316,6 +600,7 @@ paths:
                 assessment: {type: string, minLength: 1, maxLength: 8000}
                 reviewHistory: {type: object, description: 'JSON clínico canónico en español: versionEsquema=1, sexo, antecedentesPersonales, habitos, signosVitales, examenFisico, laboratorio, conducta y observaciones. Opciones SI/NO, ADECUADA/REGULAR/INADECUADA. Si se omite se aplican valores predeterminados. Claves heredadas aceptadas como entrada; salida siempre en español. No mezclar alias.'}
                 specialtyHistory: {type: object, description: 'Obligatorio para especialista: versionEsquema=1, codigoEspecialidad, antecedentesPersonales, oftalmologia y ginecologia. Opciones estructuradas en español; codigoEspecialidad conserva el código del catálogo. Claves heredadas aceptadas solo como compatibilidad de entrada.'}
+                templateId: {type: string, format: uuid, description: 'Extensión opcional compatible; la UI especialista envía la plantilla consultada. Si cambió la activa devuelve 409 sin cambios; actualizar contexto y confirmar de nuevo.'}
                 diagnosisText: {type: [string, 'null'], maxLength: 2000}
                 instructions: {type: [string, 'null'], maxLength: 8000}
                 followUpText: {type: [string, 'null'], maxLength: 4000}
@@ -326,13 +611,119 @@ paths:
                 referralPriority: {type: string, enum: [ROUTINE, PRIORITY, URGENT]}
       responses:
         '200':
-          description: Para revisión, data conserva encounterId/referralId (null sin derivación)/reviewHistoryVersion. Ficha/diagnóstico/mediciones/cita/eventos se confirman en una transacción.
+          description: 'Revisión: data conserva encounterId/referralId (null sin derivación)/reviewHistoryVersion. Especialidad: exactamente encounterId/specialtyHistoryVersion/specialtyHistoryId. Resumen clínico, ficha/plantilla, diagnóstico, cita ATTENDED, evento y auditoría se confirman en una transacción.'
           content: {application/json: {schema: {type: object, required: [ok, data], properties: {ok: {type: boolean, const: true}, data: {type: object}}}}}
         '400': {description: Motivo/evaluación/ficha o datos de derivación inválidos.}
         '401': {description: Sesión ausente o caducada.}
         '403': {description: Rol/CSRF sin permiso.}
         '404': {description: Encuentro ajeno/inexistente.}
         '409': {description: Atención cerrada, cita no atendible, antecedentes requeridos o documento ATTACHED no disponible; sin cambios parciales.}
+  /api/medical/encounters/{encounterId}/amendments:
+    get:
+      summary: Consultar adendas de una atención cerrada autorizada
+      description: 'Revisión/especialista con acceso longitudinal FE-17. La lectura de un origen remitido o de otro autor del área no habilita escritura. canAdd procede del servidor; solo el autor activo y autorizado puede agregar. Orden por amendmentNo/id ascendente. Audita lectura sin texto clínico; no-store, private.'
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: encounterId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: 'ok/data(canAdd,items[]); sin adendas items:[]. clientRequestId es null en registros anteriores.'
+          content: {application/json: {schema: {type: object, properties: {ok: {const: true}, data: {type: object, required: [canAdd, items], properties: {canAdd: {type: boolean}, items: {type: array, items: {$ref: '#/components/schemas/EncounterAmendment'}}}}}}}}
+        '401': {description: Sesión requerida.}
+        '403': {description: Rol/relación/área no autorizada o encuentro no cerrado; sin contenido clínico.}
+    post:
+      summary: Agregar una adenda sin modificar el original
+      description: 'Autor de encuentro CLOSED, personal activo y ámbito FE-17 vigente. Tabla append-only. Número serializado por encuentro; adenda y auditoría atómicas. clientRequestId es una extensión opcional: mismo actor/encuentro/envío/contenido devuelve el mismo resultado; contenido distinto para la misma clave 409. Sin clave se conserva la semántica anterior de nueva adenda por solicitud. No existe PUT/PATCH/DELETE de adendas.'
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - {name: encounterId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, content]
+              properties:
+                reason: {type: string, minLength: 1, maxLength: 1000}
+                content: {type: string, minLength: 1, maxLength: 8000}
+                clientRequestId: {type: [string, 'null'], format: uuid}
+      responses:
+        '200':
+          description: 'Contrato de creación conservado: ok/data(id,amendmentNo,createdAt,createdBy). createdAt ISO y createdBy UUID del actor de sesión.'
+          content: {application/json: {schema: {type: object, properties: {ok: {const: true}, data: {type: object, required: [id, amendmentNo, createdAt, createdBy], properties: {id: {type: string, format: uuid}, amendmentNo: {type: integer}, createdAt: {type: string, format: date-time}, createdBy: {type: string, format: uuid}}}}}}}
+        '400': {description: Motivo/contenido ausentes, vacíos, tipo/límite inválido o UUID de reintento inválido; error texto.}
+        '401': {description: Sesión requerida.}
+        '403': {description: Autor/rol/área no autorizado o encuentro no cerrado.}
+        '409': {description: Clave de envío ya usada con otro contenido; consultar antes de iniciar una nueva adenda.}
+        '500': {description: Fallo recuperable; comprobar estado antes de reintentar.}
+  /api/medical/encounters/{encounterId}/source-context:
+    get:
+      summary: Contexto remitido autorizado para el especialista asignado
+      operationId: getOwnSpecialtySource
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: encounterId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: 'ok/data. data=null en atención directa. Si derivada: referralId/reason/comment/priority/sourceEncounter(id/chiefComplaint/assessment), diagnoses(textos) y documents(id/fileName/documentType), ordenados por fecha. Solo elementos compartidos del mismo paciente/origen; documentos AVAILABLE. Audita actor sin texto clínico.'
+          content: {application/json: {schema: {type: object, required: [ok, data], properties: {ok: {type: boolean, const: true}, data: {type: [object, 'null']}}}}}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol sin permiso.}
+        '404': {description: Encuentro ajeno o inexistente.}
+  /api/medical/patients/{patientId}:
+    get:
+      summary: Historia longitudinal autorizada por relación clínica y área
+      description: 'Requiere personal activo y relación por encuentro propio, derivación asignada o cita propia SCHEDULED/CHECKED_IN/ATTENDED. Revisión ve INITIAL. Especialista ve SPECIALTY de áreas activas con afiliación vigente y los INITIAL remitidos a su persona/área. La autorización se aplica en PostgreSQL a todos los arrays. Historia vacía autorizada devuelve 200/listas vacías; sin acceso devuelve 404 con error texto de referencia. Audita actor sin texto clínico; Cache-Control no-store, private.'
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: patientId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: 'Conserva ok/data(patient,intake,clinicalBackground,encounters,diagnoses,documents,appointments,referrals). No ordena ni filtra por área en el cliente.'
+          content: {application/json: {schema: {type: object, required: [ok, data], properties: {ok: {const: true}, data: {$ref: '#/components/schemas/LongitudinalHistory'}}}}}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Administración/estudiante/rol no clínico no reciben contenido clínico.}
+        '404': {description: 'No tienes acceso clínico a este paciente.'}
+        '500': {description: Error de consulta recuperable sin detalles internos.}
+  /api/medical/patients/{patientId}/search:
+    get:
+      summary: Buscar en la historia cerrada autorizada por fechas y texto
+      description: 'Usa exactamente la relación/área/origen de la historia longitudinal. Solo CLOSED, orden occurredAt/id descendente. Texto parcial literal sin distinguir mayúsculas/acentos ni espacios repetidos; Unicode compuesto/descompuesto equivalente. Busca motivo/evaluación/indicaciones/seguimiento/especialidad, diagnósticos, adendas, valores textuales de fichas y antecedentes vinculados, nombre/descripción de documentos AVAILABLE. No busca antecedentes globales posteriores no vinculados ni claves técnicas del JSON. Auditoría sin texto de búsqueda. Cache-Control no-store, private.'
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: patientId, in: path, required: true, schema: {type: string, format: uuid}}
+        - {name: q, in: query, schema: {type: string, maxLength: 200}, description: Vacío equivale a todo el texto; '%' y '_' son literales.}
+        - {name: from, in: query, schema: {type: string, format: date}, description: Día inicial inclusivo en America/La_Paz; opcional.}
+        - {name: to, in: query, schema: {type: string, format: date}, description: Día final inclusivo en America/La_Paz; opcional.}
+      responses:
+        '200':
+          description: 'ok/data[]; cero coincidencias []. Campos null preservados, incluida specialty:null en INITIAL.'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {const: true}
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, occurredAt, encounterType, status, chiefComplaint, assessment, specialty]
+                      properties:
+                        id: {type: string, format: uuid}
+                        occurredAt: {type: string, format: date-time}
+                        encounterType: {enum: [INITIAL, SPECIALTY]}
+                        status: {const: CLOSED}
+                        chiefComplaint: {type: [string, 'null']}
+                        assessment: {type: [string, 'null']}
+                        specialty: {type: [string, 'null']}
+        '400': {description: Texto mayor de 200 caracteres, fechas mal formadas o rango invertido; error texto.}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol no clínico sin permiso.}
+        '404': {description: 'No tienes acceso clínico a este paciente.'}
+        '500': {description: Fallo recuperable de consulta sin detalles internos.}
   /api/medical/patients/{patientId}/clinical-background:
     parameters:
       - name: patientId
@@ -403,7 +794,7 @@ paths:
   /api/medical/appointments:
     get:
       summary: Agenda del profesional autenticado, con identidad y referencia al encuentro
-      description: Conserva los campos heredados y agrega encounter (null o id/status). Orden ascendente por horario e id, máximo 200 citas. No crea encuentros.
+      description: Conserva los campos heredados y agrega encounter (null o id/status). Incluye todas las citas activas (SCHEDULED, CHECKED_IN o con encuentro DRAFT) y las 200 cerradas más recientes, en orden ascendente por horario e id. No crea encuentros.
       operationId: listMyMedicalAppointments
       security: [{sessionCookie: []}]
       responses:
@@ -420,6 +811,28 @@ paths:
         '401': {description: Sesión ausente o caducada; error como texto.}
         '403': {description: Rol distinto de médico de revisión o especialista.}
         '404': {description: Cuenta médica sin ficha de personal activa.}
+  /api/medical/appointments/{appointmentId}:
+    get:
+      summary: Una cita propia del profesional autenticado
+      description: Mismo contrato que un elemento de la agenda, para citas activas o cerradas. Solo citas asignadas al personal del actor y del tipo de su rol (INITIAL para médico de revisión, SPECIALTY para especialista). No crea encuentros.
+      operationId: getMyMedicalAppointment
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: appointmentId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Cita autorizada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {$ref: '#/components/schemas/MedicalAgendaAppointment'}
+        '401': {description: Sesión ausente o caducada; error como texto.}
+        '403': {description: Rol distinto de médico de revisión o especialista.}
+        '404': {description: Cita inexistente, ajena o de otro tipo; no distingue entre esos casos.}
   /api/medical/appointments/{appointmentId}/start:
     post:
       summary: Inicia o recupera el encuentro de una cita propia
@@ -682,6 +1095,8 @@ paths:
           description: Forma heredada exacta {ok:false,error:unauthenticated}.
   /api/reports/compliance:
     get:
+      description: Solo ADMINISTRATIVE/REPORTING_OFFICER. Una fila por paciente/carrera/período; sin período se consultan matrículas activas vigentes, con período explícito se admite historial. Solo CLOSED dentro de la ventana inclusiva de matrícula en Bolivia computa; llegada/ausencia/borrador no cumplen. Mantiene el orden nominal por apellidos/nombres/UUID y null de primer cierre. Devuelve ok/data (lista vacía válida), audita sin contenido clínico y no-store/private; fallo de infraestructura 500. Regla académica del modelo actual, pendiente de validación institucional.
+
       summary: Consulta cumplimiento institucional por carrera y período académico
       operationId: institutionalCompliance
       security: [{sessionCookie: []}]
@@ -697,9 +1112,13 @@ paths:
       responses:
         '200': {description: Cumplimiento por paciente inscrito, incluyendo pendientes., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyComplianceSuccess'}}}}
         '400': {description: Período académico inválido.}
+        '401': {description: Sesión ausente o caducada; error texto.}
         '403': {description: Sólo administración o responsable de reportes.}
+        '500': {description: Error recuperable; error texto y sin lista vacía de sustitución.}
   /api/reports/daily-activity:
     get:
+      description: Solo ADMINISTRATIVE/REPORTING_OFFICER. Fechas inclusivas de Bolivia, por omisión hoy. Máximo 366 días de diferencia; rango inválido 400. Solo CLOSED; grupos por día/tipo/especialidad con null conservado y orden de referencia. Ámbito institucional independiente de carrera/período de matrícula. ok/data, auditoría y no-store/private; error recuperable 500.
+
       summary: Agrega atenciones cerradas por día, tipo y especialidad
       operationId: dailyInstitutionalActivity
       security: [{sessionCookie: []}]
@@ -715,10 +1134,13 @@ paths:
       responses:
         '200': {description: Agregados de sólo encuentros cerrados., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyDailyActivitySuccess'}}}}
         '400': {description: Rango inválido o superior a 366 días.}
+        '401': {description: Sesión ausente o caducada; error texto.}
         '403': {description: Sólo administración o responsable de reportes.}
+        '500': {description: Error recuperable; error texto y sin lista vacía de sustitución.}
   /api/audit-events:
     get:
       summary: Consulta evidencia de auditoría sin exponer contenido clínico ni detalles sensibles
+      description: Solo autoridad AUDITOR vigente. Fechas inclusivas de Bolivia. Filtros parciales literales sin distinguir mayúsculas. Nombre y roles del actor son los vigentes; no son una instantánea histórica. No devuelve metadata cruda ni texto clínico. Cada lectura agrega un evento propio, sin alterar evidencia previa. Cache-Control no-store, private.
       operationId: listAuditEvents
       security: [{sessionCookie: []}]
       parameters:
@@ -750,13 +1172,26 @@ paths:
           in: query
           required: false
           schema: {type: integer, minimum: 1, maximum: 500, default: 100}
+        - name: actor
+          in: query
+          description: Coincidencia parcial por nombre, correo o UUID; máximo 200 caracteres.
+          schema: {type: string, maxLength: 200}
+        - name: paginated
+          in: query
+          schema: {type: boolean, default: false}
+        - name: before
+          in: query
+          description: Cursor opaco devuelto en pagination.nextCursor; requiere paginated=true. Orden estable por instante y UUID descendentes.
+          schema: {type: string, maxLength: 120}
       responses:
         '200': {description: Eventos ordenados de más reciente a más antiguo., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyAuditEventListSuccess'}}}}
         '400': {description: Filtros inválidos.}
+        '401': {description: Sesión ausente o expirada.}
         '403': {description: Sólo Auditor.}
+        '500': {description: Error recuperable al consultar persistencia.}
   /api/vaccines:
     get:
-      summary: Lista vacunas y su última versión de esquema
+      summary: Lista vacunas y su última versión de esquema (Administración y Reportes; escritura sólo Administración)
       operationId: listVaccines
       security: [{sessionCookie: []}]
       parameters:
@@ -778,6 +1213,7 @@ paths:
         '201': {description: Vacuna creada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccineIdSuccess'}}}}
         '400': {description: Esquema inválido.}
         '403': {description: Sólo Administración.}
+        '409': {description: Ya existe una vacuna con ese código (sin distinguir mayúsculas).}
   /api/vaccines/{vaccineId}:
     put:
       summary: Crea una versión de esquema y permite activar o desactivar una vacuna sin borrar historia
@@ -793,8 +1229,10 @@ paths:
         content: {application/json: {schema: {$ref: '#/components/schemas/VaccineRequest'}}}
       responses:
         '200': {description: Vacuna actualizada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccineIdSuccess'}}}}
-        '400': {description: Esquema inválido o vacuna inexistente.}
+        '400': {description: Esquema inválido.}
         '403': {description: Sólo Administración.}
+        '404': {description: Vacuna inexistente.}
+        '409': {description: Código duplicado o expectedSchemaVersion distinta de la última versión; no se crea otra versión.}
   /api/vaccinations:
     post:
       summary: Registra una dosis aplicada y conserva aplicador, registrador y versión del esquema
@@ -805,10 +1243,27 @@ paths:
         content: {application/json: {schema: {$ref: '#/components/schemas/VaccinationApplicationRequest'}}}
       responses:
         '201': {description: Dosis registrada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationApplicationSuccess'}}}}
-        '400': {description: Dosis, orden, fecha o intervalo inválidos.}
-        '403': {description: Sólo Administración o Médico de revisión; el aplicador debe ser válido.}
-        '404': {description: Paciente inexistente.}
-        '409': {description: Ya existe esa dosis para el paciente y vacuna.}
+        '400': {description: Datos incompletos, fecha futura en Bolivia o anterior a la dosis previa, aplicador que no es médico de revisión activo o justificación mayor a 500 caracteres.}
+        '403': {description: Sólo Administración o Médico de revisión; un médico sólo se indica a sí mismo como aplicador.}
+        '404': {description: Paciente inexistente o, para Médico de revisión, sin cita inicial asignada con ese paciente.}
+        '409': {description: Dosis ya registrada, dosis anterior pendiente, vacuna inactiva o dosis fuera del esquema vigente.}
+        '422': {description: No se cumple el intervalo mínimo y falta intervalOverrideJustification.}
+  /api/vaccinations/context:
+    get:
+      summary: Contexto para registrar dosis desde la ficha del paciente
+      description: Vacunas activas con esquema vigente y siguiente dosis calculada en servidor, dosis aplicadas (incluidas vacunas desactivadas) con lote, aplicador y registrador, y aplicadores elegibles. Cada lectura se audita como VACCINATION_RECORD_READ.
+      operationId: getVaccinationRegistrationContext
+      security: [{sessionCookie: []}]
+      parameters:
+        - name: patientId
+          in: query
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Contexto de registro., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationContextSuccess'}}}}
+        '400': {description: Paciente omitido.}
+        '403': {description: Sólo Administración o Médico de revisión.}
+        '404': {description: Paciente inexistente o ajeno a la atención del médico.}
   /api/vaccination-card:
     get:
       summary: Consulta el carnet y estado de vacunación autorizado
@@ -821,7 +1276,8 @@ paths:
           schema: {type: string, format: uuid}
           description: Requerido para Administración; un estudiante sólo puede consultar su propio carnet.
       responses:
-        '200': {description: Carnet y estado calculado por esquema., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationCardSuccess'}}}}
+        '200': {description: 'Carnet y estado calculado con la última versión del esquema. Incluye vacunas activas y desactivadas sólo si el paciente tiene dosis; cada dosis trae lote, aplicador y versión histórica. Cada lectura se audita como VACCINATION_CARD_READ.', content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationCardSuccess'}}}}
+        '400': {description: Administración sin patientId.}
         '403': {description: No autorizado para ese carnet.}
         '404': {description: Paciente inexistente.}
   /api/reports/vaccination-coverage:
@@ -839,7 +1295,7 @@ paths:
           required: false
           schema: {type: string, maxLength: 80}
       responses:
-        '200': {description: Cobertura institucional agregada., content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationCoverageSuccess'}}}}
+        '200': {description: 'Cobertura agregada de vacunas activas; sin período usa matrículas vigentes en día de Bolivia. Cada estudiante cuenta una vez por vacuna/carrera/período. Lectura auditada como VACCINATION_COVERAGE_READ.', content: {application/json: {schema: {$ref: '#/components/schemas/LegacyVaccinationCoverageSuccess'}}}}
         '403': {description: Sólo Administración o Reportes.}
         '400': {description: Filtros inválidos.}
   /api/research/exports:
@@ -850,10 +1306,32 @@ paths:
       requestBody:
         required: true
         content: {application/json: {schema: {$ref: '#/components/schemas/ResearchExportRequest'}}}
+      description: 'No exige aprobación previa (RN-32). El archivo se genera completo antes de responder; registra solicitante, finalidad, filtros normalizados, formato, filas, política, mes de política y SHA-256, y audita RESEARCH_EXPORT_COMPLETED. Fechas y mes en hora de Bolivia.'
       responses:
-        '200': {description: CSV dentro de ZIP o XLSX con hoja Dictionary; sin identificadores directos.}
-        '400': {description: Finalidad, filtros o formato inválidos.}
+        '200':
+          description: CSV dentro de ZIP (research-data.csv y dictionary.csv, UTF-8 con BOM) o XLSX con hojas Research data y Dictionary; sin identificadores directos.
+          headers:
+            X-Export-Id: {schema: {type: string, format: uuid}}
+            X-Export-Row-Count: {schema: {type: integer, minimum: 0, maximum: 10000}}
+            X-Content-SHA256: {schema: {type: string, pattern: '^[0-9a-f]{64}$'}}
+            X-Pseudonym-Policy: {description: 'Versión y mes de política, p. ej. MONTHLY-V1;2026-10.', schema: {type: string}}
+          content:
+            application/zip: {schema: {type: string, format: binary}}
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {schema: {type: string, format: binary}}
+        '400': {description: 'Finalidad (3-300), formato, filtros (claves desconocidas, fecha inválida, desde posterior a hasta, UUID inválido) o más de 10000 filas.'}
         '403': {description: Sólo Administración o Responsable de Reportes.}
+        '500': {description: No se pudo generar el archivo completo; no se registra exportación.}
+  /api/research/exports/{exportId}:
+    get:
+      summary: Constancia de una exportación de investigación propia
+      operationId: getResearchExportProvenance
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: exportId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: 'Datos {id, purpose, filters, format, rowCount, policyVersion, policyMonth, sha256, createdAt} dentro del sobre {ok,data,error}.'}
+        '403': {description: Sólo Administración o Responsable de Reportes.}
+        '404': {description: No existe o pertenece a otro solicitante.}
 components:
   parameters:
     PatientId:
@@ -890,6 +1368,73 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    EncounterAmendment:
+      type: object
+      required: [id, amendmentNo, reason, content, createdAt, createdBy, createdByName, clientRequestId]
+      properties:
+        id: {type: string, format: uuid}
+        amendmentNo: {type: integer, minimum: 1}
+        reason: {type: string}
+        content: {type: string}
+        createdAt: {type: string, format: date-time}
+        createdBy: {type: string, format: uuid}
+        createdByName: {type: string}
+        clientRequestId: {type: [string, 'null'], format: uuid}
+    LongitudinalHistory:
+      type: object
+      required: [patient, intake, clinicalBackground, encounters, diagnoses, documents, appointments, referrals]
+      properties:
+        patient: {type: object, description: 'id/carnet/registrationCode/fullName/birthDate/phone/email; opcionales null.'}
+        intake: {type: [object, 'null'], description: 'Resumen de antecedentes actual: allergies/chronic_conditions/current_medications/relevant_history son texto; emergency_contact_note null, recorded_at.'}
+        clinicalBackground: {type: [object, 'null'], description: 'Versión global actual: id/versionNo/data/verificationStatus/recordedAt/recordedBy/changeReason. data canónica en español.'}
+        encounters:
+          type: array
+          description: 'Orden occurred_at/id descendente. Conserva todos los estados autorizados; UI de fichas cerradas muestra CLOSED.'
+          items:
+            type: object
+            description: 'id/appointment_id/referral_id/specialty_id/status/encounter_type/occurred_at/closed_at/chief_complaint/assessment/instructions/follow_up_text/blood_chemistry_status/clinical_background_version_id/specialty; reviewHistory/reviewHistoryVersion, specialtyHistory/specialtyHistoryVersion; template(id/version) histórica y clinicalBackground vinculada o null. JSON clínico en español.'
+            properties:
+              accessReason: {enum: [AREA, REFERRAL_SOURCE]}
+        diagnoses: {type: array, items: {type: object}, description: 'id/encounter_id/label/free_text/diagnosis_kind/condition/is_primary; cierres actuales de texto CONFIRMED/condition:null; creación/id ascendente. Solo encuentros autorizados.'}
+        documents: {type: array, items: {type: object}, description: 'id/encounter_id/document_type_code/status/original_filename/mime_type/size_bytes/study_date/description/uploaded_at. AVAILABLE del mismo paciente y encuentros autorizados; carga/id descendente; null preservados. Descarga/firma vuelven a comprobar este ámbito.'}
+        appointments: {type: array, items: {type: object}, description: 'id/status/appointment_type/scheduled_for/checked_in_at/assigned_staff_id/availability_slot(specialty(name) o null)/specialty/isAssignedToMe; solo citas propias, fecha/id descendente.'}
+        referrals: {type: array, items: {type: object}, description: 'id/source_encounter_id/specialty_id/assigned_staff_id/status/priority/reason/comment_for_specialist/created_at/specialty; emitidas de revisión autorizada o asignadas al especialista en área vigente. Creación/id descendente.'}
+    AssignedReferral:
+      type: object
+      required: [id, status, priority, reason, comment, createdAt, assignedAt, patient, specialty, requestedBy, followUpText, returnReason, resolvedAt, resolvedBy, returnedAt, returnedBy, appointment, encounter, events]
+      properties:
+        id: {type: string, format: uuid}
+        status: {enum: [PENDING_ASSIGNMENT, ASSIGNED, IN_PROGRESS, RETURNED, CLOSED, CANCELLED]}
+        priority: {enum: [ROUTINE, PRIORITY, URGENT]}
+        reason: {type: string}
+        comment: {type: string}
+        createdAt: {type: string, format: date-time}
+        assignedAt: {type: [string, 'null'], format: date-time}
+        patient: {type: object, description: 'id/fullName/carnet'}
+        specialty: {type: object, description: 'id/name'}
+        requestedBy: {type: string}
+        followUpText: {type: [string, 'null']}
+        returnReason: {type: [string, 'null']}
+        resolvedAt: {type: [string, 'null'], format: date-time}
+        resolvedBy: {type: [string, 'null'], description: Nombre mostrado del actor de resolución.}
+        returnedAt: {type: [string, 'null'], format: date-time}
+        returnedBy: {type: [string, 'null'], description: Nombre mostrado del actor de devolución.}
+        appointment: {type: [object, 'null'], description: 'Última cita propia asociada: id/status/scheduledFor.'}
+        encounter: {type: [object, 'null'], description: 'Encuentro de esa cita: id/status.'}
+        events:
+          type: array
+          description: Orden at/id ascendente; null y listas vacías conservados.
+          items:
+            type: object
+            required: [id, from, to, reason, followUpText, actor, at]
+            properties:
+              id: {type: string, format: uuid}
+              from: {type: [string, 'null']}
+              to: {type: string}
+              reason: {type: [string, 'null']}
+              followUpText: {type: [string, 'null']}
+              actor: {type: string}
+              at: {type: string, format: date-time}
     ClinicalBackgroundVersion:
       type: object
       required: [id, versionNo, data, verificationStatus, recordedAt, recordedBy, changeReason]
@@ -1069,7 +1614,7 @@ components:
         clinicalRole: {type: string, enum: [ADMINISTRATIVE, REPORTING_OFFICER, REVIEW_DOCTOR, SPECIALIST, STUDENT, AUDITOR]}
     LegacyComplianceSuccess:
       type: object
-      required: [ok, data, error]
+      required: [ok, data]
       properties:
         ok: {type: boolean, const: true}
         data:
@@ -1089,7 +1634,7 @@ components:
         error: {type: 'null'}
     LegacyDailyActivitySuccess:
       type: object
-      required: [ok, data, error]
+      required: [ok, data]
       properties:
         ok: {type: boolean, const: true}
         data:
@@ -1121,7 +1666,7 @@ components:
                 required: [id, name, roles]
                 properties:
                   id: {type: string, format: uuid}
-                  name: {type: string}
+                  name: {type: [string, 'null']}
                   roles: {type: array, items: {type: string}}
               action: {type: string}
               resource: {type: string}
@@ -1129,6 +1674,13 @@ components:
               outcome: {type: string, enum: [SUCCESS, DENIED, FAILURE]}
               context: {type: string, description: Descripción operacional derivada; no contiene metadata cruda.}
         error: {type: 'null'}
+        pagination:
+          type: object
+          description: Presente solo con paginated=true. Sin este parámetro se conserva ok/data.
+          required: [hasMore, nextCursor]
+          properties:
+            hasMore: {type: boolean}
+            nextCursor: {type: [string, 'null']}
     VaccineRequest:
       type: object
       required: [code, name, active, doses]
@@ -1146,6 +1698,7 @@ components:
             properties:
               doseNumber: {type: integer, minimum: 1, maximum: 20}
               minimumIntervalDays: {type: integer, minimum: 0, maximum: 3650}
+        expectedSchemaVersion: {type: [integer, 'null'], minimum: 1, description: 'Sólo PUT. Última versión mostrada al editar; si otra persona creó una versión posterior responde 409. Omitida conserva el comportamiento anterior.'}
     LegacyVaccineIdSuccess:
       type: object
       required: [ok, data, error]
@@ -1182,6 +1735,31 @@ components:
         lot: {type: string, minLength: 1, maxLength: 100}
         applicatorStaffId: {type: string, format: uuid, description: Obligatorio para Administración; un médico sólo puede indicar su propio personal.}
         intervalOverrideJustification: {type: string, minLength: 1, maxLength: 500, description: Obligatoria si no se cumple el intervalo mínimo.}
+    LegacyVaccinationContextSuccess:
+      type: object
+      required: [ok, data, error]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [patientId, carnet, fullName, today, ownApplicatorStaffId, applicators, vaccines]
+          properties:
+            patientId: {type: string, format: uuid}
+            carnet: {type: string}
+            fullName: {type: string}
+            today: {type: string, format: date, description: Día actual en Bolivia.}
+            ownApplicatorStaffId: {type: [string, 'null'], format: uuid, description: Personal del médico actor; null para Administración.}
+            applicators: {type: array, items: {type: object, required: [staffId, name, staffCode]}}
+            vaccines:
+              type: array
+              items:
+                type: object
+                required: [vaccineId, code, name, active, schemaVersion, doses, nextDoseNumber, appliedDoses]
+                properties:
+                  schemaVersion: {type: [integer, 'null']}
+                  nextDoseNumber: {type: [integer, 'null'], description: Null si el esquema está completo o la vacuna inactiva.}
+                  appliedDoses: {type: array, items: {type: object, required: [id, doseNumber, appliedOn, lot, schemaVersion, applicator, registeredBy, intervalWarning, intervalJustification, recordedAt]}}
+        error: {type: 'null'}
     LegacyVaccinationApplicationSuccess:
       type: object
       required: [ok, data, error]
@@ -1212,7 +1790,7 @@ components:
             careerId: {type: [string, 'null'], format: uuid}
             careerName: {type: [string, 'null']}
             academicPeriod: {type: [string, 'null']}
-            vaccines: {type: array, items: {type: object, required: [vaccineId, code, name, active, requiredDoseCount, completedDoseCount, status, appliedDoses]}}
+            vaccines: {type: array, items: {type: object, required: [vaccineId, code, name, active, currentSchemaVersion, requiredDoseCount, completedDoseCount, status, appliedDoses], properties: {status: {enum: [PENDING, PARTIAL, COMPLETE, INACTIVE]}, appliedDoses: {type: array, items: {type: object, required: [doseNumber, appliedOn, schemaVersion, lot, applicatorName]}}}}}
         error: {type: 'null'}
     LegacyVaccinationCoverageSuccess:
       type: object

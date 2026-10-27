@@ -23,6 +23,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -44,9 +46,14 @@ public class ClinicalDocumentService {
     try { Files.createDirectories(destination.getParent()); temporary=Files.createTempFile(destination.getParent(),"upload-",".tmp"); String checksum;
       try(InputStream in=file.getInputStream()){var digest=MessageDigest.getInstance("SHA-256"); try(var out=Files.newOutputStream(temporary)){byte[] b=new byte[8192]; for(int n;(n=in.read(b))>=0;){out.write(b,0,n);digest.update(b,0,n);}} checksum=java.util.HexFormat.of().formatHex(digest.digest());}
       if(Files.size(temporary)!=file.getSize()||!matchesDeclaredMime(temporary,file.getContentType()))throw new AvailabilityException(400,"El contenido o tamaño del archivo no coincide con su tipo declarado.");
-      Files.move(temporary,destination,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING); jdbc.query("select salud_u.finalizar_carga_documento(?,?,?)", resultSet -> {}, id,file.getSize(),checksum); auditWriter.append("DOCUMENTO_CLINICO_CARGADO","documento_clinico",id,AuditOutcome.SUCCESS,Map.of("tipoMime",file.getContentType(),"tamanoBytes",file.getSize())); return id;
+      Files.move(temporary,destination,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING); deleteUnlessCommitted(destination); jdbc.query("select salud_u.finalizar_carga_documento(?,?,?)", resultSet -> {}, id,file.getSize(),checksum); auditWriter.append("DOCUMENTO_CLINICO_CARGADO","documento_clinico",id,AuditOutcome.SUCCESS,Map.of("tipoMime",file.getContentType(),"tamanoBytes",file.getSize())); return id;
     } catch(AvailabilityException e){ try{if(temporary!=null)Files.deleteIfExists(temporary);Files.deleteIfExists(destination);}catch(Exception ignored){} throw e;
     } catch(Exception e){ try{if(temporary!=null)Files.deleteIfExists(temporary);Files.deleteIfExists(destination);}catch(Exception ignored){} throw new AvailabilityException(400,"No se pudo guardar el archivo clínico."); }
+  }
+  // El archivo queda en disco antes del commit; si la transacción no se confirma (fallo de PostgreSQL al confirmar), se borra para no dejar archivos sin fila.
+  private static void deleteUnlessCommitted(Path destination){
+    if(!TransactionSynchronizationManager.isSynchronizationActive())return;
+    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization(){@Override public void afterCompletion(int status){if(status!=STATUS_COMMITTED)try{Files.deleteIfExists(destination);}catch(java.io.IOException ignored){}}});
   }
   @Transactional(readOnly=true) public String signedUrl(SessionPrincipal p,UUID id){
     if(!p.roles().contains("REVIEW_DOCTOR")&&!p.roles().contains("SPECIALIST"))throw new AvailabilityException(403,"Solo un médico autorizado puede descargar documentos.");

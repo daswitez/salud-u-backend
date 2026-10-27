@@ -8,8 +8,11 @@ spring:
     username: ${DB_APP_USER:salud_u_runtime}
     password: ${DB_APP_PASSWORD}
     hikari:
+      # Ante una caída de PostgreSQL las solicitudes fallan en segundos (RNF-07) en lugar de esperar 30 s por una conexión.
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:5000}
       data-source-properties:
         currentSchema: salud_u
+        connectTimeout: 5
   jpa:
     open-in-view: false
     hibernate:

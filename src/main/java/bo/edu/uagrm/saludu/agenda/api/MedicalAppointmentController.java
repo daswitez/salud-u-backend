@@ -43,30 +43,45 @@ public class MedicalAppointmentController {
     public LegacyAvailabilityResponse<List<Map<String, Object>>> list(@AuthenticationPrincipal SessionPrincipal principal) {
         apply(principal);
         try {
-            return LegacyAvailabilityResponse.success(jdbcTemplate.query("select * from salud_u.listar_mis_citas_medicas()", (rs, row) -> {
-                Map<String, Object> patient = new LinkedHashMap<>();
-                patient.put("id", rs.getObject("id_paciente", UUID.class));
-                patient.put("carnet", rs.getString("carnet"));
-                patient.put("registrationCode", rs.getString("codigo_registro"));
-                patient.put("fullName", (rs.getString("nombres") + " " + rs.getString("apellidos")).trim());
-                patient.put("birthDate", rs.getObject("fecha_nacimiento", java.time.LocalDate.class));
-                patient.put("phone", rs.getString("telefono"));
-                patient.put("email", rs.getString("email"));
-                Map<String, Object> appointment = new LinkedHashMap<>();
-                appointment.put("id", rs.getObject("id", UUID.class));
-                appointment.put("appointmentType", rs.getString("tipo_cita"));
-                appointment.put("status", rs.getString("estado_cita"));
-                appointment.put("scheduledFor", rs.getObject("programada_para", OffsetDateTime.class));
-                appointment.put("endsAt", rs.getObject("termina_a", OffsetDateTime.class));
-                appointment.put("checkedInAt", rs.getObject("ingreso_registrado_en", OffsetDateTime.class));
-                appointment.put("specialty", rs.getString("nombre_especialidad") == null ? "Revisión estudiantil" : rs.getString("nombre_especialidad"));
-                appointment.put("specialtyCode", rs.getString("codigo_especialidad"));
-                appointment.put("patient", patient);
-                UUID encounterId = rs.getObject("id_encuentro", UUID.class);
-                appointment.put("encounter", encounterId == null ? null : Map.of("id", encounterId, "status", rs.getString("estado_encuentro")));
-                return appointment;
-            }));
+            return LegacyAvailabilityResponse.success(jdbcTemplate.query("select * from salud_u.listar_mis_citas_medicas()", (rs, row) -> appointment(rs)));
         } catch (DataAccessException exception) { throw translate(exception); }
+    }
+
+    /** Una cita del profesional por identificador, sin depender del tope del listado de agenda. */
+    @GetMapping("/{appointmentId}")
+    @PreAuthorize("hasAnyRole('REVIEW_DOCTOR','SPECIALIST')")
+    @Transactional(readOnly = true)
+    public LegacyAvailabilityResponse<Map<String, Object>> get(@PathVariable UUID appointmentId, @AuthenticationPrincipal SessionPrincipal principal) {
+        apply(principal);
+        try {
+            List<Map<String, Object>> found = jdbcTemplate.query("select * from salud_u.listar_mis_citas_medicas(?)", (rs, row) -> appointment(rs), appointmentId);
+            if (found.isEmpty()) throw new AvailabilityException(404, "No se encontró una cita asignada a tu cuenta.");
+            return LegacyAvailabilityResponse.success(found.get(0));
+        } catch (DataAccessException exception) { throw translate(exception); }
+    }
+
+    private static Map<String, Object> appointment(java.sql.ResultSet rs) throws java.sql.SQLException {
+        Map<String, Object> patient = new LinkedHashMap<>();
+        patient.put("id", rs.getObject("id_paciente", UUID.class));
+        patient.put("carnet", rs.getString("carnet"));
+        patient.put("registrationCode", rs.getString("codigo_registro"));
+        patient.put("fullName", (rs.getString("nombres") + " " + rs.getString("apellidos")).trim());
+        patient.put("birthDate", rs.getObject("fecha_nacimiento", java.time.LocalDate.class));
+        patient.put("phone", rs.getString("telefono"));
+        patient.put("email", rs.getString("email"));
+        Map<String, Object> appointment = new LinkedHashMap<>();
+        appointment.put("id", rs.getObject("id", UUID.class));
+        appointment.put("appointmentType", rs.getString("tipo_cita"));
+        appointment.put("status", rs.getString("estado_cita"));
+        appointment.put("scheduledFor", rs.getObject("programada_para", OffsetDateTime.class));
+        appointment.put("endsAt", rs.getObject("termina_a", OffsetDateTime.class));
+        appointment.put("checkedInAt", rs.getObject("ingreso_registrado_en", OffsetDateTime.class));
+        appointment.put("specialty", rs.getString("nombre_especialidad") == null ? "Revisión estudiantil" : rs.getString("nombre_especialidad"));
+        appointment.put("specialtyCode", rs.getString("codigo_especialidad"));
+        appointment.put("patient", patient);
+        UUID encounterId = rs.getObject("id_encuentro", UUID.class);
+        appointment.put("encounter", encounterId == null ? null : Map.of("id", encounterId, "status", rs.getString("estado_encuentro")));
+        return appointment;
     }
 
     @PostMapping("/{appointmentId}/start")

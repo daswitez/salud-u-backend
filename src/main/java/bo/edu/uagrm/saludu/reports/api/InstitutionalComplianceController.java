@@ -6,6 +6,11 @@ import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
 import bo.edu.uagrm.saludu.shared.persistence.DatabaseActor;
 import bo.edu.uagrm.saludu.shared.persistence.DatabaseActorContext;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import bo.edu.uagrm.saludu.governance.application.AuditWriter;
+import bo.edu.uagrm.saludu.governance.domain.AuditOutcome;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.ResponseEntity;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,16 +31,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class InstitutionalComplianceController {
     private final JdbcTemplate jdbc;
     private final DatabaseActorContext actorContext;
+    private final AuditWriter audit;
+    private final ObjectMapper json;
 
-    public InstitutionalComplianceController(JdbcTemplate jdbc, DatabaseActorContext actorContext) {
+    public InstitutionalComplianceController(JdbcTemplate jdbc, DatabaseActorContext actorContext, AuditWriter audit, ObjectMapper json) {
+        this.audit=audit;this.json=json;
         this.jdbc = jdbc;
         this.actorContext = actorContext;
     }
 
     @GetMapping("/compliance")
     @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REPORTING_OFFICER')")
-    @Transactional(readOnly = true)
-    public LegacyAvailabilityResponse<List<Map<String, Object>>> compliance(
+    @Transactional
+    public ResponseEntity<LegacyAvailabilityResponse<List<Map<String, Object>>>> compliance(
         @RequestParam(required = false) UUID careerId,
         @RequestParam(required = false) String period,
         @AuthenticationPrincipal SessionPrincipal principal
@@ -53,11 +61,12 @@ public class InstitutionalComplianceController {
                 row.put("careerId", rs.getObject("id_carrera", UUID.class));
                 row.put("careerName", rs.getString("nombre_carrera"));
                 row.put("academicPeriod", rs.getString("periodo_academico"));
-                row.put("firstClosedEncounterAt", rs.getObject("primer_encuentro_cerrado_en"));
+                row.put("firstClosedEncounterAt", rs.getObject("primer_encuentro_cerrado_en",java.time.OffsetDateTime.class));
                 row.put("complianceStatus", rs.getString("estado_cumplimiento"));
                 return row;
             }, careerId, period == null ? null : period.trim());
-            return LegacyAvailabilityResponse.success(rows);
+            audit.append("CUMPLIMIENTO_CONSULTADO","cumplimiento_institucional",null,AuditOutcome.SUCCESS,Map.of("matriculas",rows.size()));
+            return ResponseEntity.ok().header("Cache-Control","no-store, private").body(LegacyAvailabilityResponse.success(rows));
         } catch (DataAccessException exception) {
             throw databaseError(exception, "No se pudo consultar el cumplimiento institucional.");
         }
@@ -65,30 +74,38 @@ public class InstitutionalComplianceController {
 
     @GetMapping("/daily-activity")
     @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REPORTING_OFFICER')")
-    @Transactional(readOnly = true)
-    public LegacyAvailabilityResponse<List<Map<String, Object>>> dailyActivity(
+    @Transactional
+    public ResponseEntity<LegacyAvailabilityResponse<List<Map<String, Object>>>> dailyActivity(
         @RequestParam(required = false) LocalDate from,
         @RequestParam(required = false) LocalDate to,
         @AuthenticationPrincipal SessionPrincipal principal
     ) {
-        LocalDate first = from == null ? LocalDate.now() : from;
+        LocalDate first = from == null ? LocalDate.now(ZoneId.of("America/La_Paz")) : from;
         LocalDate last = to == null ? first : to;
         if (first.isAfter(last) || first.plusDays(366).isBefore(last)) {
             throw new AvailabilityException(400, "El período no es válido.");
         }
         apply(principal);
         try {
-            return LegacyAvailabilityResponse.success(jdbc.query("select * from salud_u.actividad_diaria_atencion(?, ?)", (rs, ignored) -> {
+            var rows=jdbc.query("select * from salud_u.actividad_diaria_atencion(?, ?)", (rs, ignored) -> {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("activityDay", rs.getObject("fecha_actividad", LocalDate.class));
                 row.put("encounterType", rs.getString("tipo_encuentro"));
                 row.put("specialtyName", rs.getString("nombre_especialidad"));
                 row.put("totalClosed", rs.getLong("total_cerradas"));
                 return row;
-            }, first, last));
+            }, first, last);
+            audit.append("ACTIVIDAD_DIARIA_CONSULTADA","actividad_institucional",null,AuditOutcome.SUCCESS,Map.of("grupos",rows.size()));
+            return ResponseEntity.ok().header("Cache-Control","no-store, private").body(LegacyAvailabilityResponse.success(rows));
         } catch (DataAccessException exception) {
             throw databaseError(exception, "No se pudo consultar la actividad institucional.");
         }
+    }
+
+    @GetMapping("/administrative-summary") @PreAuthorize("hasRole('ADMINISTRATIVE')") @Transactional
+    public ResponseEntity<LegacyAvailabilityResponse<com.fasterxml.jackson.databind.JsonNode>> summary(@AuthenticationPrincipal SessionPrincipal principal){
+        apply(principal);try{var data=json.readTree(jdbc.queryForObject("select salud_u.resumen_administrativo()::text",String.class));audit.append("PANORAMA_ADMINISTRATIVO_CONSULTADO","panorama_administrativo",null,AuditOutcome.SUCCESS,Map.of());return ResponseEntity.ok().header("Cache-Control","no-store, private").body(LegacyAvailabilityResponse.success(data));}
+        catch(DataAccessException ex){throw databaseError(ex,"No se pudo consultar el panorama administrativo.");}catch(com.fasterxml.jackson.core.JsonProcessingException ex){throw new AvailabilityException(500,"No se pudo consultar el panorama administrativo.");}
     }
 
     private void apply(SessionPrincipal principal) {
@@ -103,6 +120,6 @@ public class InstitutionalComplianceController {
         if (message != null && message.contains("Se requiere el rol")) {
             return new AvailabilityException(403, "No tienes permiso para consultar este reporte.");
         }
-        return new AvailabilityException(400, fallback);
+        return new AvailabilityException(500, fallback+" Puedes reintentar.");
     }
 }

@@ -31,7 +31,7 @@ public class VaccineController {
     private final JdbcTemplate jdbc; private final DatabaseActorContext actorContext; private final ObjectMapper json;
     public VaccineController(JdbcTemplate jdbc, DatabaseActorContext actorContext, ObjectMapper json) { this.jdbc = jdbc; this.actorContext = actorContext; this.json = json; }
 
-    @GetMapping @PreAuthorize("hasRole('ADMINISTRATIVE')") @Transactional(readOnly = true)
+    @GetMapping @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REPORTING_OFFICER')") @Transactional(readOnly = true)
     public LegacyAvailabilityResponse<List<Map<String, Object>>> list(@RequestParam(defaultValue = "false") boolean includeInactive, @AuthenticationPrincipal SessionPrincipal principal) {
         apply(principal);
         return LegacyAvailabilityResponse.success(jdbc.query("select * from salud_u.listar_vacunas(?)", (rs, ignored) -> { try { return Map.of("id", rs.getObject("id", UUID.class), "code", rs.getString("codigo"), "name", rs.getString("nombre"), "active", rs.getBoolean("activo"), "schemaVersion", rs.getInt("version_esquema"), "doses", json.readValue(rs.getString("dosis"), Object.class)); } catch (Exception exception) { throw new IllegalStateException("No se pudo leer el esquema de vacuna.", exception); } }, includeInactive));
@@ -43,11 +43,19 @@ public class VaccineController {
     private UUID save(UUID id, VaccineRequest request, SessionPrincipal principal) {
         if (request == null || request.code() == null || request.name() == null || request.active() == null || request.doses() == null) throw new AvailabilityException(400, "El esquema de vacuna es obligatorio.");
         apply(principal);
-        try { return jdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, ?, cast(? as jsonb))", UUID.class, id, request.code(), request.name(), request.active(), json.writeValueAsString(request.doses())); }
-        catch (DataAccessException exception) { throw new AvailabilityException(400, "El esquema de vacuna no es válido."); }
+        try { return jdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, ?, cast(? as jsonb), ?)", UUID.class, id, request.code(), request.name(), request.active(), json.writeValueAsString(request.doses()), id == null ? null : request.expectedSchemaVersion()); }
+        catch (DataAccessException exception) { throw saveException(exception); }
         catch (Exception exception) { throw new AvailabilityException(400, "El esquema de vacuna no es válido."); }
     }
+    private AvailabilityException saveException(DataAccessException exception) {
+        String message = String.valueOf(exception.getMostSpecificCause().getMessage());
+        if (message.contains("VACUNA_NO_ENCONTRADA")) return new AvailabilityException(404, "La vacuna no existe.");
+        if (message.contains("VACUNA_VERSION_DESACTUALIZADA")) return new AvailabilityException(409, "Otra persona modificó esta vacuna. Recarga el catálogo y vuelve a aplicar tus cambios.");
+        if (message.contains("VACUNA_CODIGO_DUPLICADO") || message.contains("vacuna_codigo_key")) return new AvailabilityException(409, "Ya existe una vacuna con ese código.");
+        if (message.contains("Se requiere el rol ADMINISTRATIVE")) return new AvailabilityException(403, "No tiene permiso para modificar el catálogo de vacunas.");
+        return new AvailabilityException(400, "El esquema de vacuna no es válido.");
+    }
     private void apply(SessionPrincipal principal) { actorContext.apply(new DatabaseActor(principal.id(), Set.copyOf(principal.roles()))); }
-    public record VaccineRequest(String code, String name, Boolean active, List<DoseRequest> doses) {}
+    public record VaccineRequest(String code, String name, Boolean active, List<DoseRequest> doses, Integer expectedSchemaVersion) {}
     public record DoseRequest(Integer doseNumber, Integer minimumIntervalDays) {}
 }

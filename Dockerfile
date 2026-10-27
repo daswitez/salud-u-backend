@@ -1,9 +1,8 @@
 FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /build
 COPY pom.xml .
-RUN mvn -B -ntp dependency:go-offline
 COPY src ./src
-RUN mvn -B -ntp verify
+RUN --mount=type=cache,id=salud-u-maven,target=/root/.m2 mvn -B -ntp verify
 
 FROM eclipse-temurin:21-jre-jammy
 RUN groupadd --gid 10001 saludu && useradd --uid 10001 --gid saludu --no-create-home saludu \

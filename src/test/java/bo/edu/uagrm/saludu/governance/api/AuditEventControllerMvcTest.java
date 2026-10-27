@@ -57,6 +57,26 @@ class AuditEventControllerMvcTest {
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.ok").value(false));
     }
 
+    @Test void invalidCursorOutcomeAndLimitAreRejected() throws Exception {
+        for(String[] param:List.of(new String[]{"outcome","UNKNOWN"},new String[]{"limit","501"},new String[]{"before","invalid"},new String[]{"actor","x".repeat(201)}))mvc.perform(get("/api/audit-events").param("paginated","true").param(param[0],param[1]).with(authentication(authenticationFor("AUDITOR")))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").isString());
+        org.mockito.Mockito.verifyNoInteractions(jdbc,auditWriter);
+    }
+    @Test void paginationPreservesTimestampCursorAndErrorsNeverBecomeEmptySuccess() throws Exception {
+        var timestamp=java.time.OffsetDateTime.parse("2026-10-26T02:30:00.123456Z");UUID id=UUID.randomUUID();
+        org.mockito.Mockito.when(jdbc.query(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(org.springframework.jdbc.core.RowMapper.class),org.mockito.ArgumentMatchers.any(Object[].class))).thenReturn(List.of(java.util.Map.of("id",id,"occurredAt",timestamp),java.util.Map.of("id",UUID.randomUUID(),"occurredAt",timestamp)));
+        mvc.perform(get("/api/audit-events").param("paginated","true").param("limit","1").with(authentication(authenticationFor("AUDITOR")))).andExpect(status().isOk()).andExpect(jsonPath("$.pagination.hasMore").value(true)).andExpect(jsonPath("$.pagination.nextCursor").value(timestamp+"|"+id)).andExpect(jsonPath("$.data.length()").value(1)).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Cache-Control","no-store, private"));
+        org.mockito.Mockito.when(jdbc.query(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(org.springframework.jdbc.core.RowMapper.class),org.mockito.ArgumentMatchers.any(Object[].class))).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("private detail"));mvc.perform(get("/api/audit-events").with(authentication(authenticationFor("AUDITOR")))).andExpect(status().isInternalServerError()).andExpect(jsonPath("$.error").isString());
+    }
+    @Test void allNonAuditorsAndAnonymousAreRejected() throws Exception {
+        for(String role:List.of("STUDENT","REPORTING_OFFICER","SPECIALIST","REVIEW_DOCTOR"))mvc.perform(get("/api/audit-events").with(authentication(authenticationFor(role)))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/audit-events")).andExpect(status().isUnauthorized());
+    }
+    @Test void evidenceHasNoRuntimeMutationEndpoint() throws Exception {
+        for(var method:List.of(org.springframework.http.HttpMethod.POST,org.springframework.http.HttpMethod.PATCH,org.springframework.http.HttpMethod.DELETE))
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request(method,"/api/audit-events").with(authentication(authenticationFor("AUDITOR"))).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isMethodNotAllowed()).andExpect(jsonPath("$.error").isString());
+        org.mockito.Mockito.verifyNoInteractions(jdbc,auditWriter);
+    }
     private static UsernamePasswordAuthenticationToken authenticationFor(String role) {
         SessionPrincipal principal = new SessionPrincipal(UUID.randomUUID(), "audit@example.invalid", "Auditor", List.of(role));
         return new UsernamePasswordAuthenticationToken(principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));

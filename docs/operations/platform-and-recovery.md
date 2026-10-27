@@ -38,6 +38,8 @@ La restauración detiene solamente el servicio backend del proyecto elegido, cie
 
 Los scripts respetan `SALUDU_PROJECT` y `SALUDU_ENV_FILE` para operar otra instancia. Solo usar esos valores cuando el nombre de proyecto y archivo fueron revisados; ambos permiten apuntar a un entorno distinto.
 
+Después de restaurar base y documentos, ejecutar `scripts/reconcile-documents.sh` (sólo lectura) antes de reabrir el servicio: debe terminar en `CONCILIADO`, sin filas sin archivo, checksums distintos, archivos sin fila, temporales ni cargas `PROCESSING`. Una carga cuyo commit falla borra su archivo; si el proceso se interrumpe entre el archivo y el commit puede quedar un archivo sin fila, que este informe detecta.
+
 ## Despliegue con TLS
 
 `compose.production.yaml` despliega PostgreSQL y backend en la red interna, y Caddy publica únicamente HTTPS/HTTP para redirigir y obtener certificados. No expone puertos de PostgreSQL ni del backend. El backend interpreta correctamente cabeceras reenviadas y sus cookies permanecen seguras.

@@ -32,6 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class InstitutionalComplianceControllerMvcTest {
     @Autowired MockMvc mvc;
     @MockBean JdbcTemplate jdbc;
+    @MockBean bo.edu.uagrm.saludu.governance.application.AuditWriter audit;
     @MockBean DatabaseActorContext actorContext;
     @MockBean AuthenticationService authenticationService;
     @MockBean SessionCookieService sessionCookieService;
@@ -54,6 +55,16 @@ class InstitutionalComplianceControllerMvcTest {
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.ok").value(false));
     }
 
+    @Test void errorsAreRecoverableAndSummaryIsAdministrativeOnly() throws Exception {
+        org.mockito.Mockito.when(jdbc.query(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(org.springframework.jdbc.core.RowMapper.class),org.mockito.ArgumentMatchers.any(Object[].class))).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("internal"));
+        mvc.perform(get("/api/reports/compliance").with(authentication(authenticationFor("REPORTING_OFFICER")))).andExpect(status().isInternalServerError()).andExpect(jsonPath("$.error").isString());
+        mvc.perform(get("/api/reports/administrative-summary").with(authentication(authenticationFor("REPORTING_OFFICER")))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/reports/compliance")).andExpect(status().isUnauthorized());
+    }
+    @Test void summaryHasOnlyOperationalCountsAndNoStore() throws Exception {
+        org.mockito.Mockito.when(jdbc.queryForObject(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.eq(String.class))).thenReturn("{\"day\":\"2026-10-26\",\"registeredPatients\":0,\"closedToday\":0,\"scheduledAppointments\":0,\"pendingReferrals\":0,\"availableSlots\":0}");
+        mvc.perform(get("/api/reports/administrative-summary").with(authentication(authenticationFor("ADMINISTRATIVE")))).andExpect(status().isOk()).andExpect(jsonPath("$.data.closedToday").value(0)).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Cache-Control","no-store, private"));
+    }
     private static UsernamePasswordAuthenticationToken authenticationFor(String role) {
         SessionPrincipal principal = new SessionPrincipal(UUID.randomUUID(), "reports@example.invalid", "Reportes", List.of(role));
         return new UsernamePasswordAuthenticationToken(principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));

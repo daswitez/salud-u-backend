@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,23 @@ public class AvailabilityService {
         Map<String, Object> result = new LinkedHashMap<>();
         jdbcTemplate.query("select * from salud_u.listar_mi_disponibilidad(?, ?)", resultSet -> {
             try {
-                result.put(resultSet.getString("kind"), objectMapper.readTree(resultSet.getString("payload")));
+                String kind = switch (resultSet.getString("kind")) {
+                    case "horarios" -> "schedules";
+                    case "recurrenteBlocks" -> "recurringBlocks";
+                    case "cupos" -> "slots";
+                    default -> resultSet.getString("kind");
+                };
+                JsonNode payload = objectMapper.readTree(resultSet.getString("payload"));
+                if (payload.isArray()) for (JsonNode item : payload) if (item instanceof ObjectNode value) {
+                    Map<String, String> fields = Map.ofEntries(
+                        Map.entry("id_especialidad", "specialty_id"), Map.entry("dia_semana", "weekday"),
+                        Map.entry("inicia_a", "starts_at"), Map.entry("termina_a", "ends_at"),
+                        Map.entry("duracion_cupo_minutos", "slot_duration_minutes"), Map.entry("etiqueta", "label"),
+                        Map.entry("fecha_bloqueo", "block_date"), Map.entry("capacidad", "capacity"),
+                        Map.entry("cantidad_reservada", "booked_count"), Map.entry("estado", "status"));
+                    fields.forEach((source, target) -> { if (value.has(source)) value.set(target, value.remove(source)); });
+                }
+                result.put(kind, payload);
             } catch (JsonProcessingException exception) {
                 throw new IllegalStateException("La disponibilidad almacenada no contiene JSON válido.", exception);
             }
@@ -86,9 +103,24 @@ public class AvailabilityService {
     public UUID publish(SessionPrincipal principal, OffsetDateTime startsAt, OffsetDateTime endsAt, int capacity, UUID specialtyId) {
         requireClinician(principal);
         apply(principal);
-        UUID id = jdbcTemplate.queryForObject("select salud_u.publicar_mi_cupo_disponibilidad(?, ?, ?, ?)", UUID.class, startsAt, endsAt, capacity, specialtyId);
+        UUID id;
+        try {
+            id = jdbcTemplate.queryForObject("select salud_u.publicar_mi_cupo_disponibilidad(?, ?, ?, ?)", UUID.class, startsAt, endsAt, capacity, specialtyId);
+        } catch (DataAccessException exception) {
+            throw slotRejection(exception);
+        }
         auditWriter.append("AVAILABILITY_SLOT_PUBLISHED", "availability_slot", id, AuditOutcome.SUCCESS, Map.of("capacity", capacity));
         return id;
+    }
+
+    // La función SQL rechaza superposición, bloqueo, rango o especialidad con mensajes para el usuario; antes llegaban como 500 genérico.
+    private static RuntimeException slotRejection(DataAccessException exception) {
+        if (exception.getMostSpecificCause() instanceof java.sql.SQLException sql && sql.getSQLState() != null && sql.getMessage() != null) {
+            String message = sql.getMessage().lines().findFirst().orElse("").replaceFirst("^ERROR: ", "") + ".";
+            if (sql.getSQLState().equals("23505") || message.startsWith("El cupo coincide con un bloqueo")) return new AvailabilityException(409, message);
+            if (sql.getSQLState().startsWith("22") || sql.getSQLState().startsWith("23")) return new AvailabilityException(400, message);
+        }
+        return exception;
     }
 
     @Transactional

@@ -36,6 +36,27 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(MedicalEncounterController.class)
 @Import({SecurityConfig.class, ApiSecurityErrorWriter.class, RequestIdFilter.class, ApiExceptionHandler.class})
 class MedicalEncounterControllerMvcTest {
+    private static UsernamePasswordAuthenticationToken specialistAuthentication() {
+        var p=new SessionPrincipal(UUID.randomUUID(),"specialist@example.invalid","Especialista",List.of("SPECIALIST"));
+        return new UsernamePasswordAuthenticationToken(p,null,List.of(new SimpleGrantedAuthority("ROLE_SPECIALIST")));
+    }
+    @Test void specialtyClosureKeepsRpcContractAndChecksTemplate() throws Exception {
+        var id=UUID.randomUUID();var history=UUID.randomUUID();
+        when(jdbcTemplate.queryForObject(eq("select salud_u.verificar_plantilla_encuentro(?,?)"),eq(Boolean.class),any(Object[].class))).thenReturn(true).thenReturn(false);
+        when(jdbcTemplate.queryForObject(anyString(),eq(String.class),any(Object[].class))).thenReturn("{\"encounterId\":\""+id+"\",\"specialtyHistoryVersion\":1,\"specialtyHistoryId\":\""+history+"\"}");
+        var body="{\"chiefComplaint\":\"Control\",\"assessment\":\"Evaluación\",\"specialtyHistory\":{},\"templateId\":\""+UUID.randomUUID()+"\"}";
+        mvc.perform(post("/api/medical/encounters/{id}/finalize",id).with(authentication(specialistAuthentication())).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.specialtyHistoryId").value(history.toString())).andExpect(jsonPath("$.data.specialtyHistoryVersion").value(1));
+        mvc.perform(post("/api/medical/encounters/{id}/finalize",id).with(authentication(specialistAuthentication())).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.error").isString());
+    }
+    @Test void directSourceIsNullAndSpecialtyRecordIsRequired() throws Exception {
+        when(jdbcTemplate.queryForObject(anyString(),eq(String.class),any(Object[].class))).thenReturn("null");
+        mvc.perform(get("/api/medical/encounters/{id}/source-context",UUID.randomUUID()).with(authentication(specialistAuthentication())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.ok").value(true)).andExpect(jsonPath("$.data").doesNotExist());
+        mvc.perform(post("/api/medical/encounters/{id}/finalize",UUID.randomUUID()).with(authentication(specialistAuthentication())).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"chiefComplaint\":\"Control\",\"assessment\":\"Evaluación\"}"))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").isString());
+    }
     @Autowired MockMvc mvc;
     @MockBean JdbcTemplate jdbcTemplate;
     @MockBean DatabaseActorContext actorContext;

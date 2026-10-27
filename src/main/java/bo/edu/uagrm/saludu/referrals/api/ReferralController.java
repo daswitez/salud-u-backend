@@ -44,5 +44,26 @@ public class ReferralController {
     return LegacyAvailabilityResponse.success(result);
   }
   @PatchMapping("/api/medical/referrals/{id}") @PreAuthorize("hasRole('SPECIALIST')") @Transactional
-  public LegacyAvailabilityResponse<Map<String,Object>> resolve(@PathVariable UUID id,@RequestBody Map<String,Object> body,@AuthenticationPrincipal SessionPrincipal p){Object action=body.get("action");if(!(action instanceof String value)||!(value.equals("RESOLVE")||value.equals("RETURN")))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"Acción de derivación inválida.");Object reason=body.get("reason"),followUp=body.get("followUpText");if(value.equals("RETURN")&&(!(reason instanceof String text)||text.trim().isEmpty()))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"El motivo de devolución es obligatorio.");apply(p);try{String result=jdbc.queryForObject("select salud_u.resolver_o_devolver_derivacion(?,?,?,?)",String.class,id,value,reason instanceof String text?text:null,followUp instanceof String text?text:null);return LegacyAvailabilityResponse.success(new com.fasterxml.jackson.databind.ObjectMapper().readValue(result,Map.class));}catch(org.springframework.dao.DataAccessException ex){String detail=ex.getMostSpecificCause().getMessage();if(detail!=null&&detail.contains("MOTIVO_DEVOLUCION_REQUERIDO"))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"El motivo de devolución es obligatorio.");if(detail!=null&&detail.contains("ATENCION_ESPECIALIZADA_REQUERIDA"))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(409,"La derivación requiere una atención especializada cerrada.");throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(403,"La derivación no está disponible para este especialista.");}catch(com.fasterxml.jackson.core.JsonProcessingException ex){throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"No se pudo resolver la derivación.");}}
+  public LegacyAvailabilityResponse<Map<String,Object>> resolve(@PathVariable UUID id,@RequestBody Map<String,Object> body,@AuthenticationPrincipal SessionPrincipal p){
+    Object action=body.get("action");
+    if(!(action instanceof String value)||!(value.equals("RESOLVE")||value.equals("RETURN")))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"Acción de derivación inválida.");
+    String reason=optionalText(body.get("reason"),2000),followUp=optionalText(body.get("followUpText"),4000);
+    if(value.equals("RETURN")&&reason==null)throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"El motivo de devolución es obligatorio.");
+    apply(p);
+    try{
+      String result=jdbc.queryForObject("select salud_u.resolver_o_devolver_derivacion(?,?,?,?)",String.class,id,value,reason,followUp);
+      return LegacyAvailabilityResponse.success(new com.fasterxml.jackson.databind.ObjectMapper().readValue(result,Map.class));
+    }catch(org.springframework.dao.DataAccessException ex){
+      String detail=ex.getMostSpecificCause().getMessage();
+      if(detail!=null&&detail.contains("MOTIVO_DEVOLUCION_REQUERIDO"))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"El motivo de devolución es obligatorio.");
+      if(detail!=null&&detail.contains("ATENCION_ESPECIALIZADA_REQUERIDA"))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(409,"La derivación requiere una atención especializada cerrada.");
+      if(detail!=null&&(detail.contains("DERIVACION_AJENA_O_TRANSICION_INVALIDA")||detail.contains("No existe una ficha de personal activa")))throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(403,"La derivación no está disponible para este especialista.");
+      throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(500,"No se pudo actualizar la derivación. Comprueba su estado antes de reintentar.");
+    }catch(com.fasterxml.jackson.core.JsonProcessingException ex){throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(500,"No se pudo leer el resultado de la derivación.");}
+  }
+  private static String optionalText(Object value,int max){
+    if(value==null)return null;
+    if(!(value instanceof String text)||text.length()>max)throw new bo.edu.uagrm.saludu.agenda.application.AvailabilityException(400,"El motivo o seguimiento no tiene un formato válido.");
+    return text.trim().isEmpty()?null:text.trim();
+  }
 }

@@ -2,6 +2,7 @@ package bo.edu.uagrm.saludu.vaccination.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,6 +51,15 @@ class VaccinationQueryControllerMvcTest {
     void unauthorizedRolesCannotReadCardOrCoverage() throws Exception {
         mvc.perform(get("/api/vaccination-card").with(authentication(authenticationFor("REPORTING_OFFICER")))).andExpect(status().isForbidden());
         mvc.perform(get("/api/reports/vaccination-coverage").with(authentication(authenticationFor("STUDENT")))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void administrativeCardRequiresPatientAndCoverageKeepsContract() throws Exception {
+        when(jdbc.queryForObject(eq("select salud_u.obtener_carnet_vacunacion(?)::text"), eq(String.class), isNull())).thenThrow(new DataIntegrityViolationException("ERROR: PACIENTE_REQUERIDO"));
+        mvc.perform(get("/api/vaccination-card").with(authentication(authenticationFor("ADMINISTRATIVE")))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("Indica el paciente cuyo carnet quieres consultar."));
+        mvc.perform(get("/api/reports/vaccination-coverage").param("academicPeriod", "x".repeat(81)).with(authentication(authenticationFor("REPORTING_OFFICER")))).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/reports/vaccination-coverage").with(authentication(authenticationFor("REPORTING_OFFICER")))).andExpect(status().isOk()).andExpect(jsonPath("$.data").isArray());
+        mvc.perform(get("/api/vaccination-card").with(authentication(authenticationFor("REVIEW_DOCTOR")))).andExpect(status().isForbidden());
     }
 
     private static UsernamePasswordAuthenticationToken authenticationFor(String role) { SessionPrincipal principal = new SessionPrincipal(UUID.randomUUID(), "vaccination-query@example.invalid", "Consulta vacunas", List.of(role)); return new UsernamePasswordAuthenticationToken(principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + role))); }

@@ -32,14 +32,25 @@ mvn spring-boot:run
 mvn verify
 ```
 
-Spring Boot no lee `.env` automáticamente fuera de Compose. DB_URL, DB_APP_USER, DB_APP_PASSWORD, DB_MIGRATOR_USER, DB_MIGRATOR_PASSWORD, SERVER_PORT y DOCUMENTS_ROOT configuran la ejecución local.
+Spring Boot no lee `.env` automáticamente fuera de Compose. DB_URL, DB_APP_USER, DB_APP_PASSWORD, DB_MIGRATOR_USER, DB_MIGRATOR_PASSWORD, SERVER_PORT y DOCUMENTS_ROOT configuran la ejecución local. DB_CONNECTION_TIMEOUT_MS (5000 por omisión) limita la espera por una conexión: ante una caída de PostgreSQL las solicitudes responden `503` en segundos.
 
 ## Alcance de esta base
 
 Paquetes por dominio con capas api, application, domain e infrastructure; configuración transversal en shared. Flyway crea únicamente el esquema inicial vacío. Hibernate valida el esquema y no genera tablas.
 
-Se publican salud técnica, CSRF, login, logout y la consulta de sesión. Las demás solicitudes están denegadas y CSRF permanece activo. BE-01 usa credenciales persistidas y sesiones opacas HttpOnly/SameSite/Secure, aplica límite de intentos y resuelve roles vigentes en cada solicitud. No hay usuario de prueba, datos clínicos ni endpoints de negocio; el alta administrativa y la migración institucional de usuarios se implementarán después. Esto aún no es una implementación de seguridad lista para producción.
+Publica los contratos de BE-01…BE-27, BE-CAT y BE-INV (identidad, admisión, agenda, revisión, derivaciones, especialidad, historia, reportes, vacunación, investigación y auditoría), documentados en OpenAPI. Usa credenciales persistidas y sesiones opacas HttpOnly/SameSite/Secure, aplica límite de intentos, resuelve roles vigentes en cada solicitud y mantiene CSRF activo. Flyway no crea usuarios ni contraseñas de prueba. La migración institucional de cuentas y datos sigue pendiente (ver [BE-CORTE](docs/operations/be-corte-acceptance.md)).
 
 Apache POI y OpenPDF se incorporarán cuando existan exportaciones concretas. No se añade JWT, MinIO ni microservicios: el documento indica sesiones y sistema de archivos privado.
 
 Consulta [el estudio y plan de migración](docs/estudio-migracion.md), la [operación, TLS y recuperación](docs/operations/platform-and-recovery.md), la [decisión de persistencia y RLS](docs/operations/persistence-security.md), los [contratos HTTP base](docs/operations/api-contracts.md) y [la operación de identidad](docs/operations/identity-session.md). La especificación se sirve en `/openapi/salud-u-v1.yaml` y la colección está en `docs/postman/`.
+
+## Operación y ensayos
+
+| Script | Uso |
+| --- | --- |
+| `scripts/verify-platform.sh` | Pila desechable: build, Flyway, health/readiness, persistencia tras reinicio, respaldo y restauración. |
+| `scripts/backup.sh` / `scripts/restore.sh` | Respaldo y restauración de PostgreSQL. No incluyen el volumen `clinical_documents`, que debe respaldarse en el mismo momento (ver operación y recuperación). |
+| `scripts/reconcile-documents.sh` | Sólo lectura: compara filas de `documento_clinico` con los archivos del volumen (checksum SHA-256) e informa huérfanos, faltantes, temporales y cargas a medias. Termina con código 1 si hay diferencias. |
+| `scripts/load-mixed.sh [pacientes]` | Pila desechable con volumen sintético (3.000 pacientes por omisión): búsquedas y reportes de fin de mes simultáneos de actores distintos. Mide p50/p95 por operación y verifica que no se mezclen respuestas entre actores. |
+
+`reconcile-documents.sh` y `backup.sh` usan `.env` y el proyecto Compose `salud-u`; con el proyecto local por defecto, definir `SALUDU_PROJECT=salud-u-backend`.

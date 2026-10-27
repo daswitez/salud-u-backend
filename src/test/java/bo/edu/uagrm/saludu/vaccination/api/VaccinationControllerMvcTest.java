@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -69,6 +71,29 @@ class VaccinationControllerMvcTest {
     void rejectsIncompleteDoseBeforePersistence() throws Exception {
         mvc.perform(post("/api/vaccinations").with(authentication(authenticationFor("ADMINISTRATIVE"))).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"patientId\":\"" + UUID.randomUUID() + "\"}"))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.ok").value(false));
+    }
+
+    @Test
+    void distinguishesDoseRejectionsSoTheScreenCanRecover() throws Exception {
+        String[][] cases = {
+            {"INTERVALO_INSUFICIENTE_REQUIERE_JUSTIFICACION", "422"}, {"DOSIS_FUERA_DE_ORDEN", "409"}, {"VACUNA_O_DOSIS_INACTIVA", "409"},
+            {"duplicate key value violates unique constraint \"dosis_vacuna_aplicada_unica\"", "409"}, {"FECHA_DOSIS_FUTURA", "400"}, {"APLICADOR_INVALIDO", "400"},
+            {"APLICADOR_DISTINTO_AL_ACTOR", "403"}, {"PACIENTE_AJENO_O_INEXISTENTE", "404"}};
+        for (String[] item : cases) {
+            when(jdbc.queryForObject(eq("select * from salud_u.registrar_dosis_vacuna(?, ?, ?, ?, ?, ?, ?)"), any(RowMapper.class), any(), any(), any(), any(), any(), any(), any())).thenThrow(new DataIntegrityViolationException("ERROR: " + item[0]));
+            mvc.perform(post("/api/vaccinations").with(authentication(authenticationFor("ADMINISTRATIVE"))).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body()))
+                .andExpect(status().is(Integer.parseInt(item[1]))).andExpect(jsonPath("$.ok").value(false));
+        }
+    }
+
+    @Test
+    void contextRequiresPatientAndAuthorizedRole() throws Exception {
+        UUID patient = UUID.randomUUID();
+        when(jdbc.queryForObject(eq("select salud_u.contexto_registro_vacunacion(?)::text"), eq(String.class), eq(patient))).thenReturn("{\"patientId\":\"" + patient + "\",\"vaccines\":[],\"applicators\":[],\"ownApplicatorStaffId\":null}");
+        mvc.perform(get("/api/vaccinations/context").param("patientId", patient.toString()).with(authentication(authenticationFor("REVIEW_DOCTOR"))))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.patientId").value(patient.toString())).andExpect(jsonPath("$.data.vaccines").isArray());
+        mvc.perform(get("/api/vaccinations/context").with(authentication(authenticationFor("ADMINISTRATIVE")))).andExpect(status().isBadRequest());
+        for (String role : List.of("SPECIALIST", "STUDENT", "REPORTING_OFFICER")) mvc.perform(get("/api/vaccinations/context").param("patientId", patient.toString()).with(authentication(authenticationFor(role)))).andExpect(status().isForbidden());
     }
 
     private static String body() { return "{\"patientId\":\"" + UUID.randomUUID() + "\",\"vaccineId\":\"" + UUID.randomUUID() + "\",\"doseNumber\":1,\"appliedOn\":\"2026-10-17\",\"lot\":\"LOTE-1\",\"applicatorStaffId\":\"" + UUID.randomUUID() + "\"}"; }

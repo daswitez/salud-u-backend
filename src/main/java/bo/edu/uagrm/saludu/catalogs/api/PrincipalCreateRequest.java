@@ -11,6 +11,6 @@ public record PrincipalCreateRequest(
     @NotBlank @Email String email,
     @NotBlank @Size(max = 160) String displayName,
     @NotBlank @Size(min = 12, max = 256) String password,
-    @NotEmpty List<@Pattern(regexp = "ADMINISTRATIVE|REVIEW_DOCTOR|SPECIALIST|STUDENT|AUDITOR") String> roles
+    @NotEmpty List<@Pattern(regexp = "ADMINISTRATIVE|REVIEW_DOCTOR|SPECIALIST|STUDENT|AUDITOR|REPORTING_OFFICER") String> roles
 ) {
 }

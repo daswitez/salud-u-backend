@@ -32,7 +32,7 @@ public class CatalogController {
     }
 
     @GetMapping("/api/specialties")
-    @PreAuthorize("hasAnyRole('REVIEW_DOCTOR', 'SPECIALIST', 'ADMINISTRATIVE')")
+    @PreAuthorize("hasAnyRole('REVIEW_DOCTOR', 'SPECIALIST', 'ADMINISTRATIVE', 'REPORTING_OFFICER')")
     public LegacyCatalogResponse specialties(@AuthenticationPrincipal SessionPrincipal principal) {
         return new LegacyCatalogResponse(true, catalogService.list(CatalogKind.SPECIALTY, principal));
     }

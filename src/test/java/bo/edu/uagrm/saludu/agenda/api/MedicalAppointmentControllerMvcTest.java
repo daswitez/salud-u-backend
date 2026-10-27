@@ -79,6 +79,24 @@ class MedicalAppointmentControllerMvcTest {
     }
 
     @Test
+    void getsOneOwnAppointmentByIdOrNotFound() throws Exception {
+        UUID own = UUID.fromString("00000000-0000-4000-8000-000000000093"), foreign = UUID.fromString("00000000-0000-4000-8000-000000000094");
+        ResultSet row = mock(ResultSet.class);
+        when(row.getObject("id", UUID.class)).thenReturn(own);
+        when(row.getString("tipo_cita")).thenReturn("INITIAL");
+        when(row.getString("estado_cita")).thenReturn("SCHEDULED");
+        when(row.getString("nombres")).thenReturn("Paciente");
+        when(row.getString("apellidos")).thenReturn("Prueba");
+        when(jdbcTemplate.query(eq("select * from salud_u.listar_mis_citas_medicas(?)"), any(RowMapper.class), eq(own)))
+            .thenAnswer(invocation -> List.of(((RowMapper<?>) invocation.getArgument(1)).mapRow(row, 0)));
+        when(jdbcTemplate.query(eq("select * from salud_u.listar_mis_citas_medicas(?)"), any(RowMapper.class), eq(foreign))).thenReturn(List.of());
+        mvc.perform(get("/api/medical/appointments/" + own).with(authentication(doctorAuthentication())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.id").value(own.toString())).andExpect(jsonPath("$.data.patient.fullName").value("Paciente Prueba"));
+        mvc.perform(get("/api/medical/appointments/" + foreign).with(authentication(doctorAuthentication())))
+            .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").value("No se encontró una cita asignada a tu cuenta."));
+    }
+
+    @Test
     void listPreservesIdentityNullableFieldsAndEmptyResult() throws Exception {
         ResultSet row = mock(ResultSet.class);
         when(row.getObject("id", UUID.class)).thenReturn(UUID.fromString("00000000-0000-4000-8000-000000000091"));

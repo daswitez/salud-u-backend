@@ -1,3 +1,34 @@
 package bo.edu.uagrm.saludu.agenda.api;
-import bo.edu.uagrm.saludu.agenda.application.AvailabilityException;import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;import bo.edu.uagrm.saludu.shared.persistence.*;import com.fasterxml.jackson.databind.ObjectMapper;import java.time.LocalDate;import java.util.*;import org.springframework.jdbc.core.JdbcTemplate;import org.springframework.security.access.prepost.PreAuthorize;import org.springframework.security.core.annotation.AuthenticationPrincipal;import org.springframework.transaction.annotation.Transactional;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/reports/clinical") public class ClinicalReportController {private final JdbcTemplate j;private final DatabaseActorContext c;private final ObjectMapper m;public ClinicalReportController(JdbcTemplate j,DatabaseActorContext c,ObjectMapper m){this.j=j;this.c=c;this.m=m;}@GetMapping @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REVIEW_DOCTOR','SPECIALIST')") @Transactional(readOnly=true) public Map<String,Object> get(@RequestParam Map<String,String> q,@AuthenticationPrincipal SessionPrincipal p)throws Exception{Map<String,Object> f=new LinkedHashMap<>(q);if(q.containsKey("from")&&q.containsKey("to")&&LocalDate.parse(q.get("from")).isAfter(LocalDate.parse(q.get("to"))))throw new AvailabilityException(400,"El período no es válido.");c.apply(new DatabaseActor(p.id(),Set.copyOf(p.roles())));try{return Map.of("ok",true,"data",j.query("select * from salud_u.reporte_clinico(cast(? as jsonb))",(r,n)->{Map<String,Object> row=new LinkedHashMap<>();row.put("encounter_id",r.getObject("encounter_id",UUID.class));row.put("closed_at",r.getObject("closed_at"));row.put("encounter_type",r.getString("encounter_type"));row.put("specialty_name",r.getString("specialty_name"));row.put("carnet",r.getString("carnet"));row.put("patient_name",r.getString("patient_name"));row.put("chief_complaint",r.getString("chief_complaint"));row.put("assessment",r.getString("assessment"));row.put("instructions",r.getString("instructions"));row.put("diagnoses",r.getString("diagnoses"));row.put("allergies",r.getString("allergies"));row.put("background_summary",r.getString("background_summary"));try{row.put("habits",m.readValue(r.getString("habits"),Object.class));}catch(Exception e){row.put("habits",Map.of());}return row;},m.writeValueAsString(f)),"filters",f);}catch(org.springframework.dao.DataAccessException x){throw new AvailabilityException(400,"No se pudo generar el reporte clínico.");}}}
+
+import bo.edu.uagrm.saludu.agenda.application.*;
+import bo.edu.uagrm.saludu.governance.application.AuditWriter;
+import bo.edu.uagrm.saludu.governance.domain.AuditOutcome;
+import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
+import bo.edu.uagrm.saludu.shared.persistence.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.OffsetDateTime;
+import java.util.*;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+@RestController @RequestMapping("/api/reports/clinical")
+public class ClinicalReportController {
+    private final JdbcTemplate jdbc;private final DatabaseActorContext actors;private final ObjectMapper json;private final AuditWriter audit;
+    public ClinicalReportController(JdbcTemplate jdbc,DatabaseActorContext actors,ObjectMapper json,AuditWriter audit){this.jdbc=jdbc;this.actors=actors;this.json=json;this.audit=audit;}
+    @GetMapping @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REPORTING_OFFICER','REVIEW_DOCTOR','SPECIALIST')") @Transactional
+    public ResponseEntity<Map<String,Object>> get(@RequestParam Map<String,String> query,@AuthenticationPrincipal SessionPrincipal principal){
+        var request=ClinicalReportQuery.parse(query,json);actors.apply(new DatabaseActor(principal.id(),Set.copyOf(principal.roles())));
+        try{
+            var rows=ClinicalReportRows.load(jdbc,json,request.filters(),0);
+            Map<String,Object> payload=new LinkedHashMap<>();payload.put("ok",true);payload.put("data",rows);payload.put("filters",request.filters());if(request.presentation())payload.put("presentation",request.presentation(rows));
+            audit.append("REPORTE_CLINICO_CONSULTADO","reporte_clinico",null,AuditOutcome.SUCCESS,Map.of("cantidadFilas",rows.size(),"columnas",request.columns(),"agrupaciones",request.groupBy()));
+            return ResponseEntity.ok().header("Cache-Control","no-store, private").body(payload);
+        }catch(DataAccessException ex){String detail=ex.getMostSpecificCause().getMessage();if(detail!=null&&(detail.contains("REPORTE_NO_AUTORIZADO")||detail.contains("No existe una ficha de personal activa")))throw new AvailabilityException(403,"No tienes acceso al reporte clínico.");throw new AvailabilityException(500,"No se pudo consultar el reporte clínico. Puedes reintentar.");}
+        catch(com.fasterxml.jackson.core.JsonProcessingException|IllegalStateException ex){throw new AvailabilityException(500,"No se pudo consultar el reporte clínico. Puedes reintentar.");}
+    }
+}

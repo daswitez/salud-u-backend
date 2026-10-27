@@ -60,6 +60,10 @@ public class MedicalEncounterController {
         if (referralPriority != null && !Set.of("ROUTINE","PRIORITY","URGENT").contains(referralPriority)) throw new AvailabilityException(400,"Prioridad de derivación inválida.");
         apply(principal);
         try {
+            if (specialist && body.get("templateId") != null) {
+                UUID expected = uuid(body.get("templateId"));
+                if (!Boolean.TRUE.equals(jdbcTemplate.queryForObject("select salud_u.verificar_plantilla_encuentro(?,?)", Boolean.class, encounterId, expected))) throw new AvailabilityException(409, "La plantilla cambió o ya no está disponible. Actualízala antes de cerrar; se conserva lo escrito.");
+            }
             String completed = specialist
                 ? jdbcTemplate.queryForObject("select salud_u.finalizar_encuentro_especialidad(?, ?, ?, ?, ?, ?, cast(? as jsonb))", String.class, encounterId, chiefComplaint, assessment, text(body.get("instructions"), 8000), text(body.get("followUpText"), 4000), text(body.get("diagnosisText"), 2000), objectMapper.writeValueAsString(ClinicalHistoryData.specialty(objectMapper.valueToTree(body.get("specialtyHistory")))))
                 : jdbcTemplate.queryForObject("select salud_u.finalizar_encuentro_revision(?, ?, ?, ?, ?, ?, ?, cast(? as jsonb), ?, ?, ?, ?)", String.class, encounterId, chiefComplaint, assessment, text(body.get("instructions"), 8000), text(body.get("followUpText"), 4000), bloodStatus == null ? "NOT_PRESENTED" : bloodStatus, text(body.get("diagnosisText"), 2000), objectMapper.writeValueAsString(ClinicalHistoryData.review(objectMapper.valueToTree(body.get("reviewHistory")))), referralSpecialtyId, referralReason, referralComment, referralPriority == null ? "ROUTINE" : referralPriority);
@@ -72,11 +76,12 @@ public class MedicalEncounterController {
 
     @GetMapping("/{encounterId}/source-context")
     @PreAuthorize("hasRole('SPECIALIST')")
-    @Transactional(readOnly = true)
+    @Transactional
     public LegacyAvailabilityResponse<Object> sourceContext(@PathVariable UUID encounterId, @AuthenticationPrincipal SessionPrincipal principal) {
         apply(principal);
         try {
             String context = jdbcTemplate.queryForObject("select salud_u.contexto_origen_especialidad(?)::text", String.class, encounterId);
+            auditWriter.append("CONTEXTO_ORIGEN_CONSULTADO", "encuentro_clinico", encounterId, AuditOutcome.SUCCESS, Map.of());
             return LegacyAvailabilityResponse.success(context == null ? null : objectMapper.readValue(context, Object.class));
         } catch (DataAccessException exception) { throw translate(exception); }
         catch (JsonProcessingException exception) { throw new AvailabilityException(400, "No se pudo leer el contexto de origen."); }

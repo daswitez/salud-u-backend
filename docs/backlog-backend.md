@@ -129,7 +129,7 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-04 · UC-04 — Configurar jornadas, bloqueos y cupos publicados para mi disponibilidad
 
-**Estado:** implementación, contratos y pruebas MockMvc/Testcontainers preparados; validación estática aprobada. La ejecución de Maven, PostgreSQL y Docker queda pendiente de una máquina que los tenga disponibles. Evidencia: `docs/operations/availability.md`, `docs/operations/be04-validation.md` y `docs/fixtures/be-04/availability.json`.
+**Estado local actualizado (2026-10-26):** Maven y PostgreSQL ejecutados; 174 pruebas Java aprobadas. El ensayo FE-24 corrige la adaptación de las claves SQL españolas a `schedules/recurringBlocks/dateBlocks/slots` y verifica guardado/recarga real de jornada de especialista mediante Next, junto con `/api/my-specialties` propio vigente. El runtime conserva nombres españoles; no se mueven reglas a Next. Evidencia: `docs/operations/availability.md` y `../salud-u/docs/evidencia-fe24.md`.
 
 - **Actor:** Médico de revisión / especialista.
 - **Historia:** Como Médico de revisión / especialista, quiero configurar jornadas, bloqueos y cupos publicados para mi disponibilidad, para completar el flujo con integridad y acceso autorizado.
@@ -355,6 +355,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-15 · UC-15 — Completar y cerrar ficha del área usando plantilla versionada
 
+**Verificación de integración FE-15 (2026-10-25):** V52 completa persistencia del resumen clínico, consulta de ficha/plantilla histórica, autorización vigente, serialización de versión y archivos compartidos de origen. templateId es una extensión opcional con control de plantilla activa. V53 corrige la ambigüedad de estado al iniciar una atención derivada y registra IN_PROGRESS una sola vez. Pasan 126 pruebas Java y seis grupos de navegador con Next en producción; regresión FE-14 aprobada. [Evidencia y comandos](../../salud-u/docs/evidencia-fe15.md).
+
 - **Actor:** Especialista asignado.
 - **Historia:** Como Especialista asignado, quiero completar y cerrar ficha del área usando plantilla versionada, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-15: completar y cerrar ficha del área usando plantilla versionada; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -373,6 +375,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-16 · UC-16 — Resolver o devolver una derivación dejando motivo y seguimiento
+
+**Verificación de integración FE-16 (2026-10-25):** se conserva PATCH /api/medical/referrals/{id} y se documentan GET propios /api/medical/assigned-referrals y /{id}. V54 verifica especialidad/afiliación vigentes y atención cerrada propia; registra resolución/devolución y auditoría en una transacción. Repetición mantiene 403 sin duplicar. Pasan 130 pruebas Java con rollback/carrera PostgreSQL y cinco grupos Chromium en producción; regresión FE-15 aprobada. [Evidencia y comandos](../../salud-u/docs/evidencia-fe16.md).
 
 - **Actor:** Especialista asignado.
 - **Historia:** Como Especialista asignado, quiero resolver o devolver una derivación dejando motivo y seguimiento, para completar el flujo con integridad y acceso autorizado.
@@ -394,6 +398,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-17 · UC-17 — Consultar la historia longitudinal permitida por mi área
 
+**Verificación de integración FE-17 (2026-10-25):** V55–V57 exigen relación clínica, aplican área/origen remitido, completan antecedentes/versiones/derivaciones y los campos heredados de historia, citas y diagnóstico. Firma/contenido/lista de documentos y búsqueda respetan el mismo ámbito. Historia vacía autorizada 200, sin acceso 404 de referencia; GET auditado y no-store. Pasan 133 pruebas Java, cuatro grupos Chromium en producción y regresión FE-16. [Evidencia y comandos](../../salud-u/docs/evidencia-fe17.md).
+
 - **Actor:** Médico con relación clínica.
 - **Historia:** Como Médico con relación clínica, quiero consultar la historia longitudinal permitida por mi área, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-17: consultar la historia longitudinal permitida por mi área; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -411,6 +417,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-18 · UC-18 — Buscar por fechas y contenido dentro de la historia autorizada
 
+**Verificación de integración FE-18 (2026-10-25):** V58/V59 completan normalización, fechas inclusivas America/La_Paz, contenido de fichas/diagnósticos/documentos vinculados e índices. GET /api/medical/patients/{id}/search conserva null mediante resultado tipado, audita sin término clínico y aplica la autorización FE-17. Pasan 136 pruebas Java y navegador/regresión. Perfil sintético: 1.001 atenciones, 20 consultas con concurrencia 10, p95 local menor de 3 s. El usuario describe un centro pequeño con picos y reportes de fin de mes; el volumen numérico y la carga mixta quedan para el corte integral. [Evidencia y comandos](../../salud-u/docs/evidencia-fe18.md).
+
 - **Actor:** Médico con relación clínica.
 - **Historia:** Como Médico con relación clínica, quiero buscar por fechas y contenido dentro de la historia autorizada, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-18: buscar por fechas y contenido dentro de la historia autorizada; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -427,6 +435,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-19 · UC-19 — Añadir una corrección auditable sin reescribir la atención cerrada
+
+**Verificación de integración FE-19 (2026-10-25):** POST confirmado y conservado como 200/data(id,amendmentNo,createdAt,createdBy); GET nuevo con canAdd/items documentado. V60 aplica autorización FE-17, escritura solo del autor, auditoría atómica, numeración serializada y clave opcional de reintento, preservando la firma SQL de tres argumentos. Tabla sin DML runtime y trigger contra UPDATE/DELETE; lectura y búsqueda autorizadas. Pasan 140 pruebas Java con concurrencia/rollback/inmutabilidad y cinco grupos Chromium en producción; regresión FE-18 aprobada. [Evidencia y comandos](../../salud-u/docs/evidencia-fe19.md).
 
 - **Actor:** Médico autorizado.
 - **Historia:** Como Médico autorizado, quiero añadir una corrección auditable sin reescribir la atención cerrada, para completar el flujo con integridad y acceso autorizado.
@@ -446,6 +456,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-20 · UC-20 — Exportar una ficha individual a Word
 
+**Verificación de integración FE-20 (2026-10-26):** GET `/api/medical/encounters/{id}/export.docx` confirmado/documentado; V61 amplía el snapshot autorizado a ficha/versiones/plantilla/antecedentes vinculados/diagnósticos/mediciones/documentos y adendas ordenadas. DOCX con emblemas, fecha Bolivia, autor y secciones separadas; finalidad y procedencia auditadas tras generación, sin publicación parcial ante fallo. Rechazo uniforme 404 fuera del ámbito/no cerrado; errores internos 500 recuperables. Pasan 147 pruebas Java, cuatro grupos Chromium y regresión FE-19. Siete DOCX reabiertos en LibreOffice y clínica intacta. [Evidencia y comandos](../../salud-u/docs/evidencia-fe20.md).
+
 - **Actor:** Médico autorizado.
 - **Historia:** Como Médico autorizado, quiero exportar una ficha individual a Word, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-20: exportar una ficha individual a Word; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -464,6 +476,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-21 · UC-21 — Construir reporte por período, múltiples filtros, columnas y agrupaciones
 
+**Verificación de integración FE-21 (2026-10-26):** V62 completa paridad de listas/antecedentes/hábitos/17 columnas efectivas, ámbito institucional Reportes sin personal y médico propio/área vigente. Conserva firma SQL de 13 columnas; normalización literal y fallback seguro documentados. GET conserva ok/data/filters y agrega presentation opcional con columnas/grupos/IDs/orden explícitos. Auditado sin texto clínico; roles y fechas Bolivia verificados. POST compatible de registro conserva 201/data.id persistido y límites, sin declarar integración del archivo FE-22. Pasan 155 pruebas Java, cuatro grupos Chromium, regresión FE-20 y controles frontend. [Evidencia y comandos](../../salud-u/docs/evidencia-fe21.md).
+
 - **Actor:** Médico / responsable de Reportes.
 - **Historia:** Como Médico / responsable de Reportes, quiero construir reporte por período, múltiples filtros, columnas y agrupaciones, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-21: construir reporte por período, múltiples filtros, columnas y agrupaciones; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -480,6 +494,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-22 · UC-22 — Exportar el conjunto permitido en CSV/XLSX/PDF con finalidad
+
+**Verificación de integración FE-22 (2026-10-26):** endpoint separado de archivo completo/documentado, con REPORTING_OFFICER y ámbito de FE-21; rechaza filas/cantidad del cliente y limita a 10000 sin truncar. CSV/XLSX/PDF comparten datos/columnas/grupos/metadatos; PDF real paginado, Excel reabierto con POI/SheetJS, protección de fórmulas y continuación de texto extenso. V63 guarda procedencia propia COMPLETED/FAILED con SHA-256 y auditoría atómica, sin publicar parciales. POST compatible conserva 201/data.id y límites 0..10000. Pasan 167 pruebas Java, cuatro grupos Chromium y regresión FE-21; clínica original intacta y recuperación real de sesión comprobada. [Evidencia, alcance tipográfico y comandos](../../salud-u/docs/evidencia-fe22.md).
 
 - **Actor:** Usuario autorizado para exportar.
 - **Historia:** Como Usuario autorizado para exportar, quiero exportar el conjunto permitido en CSV/XLSX/PDF con finalidad, para completar el flujo con integridad y acceso autorizado.
@@ -499,6 +515,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-23 · UC-23 — Consultar cumplimiento institucional de atención obligatoria
 
+**Verificación de integración FE-23 (2026-10-26):** V64 usa días Bolivia en cumplimiento/actividad y agrega resumen administrativo de conteos, sin texto clínico. Se conservan contratos de listas y se audita lectura con no-store/private; fallos de infraestructura 500 recuperables. Cierres múltiples no duplican matrícula; llegada/ausencia/borrador y cierres fuera de ventana no cumplen. Pasan 169 pruebas Java, cuatro grupos Chromium y regresión FE-22. Regla y volumen institucionales aún pendientes de validación formal en FE-CORTE. [Evidencia y comandos](../../salud-u/docs/evidencia-fe23.md).
+
 - **Actor:** Administrativo / Reportes.
 - **Historia:** Como Administrativo / Reportes, quiero consultar cumplimiento institucional de atención obligatoria, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-23: consultar cumplimiento institucional de atención obligatoria; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -516,12 +534,14 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-24 · UC-24 — Consultar eventos de accesos, cambios y exportaciones sin modificar evidencia
 
+**Integración FE-24 verificada (2026-10-26):** GET `/api/audit-events` real, solo autoridad Auditor. V65 agrega actor parcial, cursor por fecha/UUID y días de Bolivia conservando la firma SQL y respuesta compatible; OpenAPI actualizado. Runtime sin UPDATE/DELETE, sin endpoint de mutación; lecturas auditadas sin metadata clínica. 174 pruebas Java aprobadas y cinco grupos de aceptación Chromium con Next/Spring/PostgreSQL; regresión FE-23 completa. Evidencia: `../salud-u/docs/evidencia-fe24.md`.
+
 - **Actor:** Auditor.
 - **Historia:** Como Auditor, quiero consultar eventos de accesos, cambios y exportaciones sin modificar evidencia, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-24: consultar eventos de accesos, cambios y exportaciones sin modificar evidencia; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
 - **Trazabilidad:** RF-26, RF-27; RN-26, RN-28.
 - **Prioridad:** P1. **Dependencias:** BE-01,T-03; T-04 para pruebas HTTP.
-- **Referencia actual (ruta/RPC/consumidor):** evento auditoría en SQL; demo-audit-store.ts requiere distinguir demo de persistencia; ruta real por confirmar.
+- **Referencia actual (ruta/RPC/consumidor):** GET `/api/audit-events` real en Spring y SQL de consulta protegida. El frontend retira `demo-audit-store.ts`; V65 agrega filtros y paginación documentados.
 - **Criterios de aceptación:**
   - Filtros fecha/actor/acción/recurso/resultado.
   - solo Auditor consulta.
@@ -534,6 +554,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 ## Épica B8 — Vacunación e investigación
 
 ### BE-25 · UC-25 — Gestionar vacunas activas y sus dosis/intervalos
+
+**Integración FE-25 verificada (2026-10-26):** `/api/vaccines` GET/POST/PUT en uso desde `/administrativo/vacunas`. V66 agrega `guardar_vacuna_y_esquema(..., p_version_esperada)` con bloqueo de fila: `expectedSchemaVersion` desactualizada → 409 sin nueva versión; código duplicado → 409; vacuna inexistente → 404 (antes todo era 400). Firma de cinco argumentos conservada; OpenAPI y pruebas MVC/PostgreSQL actualizadas. 176 pruebas Java aprobadas y seis grupos Chromium. Evidencia: `../salud-u/docs/evidencia-fe25.md`.
 
 - **Actor:** Administrativo.
 - **Historia:** Como Administrativo, quiero gestionar vacunas activas y sus dosis/intervalos, para completar el flujo con integridad y acceso autorizado.
@@ -551,6 +573,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-26 · UC-26 — Registrar dosis aplicada conservando lote, fecha y responsables
+
+**Integración FE-26 verificada (2026-10-26):** V67 agrega `contexto_registro_vacunacion` (GET `/api/vaccinations/context`, auditado como `VACCINATION_RECORD_READ`) y reemplaza `registrar_dosis_vacuna` con la misma firma: el Médico de revisión requiere `requerir_acceso_medico_paciente` y la fecha futura se evalúa en día de Bolivia. Rechazos distinguibles: 422 intervalo sin justificación; 409 duplicado/orden/vacuna inactiva; 400 fechas, aplicador o justificación; 403 rol/aplicador ajeno; 404 paciente inexistente o ajeno. OpenAPI y pruebas MVC/PostgreSQL actualizadas. 179 pruebas Java y siete grupos Chromium. Evidencia: `../salud-u/docs/evidencia-fe26.md`.
 
 - **Actor:** Administrativo; médico de revisión como aplicador.
 - **Historia:** Como Administrativo; médico de revisión como aplicador, quiero registrar dosis aplicada conservando lote, fecha y responsables, para completar el flujo con integridad y acceso autorizado.
@@ -570,6 +594,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-27 · UC-27 — Consultar carnet, estado de esquema y cobertura institucional
 
+**Integración FE-27 verificada (2026-10-26):** V68 reemplaza `obtener_carnet_vacunacion` y `reporte_cobertura_vacunacion` con las mismas firmas: carnet con lote/aplicador, vacunas desactivadas solo si hay dosis, Administración sin paciente → 400 y lectura auditada `VACCINATION_CARD_READ`; cobertura con día de Bolivia, `count(DISTINCT)` por grupo y auditoría `VACCINATION_COVERAGE_READ`. Controladores sin `readOnly` por la auditoría; OpenAPI y pruebas MVC/PostgreSQL actualizadas. 180 pruebas Java y seis grupos Chromium. Evidencia: `../salud-u/docs/evidencia-fe27.md`.
+
 - **Actor:** Administrativo / Estudiante / Reportes.
 - **Historia:** Como Administrativo / Estudiante / Reportes, quiero consultar carnet, estado de esquema y cobertura institucional, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-27: consultar carnet, estado de esquema y cobertura institucional; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -587,6 +613,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-INV · H-INV — Exportación para investigación
+
+**Integración FE-INV verificada (2026-10-26):** V69 valida filtros con `filtros_investigacion_normalizados` (sólo `from`, `to`, `careerId`, `specialtyId`, `vaccineId`; `400` ante clave, fecha o UUID inválidos), calcula mes de atención, edad, matrícula y mes de política en día de Bolivia, registra mes de política y SHA-256 y audita finalidad y nombres de filtros. El controlador responde `X-Export-Id`, `X-Export-Row-Count`, `X-Content-SHA256` y `X-Pseudonym-Policy`, aplica el límite con `limit 10001`, escribe CSV con BOM y fórmulas neutralizadas, XLSX con conteos numéricos y diccionario en español; nuevo `GET /api/research/exports/{id}` sólo para el solicitante (otro → `404`). `listar_vacunas`/`GET /api/vaccines` pasan a lectura para Reportes (escritura sigue sólo Administración). Política de vinculación: `MONTHLY-V1` (ver `docs/politica-seudonimos-investigacion.md`). Pruebas MVC/PostgreSQL y OpenAPI actualizadas.
 
 - **Actor:** Reportes / usuario autorizado para investigación.
 - **Historia:** Como usuario autorizado, quiero exportar un conjunto seudonimizado con diccionario, para investigar sin revelar identidad estudiantil.

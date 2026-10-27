@@ -25,7 +25,7 @@ public class VaccinationQueryController {
     private final JdbcTemplate jdbc; private final DatabaseActorContext actorContext; private final ObjectMapper json;
     public VaccinationQueryController(JdbcTemplate jdbc, DatabaseActorContext actorContext, ObjectMapper json) { this.jdbc = jdbc; this.actorContext = actorContext; this.json = json; }
 
-    @GetMapping("/api/vaccination-card") @PreAuthorize("hasAnyRole('ADMINISTRATIVE','STUDENT')") @Transactional(readOnly = true)
+    @GetMapping("/api/vaccination-card") @PreAuthorize("hasAnyRole('ADMINISTRATIVE','STUDENT')") @Transactional
     public LegacyAvailabilityResponse<Object> card(@RequestParam(required = false) UUID patientId, @AuthenticationPrincipal SessionPrincipal principal) {
         apply(principal);
         try { return LegacyAvailabilityResponse.success(json.readValue(jdbc.queryForObject("select salud_u.obtener_carnet_vacunacion(?)::text", String.class, patientId), Object.class)); }
@@ -33,7 +33,7 @@ public class VaccinationQueryController {
         catch (Exception exception) { throw new AvailabilityException(400, "No se pudo consultar el carnet de vacunación."); }
     }
 
-    @GetMapping("/api/reports/vaccination-coverage") @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REPORTING_OFFICER')") @Transactional(readOnly = true)
+    @GetMapping("/api/reports/vaccination-coverage") @PreAuthorize("hasAnyRole('ADMINISTRATIVE','REPORTING_OFFICER')") @Transactional
     public LegacyAvailabilityResponse<List<Map<String, Object>>> coverage(@RequestParam(required = false) UUID careerId, @RequestParam(required = false) String academicPeriod, @AuthenticationPrincipal SessionPrincipal principal) {
         if (academicPeriod != null && academicPeriod.trim().length() > 80) throw new AvailabilityException(400, "El período académico no es válido.");
         apply(principal);
@@ -41,5 +41,5 @@ public class VaccinationQueryController {
         catch (DataAccessException exception) { throw new AvailabilityException(400, "No se pudo consultar la cobertura de vacunación."); }
     }
     private void apply(SessionPrincipal principal) { actorContext.apply(new DatabaseActor(principal.id(), Set.copyOf(principal.roles()))); }
-    private AvailabilityException cardException(DataAccessException exception) { String message = String.valueOf(exception.getMostSpecificCause().getMessage()); if (message.contains("CARNET_VACUNACION_NO_AUTORIZADO")) return new AvailabilityException(403, "No tiene acceso a este carnet de vacunación."); if (message.contains("PACIENTE_NO_ENCONTRADO")) return new AvailabilityException(404, "El paciente no existe."); return new AvailabilityException(400, "No se pudo consultar el carnet de vacunación."); }
+    private AvailabilityException cardException(DataAccessException exception) { String message = String.valueOf(exception.getMostSpecificCause().getMessage()); if (message.contains("CARNET_VACUNACION_NO_AUTORIZADO")) return new AvailabilityException(403, "No tiene acceso a este carnet de vacunación."); if (message.contains("PACIENTE_REQUERIDO")) return new AvailabilityException(400, "Indica el paciente cuyo carnet quieres consultar."); if (message.contains("PACIENTE_NO_ENCONTRADO")) return new AvailabilityException(404, "El paciente no existe."); return new AvailabilityException(400, "No se pudo consultar el carnet de vacunación."); }
 }
