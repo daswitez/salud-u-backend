@@ -30,6 +30,7 @@ services:
       DOCUMENTS_ROOT: /var/lib/salud-u/documents
       SALUD_U_SCHEDULING_ENABLED: ${SALUD_U_SCHEDULING_ENABLED:-false}
       SALUD_U_REMINDER_CRON: "${SALUD_U_REMINDER_CRON:-0 */15 * * * *}"
+      SALUD_U_DAY_CLOSE_CRON: "${SALUD_U_DAY_CLOSE_CRON:-0 30 0 * * *}"
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"

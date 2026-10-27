@@ -15,8 +15,9 @@ paths:
       summary: Bandeja propia con cursor y contador de no leídos
       description: |
         Cualquier sesión autenticada. Solo avisos propios DELIVERED/READ cuya
-        programación y entrega ya vencieron. Un APPOINTMENT_REMINDER solo aparece
-        mientras su cita sigue programada para la fecha que anuncia. Orden deliveredAt DESC, id DESC.
+        programación y entrega ya vencieron. Un APPOINTMENT_REMINDER o un
+        APPOINTMENT_REMINDER_REINFORCED (el mismo día, cuando la asistencia estimada es
+        menor al 70 %) solo aparece mientras su cita sigue programada para la fecha que anuncia. Orden deliveredAt DESC, id DESC.
         El cursor conserva microsegundos y se devuelve en pagination.nextCursor.
         unreadCount cuenta todas las no leídas visibles, no solo la página.
         Página y contador se leen en la misma instantánea. Las reprogramaciones
@@ -101,6 +102,195 @@ paths:
         '401': {$ref: '#/components/responses/NotificationUnauthenticated'}
         '403': {description: CSRF ausente o inválido; error legacy de texto}
         '500': {$ref: '#/components/responses/NotificationFailure'}
+  /api/academic-periods:
+    get:
+      summary: Calendario académico (O-01, UC-29)
+      description: Solo ADMINISTRATIVE. Períodos ordenados por startDate. Cache-Control no-store, private.
+      security: [{sessionCookie: []}]
+      responses:
+        '200':
+          description: Lista de períodos; vacía es válida.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {type: array, items: {$ref: '#/components/schemas/AcademicPeriod'}}
+        '401': {description: Sesión ausente o caducada}
+        '403': {description: Rol distinto de ADMINISTRATIVE}
+    post:
+      summary: Registrar un período académico
+      description: |
+        Solo ADMINISTRATIVE; requiere CSRF. Fechas inclusivas, a lo sumo 367 días. Ningún día puede
+        pertenecer a dos períodos, sea cual sea su tipo. Escritura y auditoría atómicas.
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name, type, startDate, endDate]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 120}
+                type: {$ref: '#/components/schemas/AcademicPeriodType'}
+                startDate: {type: string, format: date}
+                endDate: {type: string, format: date}
+      responses:
+        '201':
+          description: Período registrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {$ref: '#/components/schemas/AcademicPeriod'}
+        '400': {description: Nombre, tipo o fechas inválidos, o campos no admitidos}
+        '401': {description: Sesión ausente o caducada}
+        '403': {description: Rol distinto de ADMINISTRATIVE o CSRF inválido}
+        '409': {description: El período se superpone con otro ya registrado}
+  /api/scheduling/initial-values:
+    get:
+      summary: Valores iniciales de la agenda por especialidad y tipo de período (DV-10)
+      description: |
+        Solo ADMINISTRATIVE. Una fila por tipo de período para el área (specialtyId null) y para cada
+        especialidad activa o con valores guardados. Lo no guardado sale con isDefault true y los valores
+        de DV-10: asistencia 0.800, peso 10 citas y expectedDailyDemand null, que significa demanda igual
+        a la capacidad publicada.
+      security: [{sessionCookie: []}]
+      responses:
+        '200':
+          description: Tabla completa de valores iniciales. Cache-Control no-store, private.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/InitialSchedulingValuesSuccess'}
+        '401': {description: Sesión ausente o caducada}
+        '403': {description: Rol distinto de ADMINISTRATIVE}
+    put:
+      summary: Guardar valores iniciales
+      description: |
+        Solo ADMINISTRATIVE; requiere CSRF. Guarda las filas enviadas, todo o nada; las no enviadas
+        conservan su valor. Una fila igual a la guardada no se reescribe ni se audita; un cambio se audita
+        con el valor anterior. Devuelve la tabla completa, como el GET.
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [values]
+              properties:
+                values:
+                  type: array
+                  minItems: 1
+                  maxItems: 1000
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [periodType, expectedAttendance, appointmentWeight]
+                    properties:
+                      specialtyId: {type: [string, 'null'], format: uuid, description: null o ausente es el área; la especialidad debe estar activa}
+                      periodType: {$ref: '#/components/schemas/AcademicPeriodType'}
+                      expectedDailyDemand: {type: [number, 'null'], minimum: 0, maximum: 1000, description: Hasta dos decimales; null o ausente es igual a la capacidad publicada}
+                      expectedAttendance: {type: number, exclusiveMinimum: 0, exclusiveMaximum: 1, description: Proporción con hasta tres decimales}
+                      appointmentWeight: {type: integer, minimum: 1, maximum: 100}
+      responses:
+        '200':
+          description: Tabla completa tras guardar.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/InitialSchedulingValuesSuccess'}
+        '400': {description: Valores inválidos, fila repetida o especialidad no habilitada; no se guarda ninguna fila}
+        '401': {description: Sesión ausente o caducada}
+        '403': {description: Rol distinto de ADMINISTRATIVE o CSRF inválido}
+  /api/scheduling/suggestions:
+    get:
+      summary: Sugerencias de agenda de una fecha (O-04, UC-30)
+      description: |
+        Solo ADMINISTRATIVE. La tarea nocturna las genera para los próximos 10 días hábiles:
+        DAY_SLOTS (citas sugeridas por jornada), OVERBOOKING (subir la capacidad de cupos concretos,
+        a lo sumo 10 % sobre la capacidad y con riesgo de saturación beta-binomial ≤ 20 %, RN-35) y
+        CAPACITY_ALERT (demanda proyectada de 10 días hábiles sobre el 100 % o bajo el 50 % de los
+        lugares libres publicados; lleva la fecha en que empieza su horizonte). Sugerir no cambia nada:
+        se aplica al decidir (O-06). status sale de la decisión o de expiresAt. Cache-Control no-store, private.
+      security: [{sessionCookie: []}]
+      parameters:
+        - {in: query, name: date, description: Fecha AAAA-MM-DD; por defecto hoy en Bolivia, schema: {type: string, format: date}}
+      responses:
+        '200':
+          description: Sugerencias de la fecha, alertas primero; lista vacía es válida.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {type: array, items: {$ref: '#/components/schemas/ScheduleSuggestion'}}
+        '400': {description: Fecha con formato inválido}
+        '401': {description: Sesión ausente o caducada}
+        '403': {description: Rol distinto de ADMINISTRATIVE}
+  /api/scheduling/suggestions/{id}/decision:
+    post:
+      summary: Decidir una sugerencia de agenda (O-06, RN-33, RF-41)
+      description: |
+        Solo ADMINISTRATIVE, con CSRF. Registra la decisión y aplica el cambio en una transacción; solo la decisión
+        cambia la agenda (RN-33). OVERBOOKING aceptado sube la capacidad de los cupos sugeridos; MODIFIED indica la
+        capacidad final de cupos de la misma jornada, con el tope de RN-35 sobre la capacidad vigente, cada cupo ≤ 20
+        y sin cambiar la duración. Si la capacidad de la jornada cambió desde la sugerencia responde 409.
+        DAY_SLOTS y CAPACITY_ALERT solo admiten ACCEPTED o REJECTED y no cambian la agenda. El motivo es
+        obligatorio para MODIFIED y REJECTED. EXPIRED lo marca el sistema cuando vence sin decisión (PA-21).
+        Ninguna decisión de estos tipos cambia citas, así que no genera avisos; REQUEST_SLOT y RESCHEDULE se
+        deciden con O-07. Audita SUGERENCIA_AGENDA_DECIDIDA sin el motivo.
+      security: [{sessionCookie: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [decision]
+              properties:
+                decision: {type: string, enum: [ACCEPTED, MODIFIED, REJECTED]}
+                reason: {type: [string, 'null'], maxLength: 500}
+                slots:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  description: Solo con MODIFIED de un OVERBOOKING
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [slotId, capacity]
+                    properties:
+                      slotId: {type: string, format: uuid}
+                      capacity: {type: integer, maximum: 20, description: Capacidad final; mayor que la actual}
+      responses:
+        '200':
+          description: La sugerencia con su decisión
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {$ref: '#/components/schemas/ScheduleSuggestion'}
+        '400': {description: Cuerpo inválido, falta el motivo, decisión no admitida para el tipo o sobrecupo sobre el 10 % (RN-35)}
+        '401': {description: Sesión ausente o caducada}
+        '403': {description: Rol distinto de ADMINISTRATIVE o CSRF inválido}
+        '404': {description: La sugerencia no existe}
+        '409': {description: Ya decidida, vencida, tipo aún no decidible o jornada cambiada desde la sugerencia}
   /api/reports/administrative-summary:
     get:
       summary: Panorama administrativo sin contenido clínico
@@ -434,6 +624,34 @@ paths:
         '401': {description: Sesión requerida}
         '403': {description: Rol o CSRF sin permiso}
         '409': {description: Cupo lleno, solicitud no pendiente, derivación no programable o paciente con cita incompatible; rollback completo}
+  /api/appointment-requests/{requestId}/suggested-slots:
+    get:
+      summary: Cupos sugeridos para una solicitud (O-05, UC-07 extendido, RF-40)
+      description: |
+        Solo ADMINISTRATIVE y solo consulta: no cambia la agenda; se asigna con POST .../assign.
+        Considera los cupos que la asignación aceptaría (publicados, futuros, con lugar, de la especialidad de la
+        solicitud o del área si es INITIAL, sin choque con otra cita activa del paciente) y devuelve los tres mejores.
+        Puntaje = 100·(1 − (w·espera + (1 − w)·ocupación)), con espera = días/30 (tope 1) y ocupación = asistentes
+        esperados de la jornada con esta cita / su capacidad (tope 1). w es 0,9 si la derivación es URGENT,
+        0,7 si es PRIORITY y 0,5 si es ROUTINE o no hay derivación. Cache-Control no-store, private.
+      security: [{sessionCookie: []}]
+      parameters:
+        - {name: requestId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Hasta tres cupos ordenados; slots vacío es válido.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {$ref: '#/components/schemas/SuggestedSlots'}
+        '401': {description: Sesión requerida}
+        '403': {description: Rol distinto de ADMINISTRATIVE}
+        '404': {description: La solicitud no existe}
+        '409': {description: Solicitud no pendiente o derivación no programable}
   /api/medical/referrals:
     get:
       summary: Consultar derivaciones emitidas por el médico de revisión
@@ -1480,7 +1698,7 @@ components:
       properties:
         id: {type: string, format: uuid}
         appointmentId: {type: string, format: uuid}
-        eventType: {type: string, enum: [APPOINTMENT_ASSIGNED, APPOINTMENT_CANCELLED, APPOINTMENT_NO_SHOW, APPOINTMENT_RESCHEDULED, APPOINTMENT_REMINDER]}
+        eventType: {type: string, enum: [APPOINTMENT_ASSIGNED, APPOINTMENT_CANCELLED, APPOINTMENT_NO_SHOW, APPOINTMENT_RESCHEDULED, APPOINTMENT_REMINDER, APPOINTMENT_REMINDER_REINFORCED]}
         channel: {type: string, enum: [INBOX]}
         subject: {type: string}
         message: {type: string, description: Texto operativo sin motivos privados ni contenido clínico}
@@ -1516,6 +1734,103 @@ components:
             receiveReminders: {type: boolean}
             reinforcedReminder: {type: boolean}
             updatedAt: {type: [string, 'null'], format: date-time}
+    AcademicPeriodType:
+      type: string
+      enum: [SEMESTER_START, CLASSES, EXAMS, VACATION]
+    AcademicPeriod:
+      type: object
+      required: [id, name, type, startDate, endDate, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        type: {$ref: '#/components/schemas/AcademicPeriodType'}
+        startDate: {type: string, format: date}
+        endDate: {type: string, format: date}
+        createdAt: {type: string, format: date-time}
+    InitialSchedulingValue:
+      type: object
+      required: [specialtyId, specialtyName, periodType, expectedDailyDemand, expectedAttendance, appointmentWeight, isDefault, updatedAt]
+      properties:
+        specialtyId: {type: [string, 'null'], format: uuid}
+        specialtyName: {type: [string, 'null']}
+        periodType: {$ref: '#/components/schemas/AcademicPeriodType'}
+        expectedDailyDemand: {type: [number, 'null'], description: null es igual a la capacidad publicada}
+        expectedAttendance: {type: number}
+        appointmentWeight: {type: integer}
+        isDefault: {type: boolean}
+        updatedAt: {type: [string, 'null'], format: date-time}
+    InitialSchedulingValuesSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: {type: boolean, const: true}
+        data: {type: array, items: {$ref: '#/components/schemas/InitialSchedulingValue'}}
+    SuggestedSlots:
+      type: object
+      required: [requestId, appointmentType, priority, modelVersion, waitWeight, occupancyWeight, slots]
+      properties:
+        requestId: {type: string, format: uuid}
+        appointmentType: {type: string, enum: [INITIAL, SPECIALTY, REFERRAL]}
+        priority: {type: [string, 'null'], enum: [ROUTINE, PRIORITY, URGENT, null], description: Solo en REFERRAL}
+        modelVersion: {type: string}
+        waitWeight: {type: number}
+        occupancyWeight: {type: number}
+        slots:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            required: [rank, slotId, startsAt, endsAt, staffId, staffName, specialtyId, specialtyName, freePlaces, waitDays, expectedOccupancy, estimatedAttendance, attendanceSource, score, explanation]
+            properties:
+              rank: {type: integer, minimum: 1, maximum: 3}
+              slotId: {type: string, format: uuid}
+              startsAt: {type: string, format: date-time}
+              endsAt: {type: string, format: date-time}
+              staffId: {type: string, format: uuid}
+              staffName: {type: string}
+              specialtyId: {type: [string, 'null'], format: uuid}
+              specialtyName: {type: [string, 'null']}
+              freePlaces: {type: integer}
+              waitDays: {type: integer}
+              expectedOccupancy: {type: number}
+              estimatedAttendance: {type: number}
+              attendanceSource: {type: string, enum: [DOCTOR, SPECIALTY, AREA, INITIAL_VALUE]}
+              score: {type: number, minimum: 0, maximum: 100}
+              explanation: {type: string, description: Texto en español con los datos y los pesos usados (RNF-13)}
+    ScheduleSuggestion:
+      type: object
+      required: [id, type, date, specialtyId, specialtyName, staffId, staffName, suggestedValue, explanation, modelVersion, expiresAt, status, createdAt, updatedAt, decision]
+      properties:
+        id: {type: string, format: uuid}
+        type: {type: string, enum: [DAY_SLOTS, OVERBOOKING, CAPACITY_ALERT, REQUEST_SLOT, RESCHEDULE]}
+        date: {type: string, format: date}
+        specialtyId: {type: [string, 'null'], format: uuid, description: null es el área (revisión inicial)}
+        specialtyName: {type: [string, 'null']}
+        staffId: {type: [string, 'null'], format: uuid, description: null en CAPACITY_ALERT}
+        staffName: {type: [string, 'null']}
+        suggestedValue:
+          type: object
+          description: |
+            DAY_SLOTS: capacity, suggestedAppointments, saturationRisk, maxSaturationRisk, estimatedAttendance.
+            OVERBOOKING: lo anterior más overbooking y slots [{slotId, startsAt, currentCapacity, suggestedCapacity}].
+            CAPACITY_ALERT: from, to, businessDays, pendingRequests, estimatedDemand, projectedDemand,
+            publishedPlaces, freePlaces, percentage (null sin lugares libres), demandExceedsSupply, daysWithoutEstimate.
+        explanation: {type: string, description: Texto en español con los datos y la regla que sustentan la sugerencia (RNF-13)}
+        modelVersion: {type: string}
+        expiresAt: {type: string, format: date-time}
+        status: {type: string, enum: [PENDING, ACCEPTED, MODIFIED, REJECTED, EXPIRED]}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+        decision:
+          type: [object, 'null']
+          description: null mientras está PENDING
+          required: [decidedAt, decidedBy, decidedByName, reason, appliedValue]
+          properties:
+            decidedAt: {type: string, format: date-time}
+            decidedBy: {type: [string, 'null'], format: uuid, description: null en EXPIRED}
+            decidedByName: {type: [string, 'null']}
+            reason: {type: [string, 'null']}
+            appliedValue: {type: [object, 'null'], description: 'OVERBOOKING aplicado: capacity, overbooking, slots [{slotId, startsAt, currentCapacity, appliedCapacity}]'}
     NotificationError:
       type: object
       required: [ok, error]

@@ -67,6 +67,7 @@ salud-u:
   scheduling:
     enabled: ${SALUD_U_SCHEDULING_ENABLED:false}
     reminder-cron: "${SALUD_U_REMINDER_CRON:0 */15 * * * *}"
+    day-close-cron: "${SALUD_U_DAY_CLOSE_CRON:0 30 0 * * *}"
   auth:
     session-ttl: 8h
     cookie-secure: ${SESSION_COOKIE_SECURE:true}

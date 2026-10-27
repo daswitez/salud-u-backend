@@ -12,6 +12,8 @@ Entrega un aviso RECORDATORIO_CITA, canal BANDEJA, estado ENTREGADA. Asunto «Re
 
 `recordatorio_reforzado` queda almacenado por N-02, pero no interviene en el aviso ordinario. Desactivar `recibir_recordatorios` evita nuevas entregas; conserva los avisos históricos. No hay recuperación retrospectiva de días en que el servicio estuvo apagado.
 
+> **Actualización O-03 (V88):** el recordatorio reforzado ya está activo. Se envía el día de la cita, desde las 07:00, cuando la asistencia estimada es menor al 70 % y `recordatorio_reforzado` está activo. Ver [O-03](o03-estimaciones-de-asistencia-y-demanda.md).
+
 ## Idempotencia y concurrencia
 
 Se conserva el índice único `(tipo_evento,id_cita,id_destinatario,canal)`. Una cita tiene como máximo un RECORDATORIO_CITA por destinatario. Los reintentos sin cambios conservan ID, fecha de entrega, estado leído y fecha de lectura. Cuando cambia el horario o el día objetivo y la cita es elegible de nuevo, se actualiza el mismo ID con el horario vigente y vuelve a ENTREGADA sin lectura. Se conserva `creado_en`.

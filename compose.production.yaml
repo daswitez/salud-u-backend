@@ -30,6 +30,7 @@ services:
       DOCUMENTS_ROOT: /var/lib/salud-u/documents
       SALUD_U_SCHEDULING_ENABLED: ${SALUD_U_SCHEDULING_ENABLED:-true}
       SALUD_U_REMINDER_CRON: "${SALUD_U_REMINDER_CRON:-0 */15 * * * *}"
+      SALUD_U_DAY_CLOSE_CRON: "${SALUD_U_DAY_CLOSE_CRON:-0 30 0 * * *}"
       SESSION_COOKIE_SECURE: "true"
     volumes:
       - clinical_documents:/var/lib/salud-u/documents
