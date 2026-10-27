@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 public class ClinicalReportFiles {
     public record Data(List<List<String>> metadata,List<String> headers,List<List<String>> rows){}
     private static final Map<String,String> LABELS;
-    static{Map<String,String> labels=new LinkedHashMap<>();String[] names={"Fecha","Paciente","Carnet","Tipo","Especialidad","Diagnósticos","Alergias","Antecedentes","Hábitos","Motivo","Evaluación","Indicaciones","Seguimiento","Fecha de nacimiento","Ficha de especialidad"};for(int i=0;i<names.length;i++)labels.put(ClinicalReportQuery.COLUMNS.get(i),names[i]);LABELS=Map.copyOf(labels);}
-    private static final Map<String,String> DIMENSIONS=Map.of("day","Día","month","Mes","encounterType","Tipo de atención","specialty","Especialidad");
+    static{Map<String,String> labels=new LinkedHashMap<>();String[] names={"Fecha","Paciente","Carnet","Tipo","Especialidad","Diagnósticos","Alergias","Antecedentes","Hábitos","Motivo","Evaluación","Indicaciones","Seguimiento","Fecha de nacimiento","Ficha de especialidad","Sexo"};for(int i=0;i<names.length;i++)labels.put(ClinicalReportQuery.COLUMNS.get(i),names[i]);LABELS=Map.copyOf(labels);}
+    private static final Map<String,String> DIMENSIONS=Map.of("day","Día","month","Mes","encounterType","Tipo de atención","specialty","Especialidad","sex","Sexo");
     private static final ZoneId BOLIVIA=ZoneId.of("America/La_Paz");
     private final ObjectMapper json;
     public ClinicalReportFiles(ObjectMapper json){this.json=json;}
@@ -35,7 +35,7 @@ public class ClinicalReportFiles {
         List<List<String>> values=new ArrayList<>();
         if(q.groupBy().isEmpty())for(var row:rows)values.add(values(q,row,null));else {
             @SuppressWarnings("unchecked") var groups=(List<Map<String,Object>>)q.presentation(rows).get("groups");
-            for(var group:groups){@SuppressWarnings("unchecked") var key=(List<Object>)group.get("key");StringJoiner title=new StringJoiner(" · ");for(int i=0;i<key.size();i++)title.add(DIMENSIONS.get(q.groupBy().get(i))+": "+groupValue(key.get(i)));String name=title+" · "+group.get("count")+" atención(es)";
+            for(var group:groups){@SuppressWarnings("unchecked") var key=(List<Object>)group.get("key");StringJoiner title=new StringJoiner(" · ");for(int i=0;i<key.size();i++)title.add(DIMENSIONS.get(q.groupBy().get(i))+": "+(q.groupBy().get(i).equals("sex")?sexValue(key.get(i)):groupValue(key.get(i))));String name=title+" · "+group.get("count")+" atención(es)";
                 for(Object id:(List<?>)group.get("encounterIds"))values.add(values(q,byId.get(id),name));
             }
         }
@@ -51,14 +51,17 @@ public class ClinicalReportFiles {
         if(key.equals("closed_at"))return ((OffsetDateTime)value).atZoneSameInstant(BOLIVIA).format(DateTimeFormatter.ofPattern("dd/MM/uuuu"));
         if(key.equals("birth_date"))return ((LocalDate)value).format(DateTimeFormatter.ofPattern("dd/MM/uuuu"));
         if(key.equals("encounter_type"))return groupValue(value);
+        if(key.equals("sex"))return sexValue(value);
         if(key.equals("habits"))return habits(json.valueToTree(value));
         if(key.equals("specialty_history"))return structured(json.valueToTree(value),"");
         String text=value.toString();return text.isEmpty()?"—":text;
     }
+    /** A-01: códigos de API del sexo en español; null es un paciente al que nunca se le registró. */
+    private static String sexValue(Object v){return v==null?"Sin registrar":switch(v.toString()){case "FEMALE"->"Femenino";case "MALE"->"Masculino";case "NOT_RECORDED"->"No registra";default->v.toString();};}
     private static String groupValue(Object v){return v==null?"Sin especialidad":v.equals("INITIAL")?"Revisión":v.equals("SPECIALTY")?"Especialidad":v.toString();}
     private static String habits(JsonNode h){List<String> lines=new ArrayList<>();for(var e:List.of(Map.entry("tabaco","Tabaco"),Map.entry("alcohol","Alcohol"),Map.entry("actividadFisica","Actividad física"))){String v=h.path(e.getKey()).asText();if(v.equals("SI")||v.equals("NO"))lines.add(e.getValue()+": "+(v.equals("SI")?"sí":"no"));}String diet=h.path("alimentacion").asText();if(!diet.isBlank())lines.add("Alimentación: "+diet.toLowerCase(Locale.ROOT));String notes=h.path("notes").asText();if(!notes.isBlank())lines.add(notes);return lines.isEmpty()?"—":String.join(" · ",lines);}
     private static String structured(JsonNode v,String prefix){if(v.isObject()){List<String> out=new ArrayList<>();v.fields().forEachRemaining(f->out.add(structured(f.getValue(),prefix+f.getKey().replaceAll("([a-z])([A-Z])","$1 $2")+": ")));return String.join(" · ",out);}if(v.isArray()){List<String> out=new ArrayList<>();v.forEach(x->out.add(structured(x,prefix)));return out.isEmpty()?prefix+"No registrado":String.join(" · ",out);}return prefix+(v.isNull()||v.asText().isBlank()?"No registrado":v.isBoolean()?v.asBoolean()?"Sí":"No":v.asText());}
-    private static String filterText(Map<String,Object> filters){Map<String,String> labels=Map.of("from","Desde","to","Hasta","specialtyId","Especialidad","encounterType","Tipo","diagnosis","Diagnóstico","allergies","Alergias","histories","Antecedentes","habitTerms","Hábitos","positiveHabits","Hábitos afirmativos","search","Búsqueda");List<String> parts=new ArrayList<>();filters.forEach((key,value)->{if(value instanceof List<?> list){if(!list.isEmpty())parts.add(labels.get(key)+": "+String.join(", ",list.stream().map(Object::toString).map(v->switch(v){case "tobacco"->"Tabaco";case "physicalActivity"->"Actividad física";case "alcohol"->"Alcohol";default->v;}).toList()));}else if(value!=null)parts.add(labels.get(key)+": "+groupValue(value));});return parts.isEmpty()?"Sin criterios adicionales":String.join(" · ",parts);}
+    private static String filterText(Map<String,Object> filters){Map<String,String> labels=Map.ofEntries(Map.entry("from","Desde"),Map.entry("to","Hasta"),Map.entry("specialtyId","Especialidad"),Map.entry("encounterType","Tipo"),Map.entry("sex","Sexo"),Map.entry("diagnosis","Diagnóstico"),Map.entry("allergies","Alergias"),Map.entry("histories","Antecedentes"),Map.entry("habitTerms","Hábitos"),Map.entry("positiveHabits","Hábitos afirmativos"),Map.entry("search","Búsqueda"));List<String> parts=new ArrayList<>();filters.forEach((key,value)->{if(value instanceof List<?> list){if(!list.isEmpty())parts.add(labels.get(key)+": "+String.join(", ",list.stream().map(Object::toString).map(v->switch(v){case "tobacco"->"Tabaco";case "physicalActivity"->"Actividad física";case "alcohol"->"Alcohol";default->v;}).toList()));}else if(value!=null)parts.add(labels.get(key)+": "+(key.equals("sex")?sexValue(value):groupValue(value)));});return parts.isEmpty()?"Sin criterios adicionales":String.join(" · ",parts);}
     private static List<String> chunks(String value){return chunks(value,30000);}
     private static List<String> chunks(String value,int limit){List<String> out=new ArrayList<>();if(value.isEmpty())return List.of("");for(int start=0;start<value.length();){int end=Math.min(value.length(),start+limit);if(end<value.length()&&Character.isHighSurrogate(value.charAt(end-1)))end--;out.add(value.substring(start,end));start=end;}return out;}
     public static String csvCell(String value){String first=value.stripLeading();if(!first.isEmpty()&&"=+-@".indexOf(first.charAt(0))>=0||value.startsWith("\t")||value.startsWith("\r"))value="'"+value;return '"'+value.replace("\"","\"\"")+'"';}

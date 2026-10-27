@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record PatientSummary(
     UUID id, String carnet, String registrationCode, String fullName, LocalDate birthDate, String phone, String email,
-    String academicStatus, Instant createdAt, Instant updatedAt, Career career, Enrollment enrollment
+    String academicStatus, Instant createdAt, Instant updatedAt, Career career, Enrollment enrollment, String sex
 ) {
     public record Career(UUID id, String code, String name) {
     }

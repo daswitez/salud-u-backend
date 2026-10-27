@@ -7,7 +7,7 @@ public record ClinicalReportExportRequest(String format,String purpose,ClinicalR
         if(!(body.get("format") instanceof String format)||!Set.of("CSV","XLSX","PDF").contains(format)||!(body.get("purpose") instanceof String purpose)||purpose.trim().isEmpty()||purpose.trim().length()>300)throw invalid("Indica un formato válido y una finalidad de entre 1 y 300 caracteres.");
         if(!(body.get("filters") instanceof Map<?,?> filters))throw invalid("Filtros inválidos.");
         Set<String> listFields=Set.of("allergies","histories","habitTerms","positiveHabits");
-        Set<String> scalars=Set.of("from","to","specialtyId","encounterType","diagnosis","search");
+        Set<String> scalars=Set.of("from","to","specialtyId","encounterType","sex","diagnosis","search");
         Map<String,String> query=new LinkedHashMap<>();
         try{
             for(var entry:filters.entrySet()){

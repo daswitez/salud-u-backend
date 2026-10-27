@@ -73,3 +73,6 @@ salud-u:
     cookie-secure: ${SESSION_COOKIE_SECURE:true}
   documents:
     root: ${DOCUMENTS_ROOT:./var/clinical-documents}
+  # A-03, paso 3 de la puesta en marcha: true cuando el frontend ya envía siempre la respuesta.
+  consents:
+    required: ${SALUD_U_CONSENTS_REQUIRED:false}

@@ -64,6 +64,75 @@ paths:
               schema: {$ref: '#/components/schemas/NotificationError'}
               example: {ok: false, error: Notificación no encontrada.}
         '500': {$ref: '#/components/responses/NotificationFailure'}
+  /api/me/consents:
+    get:
+      summary: Estado de los términos de uso y del consentimiento para investigación (A-03)
+      description: 'Solo STUDENT, sobre su propia ficha. Incluye el texto y la versión vigentes de cada uno. pending=true mientras falte responder alguno en su versión vigente. Cache-Control no-store, private.'
+      security: [{sessionCookie: []}]
+      responses:
+        '200': {description: Estado vigente, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentStatusSuccess'}}}}
+        '403': {description: Rol distinto de STUDENT.}
+        '404': {description: La cuenta no tiene una ficha de paciente vigente.}
+    post:
+      summary: Responder o cambiar la respuesta desde el portal (A-03)
+      description: 'Solo STUDENT y siempre sobre su propia ficha: un patientId en el cuerpo se ignora. Solo se insertan las respuestas que cambian; cada una se audita como CONSENTIMIENTO_REGISTRADO con vía PORTAL. Requiere CSRF.'
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ConsentAnswer'}}}
+      responses:
+        '200': {description: Estado después de responder, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentStatusSuccess'}}}}
+        '400': {description: Términos no aceptados, investigación sin elegir Sí o No, o versiones ausentes.}
+        '403': {description: Rol distinto de STUDENT o CSRF ausente.}
+        '404': {description: La cuenta no tiene una ficha de paciente vigente.}
+        '409': {description: Las versiones enviadas ya no son las vigentes; hay que volver a mostrar los textos.}
+  /api/patients/{patientId}/consents:
+    get:
+      summary: Estado de consentimiento de un paciente (A-03, Administración)
+      security: [{sessionCookie: []}]
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      responses:
+        '200': {description: Estado vigente, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentStatusSuccess'}}}}
+        '403': {description: Rol distinto de ADMINISTRATIVE.}
+        '404': {description: Estudiante no encontrado.}
+    post:
+      summary: Registrar la respuesta que el paciente da en recepción (A-03, Administración)
+      description: 'Mismo cuerpo que /api/me/consents. Se audita como CONSENTIMIENTO_REGISTRADO con vía ADMINISTRACION. Requiere CSRF.'
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ConsentAnswer'}}}
+      responses:
+        '200': {description: Estado después de responder, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentStatusSuccess'}}}}
+        '400': {description: Términos no aceptados o investigación sin elegir Sí o No.}
+        '403': {description: Rol distinto de ADMINISTRATIVE o CSRF ausente.}
+        '404': {description: Estudiante no encontrado.}
+        '409': {description: Las versiones enviadas ya no son las vigentes.}
+  /api/me/emergency-contact:
+    get:
+      summary: Contacto de emergencia de la ficha propia (A-02)
+      description: 'Solo rol STUDENT. data es null si aún no lo registró. Cache-Control no-store, private.'
+      security: [{sessionCookie: []}]
+      responses:
+        '200': {description: Contacto propio o null, content: {application/json: {schema: {$ref: '#/components/schemas/EmergencyContactSuccess'}}}}
+        '401': {description: Sesión ausente o caducada.}
+        '403': {description: Rol distinto de STUDENT.}
+        '404': {description: La cuenta no tiene una ficha de paciente vigente.}
+    put:
+      summary: Crear o reemplazar el contacto de emergencia propio (A-02)
+      description: 'Solo rol STUDENT y siempre sobre su propia ficha; no acepta identificadores de paciente. Audita CONTACTO_EMERGENCIA_ACTUALIZADO sin nombre ni teléfono. Requiere CSRF.'
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/EmergencyContact'}}}
+      responses:
+        '200': {description: Contacto guardado, content: {application/json: {schema: {$ref: '#/components/schemas/EmergencyContactSuccess'}}}}
+        '400': {description: Falta nombre o teléfono, parentesco desconocido o campos de más.}
+        '403': {description: Rol distinto de STUDENT o CSRF ausente.}
+        '404': {description: La cuenta no tiene una ficha de paciente vigente.}
   /api/me/notification-preferences:
     get:
       summary: Preferencias propias de recordatorios de bandeja
@@ -426,6 +495,7 @@ paths:
         - {in: query, name: to, schema: {type: string, format: date}}
         - {in: query, name: specialtyId, schema: {type: string, format: uuid}}
         - {in: query, name: encounterType, schema: {type: string, enum: [INITIAL, SPECIALTY]}}
+        - {in: query, name: sex, description: 'A-01: deja fuera a los pacientes sin sexo registrado', schema: {type: string, enum: [FEMALE, MALE, NOT_RECORDED]}}
         - {in: query, name: diagnosis, schema: {type: string, maxLength: 200}}
         - {in: query, name: search, schema: {type: string, maxLength: 200}}
         - {in: query, name: allergies, description: Array JSON de hasta 15 textos (200 caracteres); todos deben coincidir, schema: {type: string}}
@@ -434,11 +504,11 @@ paths:
         - {in: query, name: positiveHabits, description: 'Array JSON con tobacco/alcohol/physicalActivity; todos deben ser SI', schema: {type: string}}
         - in: query
           name: columns
-          description: 'Array JSON ordenado, no vacío y sin duplicados: closed_at, patient_name, carnet, encounter_type, specialty_name, diagnoses, allergies, background_summary, habits, chief_complaint, assessment, instructions, follow_up_text, birth_date, specialty_history.'
+          description: 'Array JSON ordenado, no vacío y sin duplicados: closed_at, patient_name, carnet, encounter_type, specialty_name, diagnoses, allergies, background_summary, habits, chief_complaint, assessment, instructions, follow_up_text, birth_date, specialty_history, sex (FEMALE, MALE, NOT_RECORDED o null si nunca se registró).'
           schema: {type: string}
         - in: query
           name: groupBy
-          description: 'Array JSON de cero a dos dimensiones distintas: day, month, encounterType, specialty. day y month no se combinan.'
+          description: 'Array JSON de cero a dos dimensiones distintas: day, month, encounterType, specialty, sex. day y month no se combinan.'
           schema: {type: string}
       responses:
         '200':
@@ -535,7 +605,7 @@ paths:
                 filters:
                   type: object
                   description: Los filtros canónicos del GET, con listas JSON reales. Admite null para filtros ausentes.
-                columns: {type: array, minItems: 1, maxItems: 15, items: {type: string}, description: Columnas permitidas del GET en orden; omisión incluye las quince}
+                columns: {type: array, minItems: 1, maxItems: 16, items: {type: string}, description: Columnas permitidas del GET en orden; omisión incluye las dieciséis}
                 groupBy: {type: array, maxItems: 2, items: {type: string}, description: Mismas dimensiones y restricciones del GET}
       responses:
         '200':
@@ -699,13 +769,17 @@ paths:
                 patientId: {type: [string, 'null'], format: uuid}
                 referralId: {type: [string, 'null'], format: uuid}
                 specialtyId: {type: [string, 'null'], format: uuid}
+                consents: {$ref: '#/components/schemas/ConsentAnswer'}
       responses:
         '201': {description: 'Contrato heredado: {ok:true,data:{id:uuid}}'}
-        '400': {description: Parámetros ausentes o inválidos}
+        '400': {description: Parámetros ausentes o inválidos, o consents incompleto (sin aceptar términos o sin elegir Sí/No)}
         '401': {description: Sesión requerida}
         '403': {description: Rol o CSRF sin permiso}
         '404': {description: Paciente no disponible para solicitar derivación}
-        '409': {description: REFERRAL no programable, otro paciente o solicitud pendiente duplicada; sin cambios parciales}
+        '409': {description: 'REFERRAL no programable, otro paciente o solicitud pendiente duplicada; sin cambios parciales. También si consents trae versiones que ya no son las vigentes.'}
+        '422':
+          description: 'A-03: el paciente tiene la respuesta de consentimiento pendiente y no se envió consents. Solo con salud-u.consents.required=true (paso 3 de la puesta en marcha).'
+          content: {application/json: {schema: {$ref: '#/components/schemas/ConsentPendingError'}}}
   /api/appointment-requests/{requestId}/assign:
     post:
       summary: Asignar solicitud pendiente a un cupo compatible
@@ -1088,7 +1162,7 @@ paths:
         - {name: patientId, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         '200':
-          description: 'Conserva ok/data(patient,intake,clinicalBackground,encounters,diagnoses,documents,appointments,referrals). No ordena ni filtra por área en el cliente.'
+          description: 'Conserva ok/data(patient,intake,clinicalBackground,encounters,diagnoses,documents,appointments,referrals) y agrega emergencyContact (A-02, solo lectura). No ordena ni filtra por área en el cliente.'
           content: {application/json: {schema: {type: object, required: [ok, data], properties: {ok: {const: true}, data: {$ref: '#/components/schemas/LongitudinalHistory'}}}}}
         '401': {description: Sesión ausente o caducada.}
         '403': {description: Administración/estudiante/rol no clínico no reciben contenido clínico.}
@@ -1334,7 +1408,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PatientId'
       responses:
-        '200': {description: Paciente encontrado, content: {application/json: {schema: {$ref: '#/components/schemas/LegacyPatientSuccess'}}}}
+        '200': {description: 'Paciente encontrado. A-02: además de los campos del listado incluye emergencyContact (null si no tiene).', content: {application/json: {schema: {$ref: '#/components/schemas/LegacyPatientDetailSuccess'}}}}
         '404': {description: Estudiante no encontrado.}
     patch:
       summary: Actualiza un paciente sin cambiar su UUID
@@ -1723,6 +1797,8 @@ paths:
             X-Export-Row-Count: {schema: {type: integer, minimum: 0, maximum: 10000}}
             X-Content-SHA256: {schema: {type: string, pattern: '^[0-9a-f]{64}$'}}
             X-Pseudonym-Policy: {description: 'Versión y mes de política, p. ej. MONTHLY-V1;2026-10.', schema: {type: string}}
+            X-Excluded-Declined: {description: 'A-03: pacientes con atenciones dentro de los filtros que quedaron fuera por responder No a investigación.', schema: {type: integer, minimum: 0}}
+            X-Excluded-Unanswered: {description: 'A-03: pacientes con atenciones dentro de los filtros que quedaron fuera por no haber respondido la versión vigente.', schema: {type: integer, minimum: 0}}
           content:
             application/zip: {schema: {type: string, format: binary}}
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {schema: {type: string, format: binary}}
@@ -1737,7 +1813,7 @@ paths:
       parameters:
         - {name: exportId, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
-        '200': {description: 'Datos {id, purpose, filters, format, rowCount, policyVersion, policyMonth, sha256, createdAt} dentro del sobre {ok,data,error}.'}
+        '200': {description: 'Datos {id, purpose, filters, format, rowCount, policyVersion, policyMonth, sha256, createdAt, excludedDeclined, excludedUnanswered} dentro del sobre {ok,data,error}. Los conteos de excluidos son null en exportaciones anteriores a A-03.'}
         '403': {description: Sólo Administración o Responsable de Reportes.}
         '404': {description: No existe o pertenece a otro solicitante.}
 components:
@@ -2057,6 +2133,7 @@ components:
       required: [patient, intake, clinicalBackground, encounters, diagnoses, documents, appointments, referrals]
       properties:
         patient: {type: object, description: 'id/carnet/registrationCode/fullName/birthDate/phone/email; opcionales null.'}
+        emergencyContact: {oneOf: [{$ref: '#/components/schemas/EmergencyContact'}, {type: 'null'}], description: 'A-02: solo lectura, con la misma regla de acceso clínico de la ficha; null si no tiene.'}
         intake: {type: [object, 'null'], description: 'Resumen de antecedentes actual: allergies/chronic_conditions/current_medications/relevant_history son texto; emergency_contact_note null, recorded_at.'}
         clinicalBackground: {type: [object, 'null'], description: 'Versión global actual: id/versionNo/data/verificationStatus/recordedAt/recordedBy/changeReason. data canónica en español.'}
         encounters:
@@ -2200,6 +2277,13 @@ components:
         careerId: {type: string, format: uuid}
         academicPeriod: {type: string, maxLength: 30}
         enrollmentStart: {type: string, format: date}
+        sex: {type: string, enum: [FEMALE, MALE, NOT_RECORDED], description: 'A-01: opcional; al crear sin sex queda sin registrar y al actualizar sin sex conserva el valor'}
+        emergencyContact:
+          oneOf: [{$ref: '#/components/schemas/EmergencyContact'}, {type: 'null'}]
+          description: 'A-02: opcional. Ausente no lo toca; objeto lo crea o reemplaza; null en PATCH lo elimina (en POST equivale a no enviarlo). Si es inválido responde 400 y no se guarda nada del paciente. Cada cambio audita CONTACTO_EMERGENCIA_ACTUALIZADO sin nombre ni teléfono.'
+        consents:
+          allOf: [{$ref: '#/components/schemas/ConsentAnswer'}]
+          description: 'A-03: solo en POST. Opcional durante la puesta en marcha; si llega incompleto responde 400 y si las versiones no son vigentes 409, y en ambos casos no se crea el paciente.'
     LegacyPatient:
       type: object
       required: [id, carnet, registrationCode, fullName, academicStatus, createdAt, updatedAt]
@@ -2212,6 +2296,7 @@ components:
         phone: {type: [string, 'null']}
         email: {type: [string, 'null'], format: email}
         academicStatus: {type: string, enum: [ACTIVE, INACTIVE, GRADUATED, SUSPENDED]}
+        sex: {type: [string, 'null'], enum: [FEMALE, MALE, NOT_RECORDED, null], description: 'null si nunca se registró'}
         createdAt: {type: string, format: date-time}
         updatedAt: {type: string, format: date-time}
         career: {oneOf: [{$ref: '#/components/schemas/CatalogItem'}, {type: 'null'}]}
@@ -2229,6 +2314,75 @@ components:
       type: object
       required: [ok, data]
       properties: {ok: {type: boolean, const: true}, data: {$ref: '#/components/schemas/LegacyPatient'}}
+    LegacyPatientDetailSuccess:
+      type: object
+      required: [ok, data]
+      properties: {ok: {type: boolean, const: true}, data: {$ref: '#/components/schemas/LegacyPatientDetail'}}
+    LegacyPatientDetail:
+      allOf:
+        - {$ref: '#/components/schemas/LegacyPatient'}
+        - type: object
+          required: [emergencyContact]
+          properties:
+            emergencyContact: {oneOf: [{$ref: '#/components/schemas/EmergencyContact'}, {type: 'null'}]}
+    EmergencyContact:
+      type: object
+      description: 'A-02 (RF-02): uno por paciente. Lo ven Administración, el propio estudiante y, en solo lectura, los médicos con relación clínica. No aparece en reportes, investigación ni exportaciones.'
+      additionalProperties: false
+      required: [fullName, relationship, phone]
+      properties:
+        fullName: {type: string, minLength: 1, maxLength: 160}
+        relationship: {type: string, enum: [PARENT, SIBLING, PARTNER, GUARDIAN, OTHER_RELATIVE, OTHER]}
+        phone: {type: string, minLength: 1, maxLength: 40}
+    ConsentAnswer:
+      type: object
+      description: 'A-03: respuesta a los dos textos vigentes. termsAccepted debe ser true; researchAccepted es obligatorio y puede ser true o false (sin valor por defecto). Las versiones son las que se mostraron.'
+      required: [termsVersion, termsAccepted, researchVersion, researchAccepted]
+      properties:
+        termsVersion: {type: string}
+        termsAccepted: {type: boolean, const: true}
+        researchVersion: {type: string}
+        researchAccepted: {type: boolean}
+    ConsentItem:
+      type: object
+      required: [currentVersion, text, accepted, lastAnswer]
+      properties:
+        currentVersion: {type: string}
+        text: {type: string}
+        accepted: {type: [boolean, 'null'], description: 'Respuesta para la versión vigente; null si falta responderla.'}
+        lastAnswer:
+          oneOf:
+            - {type: 'null'}
+            - type: object
+              required: [version, accepted, channel, recordedAt]
+              properties:
+                version: {type: string}
+                accepted: {type: boolean}
+                channel: {type: string, enum: [PORTAL, ADMINISTRATION]}
+                recordedAt: {type: string, format: date-time}
+    ConsentStatusSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [pending, terms, research]
+          properties:
+            pending: {type: boolean}
+            terms: {$ref: '#/components/schemas/ConsentItem'}
+            research: {$ref: '#/components/schemas/ConsentItem'}
+    ConsentPendingError:
+      type: object
+      required: [ok, error, code]
+      properties:
+        ok: {type: boolean, const: false}
+        error: {type: string}
+        code: {type: string, const: CONSENTIMIENTO_PENDIENTE}
+    EmergencyContactSuccess:
+      type: object
+      required: [ok, data]
+      properties: {ok: {type: boolean, const: true}, data: {oneOf: [{$ref: '#/components/schemas/EmergencyContact'}, {type: 'null'}]}}
     LegacyPatientListSuccess:
       type: object
       required: [ok, data]
@@ -2488,7 +2642,8 @@ components:
             careerId: {type: string, format: uuid}
             specialtyId: {type: string, format: uuid}
             vaccineId: {type: string, format: uuid}
-        format: {type: string, enum: [CSV, XLSX], description: CSV produce ZIP con research-data.csv y dictionary.csv.}
+            sex: {type: string, enum: [FEMALE, MALE, NOT_RECORDED]}
+        format: {type: string, enum: [CSV, XLSX], description: 'CSV produce ZIP con research-data.csv y dictionary.csv. Columna sex: FEMALE, MALE, NOT_RECORDED o UNKNOWN.'}
     CsrfSuccess:
       type: object
       required: [ok, data, error]

@@ -35,6 +35,7 @@ class ReferralSchedulingRequestMvcTest {
     @MockBean JdbcTemplate jdbc;
     @MockBean DatabaseActorContext actors;
     @MockBean AuditWriter audit;
+    @MockBean bo.edu.uagrm.saludu.patients.application.ConsentService consentService;
     @MockBean AuthenticationService authenticationService;
     @MockBean SessionCookieService sessionCookieService;
     private UsernamePasswordAuthenticationToken admin(){

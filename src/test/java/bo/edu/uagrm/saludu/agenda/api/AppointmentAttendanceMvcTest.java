@@ -35,6 +35,7 @@ class AppointmentAttendanceMvcTest {
     @MockBean JdbcTemplate jdbc;
     @MockBean DatabaseActorContext actorContext;
     @MockBean AuditWriter audit;
+    @MockBean bo.edu.uagrm.saludu.patients.application.ConsentService consentService;
     @MockBean AuthenticationService authenticationService;
     @MockBean SessionCookieService sessionCookieService;
     private static final UUID ID = UUID.fromString("00000000-0000-4000-8000-000000000808");

@@ -108,7 +108,7 @@ class CaracterizacionFlujosIntegrationTest {
         catalogs = new CatalogService(runtimeJdbc, actors, audit);
         authentication = new AuthenticationService(runtimeJdbc, authProperties);
         availability = new AvailabilityService(runtimeJdbc, actors, audit, JSON);
-        requests = new AppointmentRequestController(runtimeJdbc, actors, audit);
+        requests = new AppointmentRequestController(runtimeJdbc, actors, audit, new bo.edu.uagrm.saludu.patients.application.ConsentService(runtimeJdbc, actors, JSON, false), JSON);
         assignments = new AppointmentAssignmentController(runtimeJdbc, actors, audit);
         medicalAppointments = new MedicalAppointmentController(runtimeJdbc, actors, audit);
         encounters = new MedicalEncounterController(runtimeJdbc, actors, audit, JSON);

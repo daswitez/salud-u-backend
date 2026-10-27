@@ -51,7 +51,7 @@ public class SecurityConfig {
                         // reenvíen de forma determinista en X-CSRF-TOKEN.
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/notifications", "/api/notifications/**", "/api/me/notification-preferences").authenticated()
+                        .requestMatchers("/api/notifications", "/api/notifications/**", "/api/me/notification-preferences", "/api/me/emergency-contact", "/api/me/consents").authenticated()
                         .requestMatchers("/api/administrative/referrals", "/api/medical/assigned-referrals/**").authenticated()
                         .requestMatchers("/api/medical/referrals", "/api/medical/referrals/**").authenticated()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/openapi/**", "/api/health", "/api/v1/security/csrf").permitAll()

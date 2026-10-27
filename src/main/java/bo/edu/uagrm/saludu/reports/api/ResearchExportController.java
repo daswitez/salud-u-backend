@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/research/exports")
 public class ResearchExportController {
-    private static final List<String> COLUMNS = List.of("research_pseudonym", "encounter_month", "age_band", "career_code", "academic_period", "encounter_type", "specialty_code", "diagnosis_count", "vaccination_dose_count");
+    private static final List<String> COLUMNS = List.of("research_pseudonym", "encounter_month", "age_band", "sex", "career_code", "academic_period", "encounter_type", "specialty_code", "diagnosis_count", "vaccination_dose_count");
     private static final Set<String> NUMERIC = Set.of("diagnosis_count", "vaccination_dose_count");
     private final JdbcTemplate jdbc; private final DatabaseActorContext actors; private final ObjectMapper json;
     public ResearchExportController(JdbcTemplate jdbc, DatabaseActorContext actors, ObjectMapper json) { this.jdbc = jdbc; this.actors = actors; this.json = json; }
@@ -50,20 +50,23 @@ public class ResearchExportController {
         String filters; byte[] file; List<Map<String, Object>> rows;
         try {
             filters = json.writeValueAsString(request.filters() == null ? Map.of() : request.filters());
-            rows = jdbc.query("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb)) limit 10001", (rs, ignored) -> { Map<String, Object> row = new LinkedHashMap<>(); row.put("research_pseudonym", rs.getString("seudonimo")); row.put("encounter_month", rs.getObject("mes_atencion", java.time.LocalDate.class)); row.put("age_band", rs.getString("rango_edad")); row.put("career_code", rs.getString("codigo_carrera")); row.put("academic_period", rs.getString("periodo_academico")); row.put("encounter_type", rs.getString("tipo_encuentro")); row.put("specialty_code", rs.getString("codigo_especialidad")); row.put("diagnosis_count", rs.getInt("cantidad_diagnosticos")); row.put("vaccination_dose_count", rs.getInt("cantidad_dosis_vacuna")); return row; }, filters);
+            rows = jdbc.query("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb)) limit 10001", (rs, ignored) -> { Map<String, Object> row = new LinkedHashMap<>(); row.put("research_pseudonym", rs.getString("seudonimo")); row.put("encounter_month", rs.getObject("mes_atencion", java.time.LocalDate.class)); row.put("age_band", rs.getString("rango_edad")); row.put("sex", rs.getString("sexo")); row.put("career_code", rs.getString("codigo_carrera")); row.put("academic_period", rs.getString("periodo_academico")); row.put("encounter_type", rs.getString("tipo_encuentro")); row.put("specialty_code", rs.getString("codigo_especialidad")); row.put("diagnosis_count", rs.getInt("cantidad_diagnosticos")); row.put("vaccination_dose_count", rs.getInt("cantidad_dosis_vacuna")); return row; }, filters);
         } catch (DataAccessException exception) { throw translated(exception); }
         catch (com.fasterxml.jackson.core.JsonProcessingException exception) { throw new AvailabilityException(400, "Los filtros de investigación no son válidos."); }
         if (rows.size() > 10000) throw new AvailabilityException(400, "La exportación supera 10.000 atenciones. Acota el período o agrega filtros.");
         try { file = request.format().equals("CSV") ? zipCsv(rows) : workbook(rows); }
         catch (Exception exception) { throw new AvailabilityException(500, "No se pudo generar el archivo completo. Puedes reintentar o elegir otro formato."); }
-        String sha256 = sha256(file); UUID exportId; String policy;
+        String sha256 = sha256(file); UUID exportId; String policy; String excluded;
         try {
             exportId = jdbc.queryForObject("select salud_u.registrar_exportacion_investigacion(?, cast(? as jsonb), ?, ?, ?)", UUID.class, request.purpose(), filters, request.format(), rows.size(), sha256);
             policy = jdbc.queryForObject("select (r ->> 'policyVersion') || ';' || (r ->> 'policyMonth') from salud_u.obtener_exportacion_investigacion(?) r", String.class, exportId);
+            // A-03: pacientes con atenciones dentro de los filtros que quedaron fuera por responder No o por no haber respondido.
+            excluded = jdbc.queryForObject("select (r ->> 'excludedDeclined') || ';' || (r ->> 'excludedUnanswered') from salud_u.obtener_exportacion_investigacion(?) r", String.class, exportId);
         } catch (DataAccessException exception) { throw translated(exception); }
         boolean csv = request.format().equals("CSV");
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=investigacion-" + exportId + (csv ? ".zip" : ".xlsx")).contentType(MediaType.parseMediaType(csv ? "application/zip" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-            .header("X-Export-Id", exportId.toString()).header("X-Export-Row-Count", Integer.toString(rows.size())).header("X-Content-SHA256", sha256).header("X-Pseudonym-Policy", policy).body(file);
+            .header("X-Export-Id", exportId.toString()).header("X-Export-Row-Count", Integer.toString(rows.size())).header("X-Content-SHA256", sha256).header("X-Pseudonym-Policy", policy)
+            .header("X-Excluded-Declined", excluded == null ? "0" : excluded.split(";")[0]).header("X-Excluded-Unanswered", excluded == null ? "0" : excluded.split(";")[1]).body(file);
     }
 
     /** Constancia de una exportación propia para confirmar finalidad, filtros y archivo después de recargar. */
@@ -93,6 +96,7 @@ public class ResearchExportController {
         entry("research_pseudonym", "Seudónimo MONTHLY-V1 (R- y 20 caracteres): estable para un mismo estudiante durante el mes calendario de exportación en Bolivia y rota al mes siguiente. No se exporta clave de reidentificación."),
         entry("encounter_month", "Primer día del mes (hora de Bolivia) en que se cerró la atención; nunca la fecha exacta."),
         entry("age_band", "Edad al cierre de la atención: UNDER_20, 20_24, 25_29, 30_PLUS o UNKNOWN si no hay fecha de nacimiento."),
+        entry("sex", "Sexo registrado: FEMALE, MALE, NOT_RECORDED (no lo declaró) o UNKNOWN si nunca se registró."),
         entry("career_code", "Código de la carrera de la matrícula vigente al cierre; UNKNOWN si no había matrícula."),
         entry("academic_period", "Período académico de esa matrícula; UNKNOWN si no había matrícula."),
         entry("encounter_type", "INITIAL (revisión médica) o SPECIALTY (atención de especialidad)."),

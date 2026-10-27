@@ -4,6 +4,9 @@ import bo.edu.uagrm.saludu.agenda.application.AvailabilityException;
 import bo.edu.uagrm.saludu.governance.application.AuditWriter;
 import bo.edu.uagrm.saludu.governance.domain.AuditOutcome;
 import bo.edu.uagrm.saludu.identity.infrastructure.SessionPrincipal;
+import bo.edu.uagrm.saludu.patients.application.ConsentAnswer;
+import bo.edu.uagrm.saludu.patients.application.ConsentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import bo.edu.uagrm.saludu.shared.persistence.DatabaseActor;
 import bo.edu.uagrm.saludu.shared.persistence.DatabaseActorContext;
 import java.util.LinkedHashMap;
@@ -30,11 +33,24 @@ public class AppointmentRequestController {
     private final JdbcTemplate jdbc;
     private final DatabaseActorContext actorContext;
     private final AuditWriter audit;
+    private final ConsentService consents;
+    private final ObjectMapper json;
 
-    public AppointmentRequestController(JdbcTemplate jdbc, DatabaseActorContext actorContext, AuditWriter audit) {
+    public AppointmentRequestController(JdbcTemplate jdbc, DatabaseActorContext actorContext, AuditWriter audit, ConsentService consents, ObjectMapper json) {
         this.jdbc = jdbc;
         this.actorContext = actorContext;
         this.audit = audit;
+        this.consents = consents;
+        this.json = json;
+    }
+
+    /** A-03: registra la respuesta si llegó en "consents" y, cuando la obligación está activa, exige que no quede pendiente. */
+    private void requireConsents(Map<String, Object> body, SessionPrincipal principal, UUID patientId) {
+        Object raw = body.get("consents");
+        ConsentAnswer answer;
+        try { answer = raw == null ? null : json.convertValue(raw, ConsentAnswer.class); }
+        catch (IllegalArgumentException exception) { throw new AvailabilityException(400, "La respuesta de consentimiento no es válida."); }
+        consents.recordAndRequire(principal, patientId, answer);
     }
 
     private void applyActor(SessionPrincipal principal) {
@@ -87,6 +103,7 @@ public class AppointmentRequestController {
             if (!(raw instanceof String referralId) || referralId.isBlank()) throw new AvailabilityException(400, "Selecciona una derivación.");
             if (!(body.get("patientId") instanceof String patientValue) || patientValue.isBlank()) throw new AvailabilityException(400,"Selecciona el estudiante de la derivación.");
             if (body.get("specialtyId") instanceof String value && !value.isBlank()) throw new AvailabilityException(400,"La especialidad se obtiene de la derivación.");
+            requireConsents(body, principal, UUID.fromString(patientValue));
             UUID saved;
             try { saved = jdbc.queryForObject("select salud_u.crear_solicitud_derivacion(?,?)", UUID.class, UUID.fromString(referralId), UUID.fromString(patientValue)); }
             catch(DataAccessException exception) {
@@ -105,6 +122,7 @@ public class AppointmentRequestController {
             if (!(body.get("specialtyId") instanceof String specialtyValue) || specialtyValue.isBlank()) throw new AvailabilityException(400, "Selecciona una especialidad.");
             UUID patientId = UUID.fromString(patientValue);
             UUID specialtyId = UUID.fromString(specialtyValue);
+            requireConsents(body, principal, patientId);
             UUID saved = jdbc.queryForObject("select salud_u.crear_solicitud_especialidad_directa(?, ?)", UUID.class, patientId, specialtyId);
             audit.append("SOLICITUD_CITA_ESPECIALIDAD_CREADA", "solicitud_cita", saved, AuditOutcome.SUCCESS, Map.of("patientId", patientId.toString(), "specialtyId", specialtyId.toString()));
             return org.springframework.http.ResponseEntity.status(201).body(LegacyAvailabilityResponse.success(Map.of("id", saved)));
@@ -114,6 +132,7 @@ public class AppointmentRequestController {
         if (body.get("patientId") instanceof String value && !value.isBlank()) patientId = UUID.fromString(value);
         if (principal.roles().contains("STUDENT") && patientId != null) throw new AvailabilityException(403, "Una estudiante sólo puede solicitar su propia atención.");
         if (principal.roles().contains("ADMINISTRATIVE") && patientId == null) throw new AvailabilityException(400, "Selecciona un estudiante para crear la solicitud.");
+        requireConsents(body, principal, patientId);
         UUID saved = jdbc.queryForObject("select salud_u.crear_solicitud_inicial(?)", UUID.class, patientId);
         audit.append("SOLICITUD_CITA_CREADA", "solicitud_cita", saved, AuditOutcome.SUCCESS, Map.of());
         return org.springframework.http.ResponseEntity.status(201).body(LegacyAvailabilityResponse.success(Map.of("id", saved)));

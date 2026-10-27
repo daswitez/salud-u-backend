@@ -73,6 +73,13 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(LegacyPatientResponse.failure(exception.getMessage()));
     }
 
+    /** A-03: misma forma {ok, error} con un código estable para que la pantalla abra el diálogo de consentimiento. */
+    @ExceptionHandler(bo.edu.uagrm.saludu.patients.application.ConsentPendingException.class)
+    ResponseEntity<Map<String, Object>> consentPending(bo.edu.uagrm.saludu.patients.application.ConsentPendingException exception) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("ok", false, "error", exception.getMessage(),
+            "code", bo.edu.uagrm.saludu.patients.application.ConsentPendingException.CODE));
+    }
+
     @ExceptionHandler(AvailabilityException.class)
     ResponseEntity<LegacyAvailabilityResponse<Void>> availability(AvailabilityException exception) {
         return ResponseEntity.status(exception.status()).body(LegacyAvailabilityResponse.failure(exception.getMessage()));
