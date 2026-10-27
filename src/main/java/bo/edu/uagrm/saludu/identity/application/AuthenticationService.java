@@ -39,7 +39,7 @@ public class AuthenticationService {
             sha256(token),
             OffsetDateTime.ofInstant(expiresAt, ZoneOffset.UTC)
         );
-        if (rows.size() != 1 || !"AUTHENTICATED".equals(rows.getFirst().status())) {
+        if (rows.size() != 1 || !"AUTENTICADO".equals(rows.getFirst().status())) {
             throw new InvalidCredentialsException();
         }
         AuthenticationRow row = rows.getFirst();
@@ -54,7 +54,7 @@ public class AuthenticationService {
             "select * from salud_u.resolver_sesion_autenticacion(?)",
             (resultSet, rowNumber) -> new SessionPrincipal(
                 resultSet.getObject("id_principal", UUID.class),
-                resultSet.getString("email"),
+                resultSet.getString("correo"),
                 resultSet.getString("nombre_mostrado"),
                 roles(resultSet)
             ),
@@ -71,16 +71,16 @@ public class AuthenticationService {
 
     private static AuthenticationRow authenticationRow(ResultSet resultSet) throws SQLException {
         return new AuthenticationRow(
-            resultSet.getString("autenticacion_status"),
+            resultSet.getString("estado_autenticacion"),
             resultSet.getObject("id_principal", UUID.class),
-            resultSet.getString("email"),
+            resultSet.getString("correo"),
             resultSet.getString("nombre_mostrado"),
             roles(resultSet)
         );
     }
 
     private static List<String> roles(ResultSet resultSet) throws SQLException {
-        java.sql.Array array = resultSet.getArray("rols");
+        java.sql.Array array = resultSet.getArray("roles");
         if (array == null) {
             return List.of();
         }

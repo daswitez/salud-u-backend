@@ -27,7 +27,7 @@ public class AuditWriter {
                 action,
                 resourceType,
                 resourceId,
-                outcome.name(),
+                switch (outcome) { case SUCCESS -> "EXITO"; case DENIED -> "DENEGADO"; case FAILURE -> "FALLO"; },
                 json
             );
         } catch (JsonProcessingException exception) {

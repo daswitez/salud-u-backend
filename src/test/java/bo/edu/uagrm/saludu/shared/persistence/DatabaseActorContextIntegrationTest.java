@@ -47,7 +47,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class DatabaseActorContextIntegrationTest {
     @Test void reviewReferralIsAtomicSharesOnlyItsOriginAndCanBeReadOnlyByIssuer() throws Exception {
         UUID doctor=UUID.randomUUID(),staff=UUID.randomUUID(),otherDoctor=UUID.randomUUID(),otherStaff=UUID.randomUUID(),patient=UUID.randomUUID(),otherPatient=UUID.randomUUID(),specialty=UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,'fe13-review@example.invalid','Revisión FE13'),(?,'fe13-other@example.invalid','Ajeno FE13')",doctor,otherDoctor);
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,'fe13-review@example.invalid','Revisión FE13'),(?,'fe13-other@example.invalid','Ajeno FE13')",doctor,otherDoctor);
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'MEDICO_REVISION'),(?,'MEDICO_REVISION')",doctor,otherDoctor);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,'FE13-REVIEW'),(?,?,'FE13-OTHER')",staff,doctor,otherStaff,otherDoctor);
         migratorJdbc.update("insert into salud_u.especialidad(id,codigo,nombre) values (?,'FE13-TEST','Especialidad FE13')",specialty);
@@ -59,11 +59,11 @@ class DatabaseActorContextIntegrationTest {
             UUID slot=UUID.randomUUID();appointments[i]=UUID.randomUUID();encounters[i]=UUID.randomUUID();
             migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?,?,now()+interval '10 days',now()+interval '10 days 30 minutes',1,'PUBLICADO',now(),?)",slot,staff,doctor);
             migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para) values (?,?,?,'INICIAL',?,now()+interval '10 days')",appointments[i],i==2?otherPatient:patient,slot,staff);
-            migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro) values (?,?,?,?,'INITIAL')",encounters[i],appointments[i],i==2?otherPatient:patient,staff);
+            migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro) values (?,?,?,?,'INICIAL')",encounters[i],appointments[i],i==2?otherPatient:patient,staff);
         }
         UUID[] documents={UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID()};
-        for(int i=0;i<3;i++)migratorJdbc.update("insert into salud_u.documento_clinico(id,id_paciente,id_encuentro,tipo_documento,estado,ruta_objeto,nombre_original,tipo_mime,tamano_bytes,checksum_sha256,cargado_por,disponible_en) values (?,?,?,'OTHER','AVAILABLE',?,?,'application/pdf',10,?,?,now())",documents[i],i==2?otherPatient:patient,encounters[i],"fe13/"+documents[i],"Documento "+i,"a".repeat(64),doctor);
-        migratorJdbc.update("insert into salud_u.documento_clinico(id_paciente,id_encuentro,tipo_documento,ruta_objeto,nombre_original,tipo_mime,cargado_por) values (?,?,'OTHER','fe13/pendiente','No disponible','application/pdf',?)",patient,encounters[0],doctor);
+        for(int i=0;i<3;i++)migratorJdbc.update("insert into salud_u.documento_clinico(id,id_paciente,id_encuentro,tipo_documento,estado,ruta_objeto,nombre_original,tipo_mime,tamano_bytes,checksum_sha256,cargado_por,disponible_en) values (?,?,?,'OTRO','DISPONIBLE',?,?,'application/pdf',10,?,?,now())",documents[i],i==2?otherPatient:patient,encounters[i],"fe13/"+documents[i],"Documento "+i,"a".repeat(64),doctor);
+        migratorJdbc.update("insert into salud_u.documento_clinico(id_paciente,id_encuentro,tipo_documento,ruta_objeto,nombre_original,tipo_mime,cargado_por) values (?,?,'OTRO','fe13/pendiente','No disponible','application/pdf',?)",patient,encounters[0],doctor);
         migratorJdbc.update("insert into salud_u.diagnostico_encuentro(id_encuentro,texto_libre,creado_por) values (?,'Diagnóstico de otra atención',?),(?,'Diagnóstico de otro paciente',?)",encounters[1],doctor,encounters[2],doctor);
         var owner=new SessionPrincipal(doctor,"fe13-review@example.invalid","Revisión FE13",java.util.List.of("REVIEW_DOCTOR"));
         var outsider=new SessionPrincipal(otherDoctor,"fe13-other@example.invalid","Ajeno FE13",java.util.List.of("REVIEW_DOCTOR"));
@@ -83,7 +83,7 @@ class DatabaseActorContextIntegrationTest {
         assertEquals("Diagnóstico compartido",detail.path("diagnoses").get(0).path("label").asText());
         assertEquals(1,transaction.execute(status->reader.list(owner).data()).size());assertTrue(transaction.execute(status->reader.list(outsider).data()).isEmpty());
         assertEquals(404,assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->reader.get(referral,outsider))).status());
-        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_anterior is null and estado_nuevo='PENDING_ASSIGNMENT' and id_actor=?",Integer.class,referral,doctor));
+        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_anterior is null and estado_nuevo='PENDIENTE_ASIGNACION' and id_actor=?",Integer.class,referral,doctor));
         assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='DERIVACION_EMITIDA' and id_recurso=? and id_actor=?",Integer.class,referral,doctor));
         Map<String,Object> plain=Map.of("chiefComplaint","Sin derivación","assessment","Control","reviewHistory",Map.of());
         var plainResult=transaction.execute(status->controller.finalizeEncounter(encounters[1],plain,owner)).getBody().data();
@@ -93,7 +93,7 @@ class DatabaseActorContextIntegrationTest {
         migratorJdbc.execute("CREATE TRIGGER fallo_fe13 AFTER INSERT ON salud_u.derivacion FOR EACH ROW EXECUTE FUNCTION salud_u.fallo_fe13()");
         try {
             assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->controller.finalizeEncounter(encounters[3],body,owner)));
-            assertEquals("DRAFT",migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?",String.class,encounters[3]));
+            assertEquals("BORRADOR",migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?",String.class,encounters[3]));
             assertEquals("PROGRAMADA",migratorJdbc.queryForObject("select estado from salud_u.cita where id=?",String.class,appointments[3]));
             assertEquals(0,migratorJdbc.queryForObject("select count(*) from salud_u.ficha_revision_version where id_encuentro=?",Integer.class,encounters[3]));
             assertEquals(0,migratorJdbc.queryForObject("select count(*) from salud_u.diagnostico_encuentro where id_encuentro=?",Integer.class,encounters[3]));
@@ -195,14 +195,14 @@ class DatabaseActorContextIntegrationTest {
         availabilityClinicianId = UUID.randomUUID();
         availabilityStaffId = UUID.randomUUID();
         migratorJdbc.update("insert into salud_u.carrera(id, codigo, nombre) values (?, ?, ?)", patientCareerId, "MED", "Medicina");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", clinicianId, "clinician@example.invalid", "Clínico sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", auditorId, "auditor@example.invalid", "Auditor sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", studentId, "student@example.invalid", "Estudiante sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", lockedStudentId, "locked@example.invalid", "Estudiante limitado");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", concurrentStudentId, "concurrent@example.invalid", "Estudiante concurrente");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", administratorId, "administrator@example.invalid", "Administrativo sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", profileStudentId, "profile@example.invalid", "Perfil sintético");
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", availabilityClinicianId, "availability-doctor@example.invalid", "Médico disponibilidad");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", clinicianId, "clinician@example.invalid", "Clínico sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", auditorId, "auditor@example.invalid", "Auditor sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", studentId, "student@example.invalid", "Estudiante sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", lockedStudentId, "locked@example.invalid", "Estudiante limitado");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", concurrentStudentId, "concurrent@example.invalid", "Estudiante concurrente");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", administratorId, "administrator@example.invalid", "Administrativo sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", profileStudentId, "profile@example.invalid", "Perfil sintético");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", availabilityClinicianId, "availability-doctor@example.invalid", "Médico disponibilidad");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(salud_u.desde_codigo_api('rol', ?) as salud_u.codigo_rol_aplicacion))", studentId, "STUDENT");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(salud_u.desde_codigo_api('rol', ?) as salud_u.codigo_rol_aplicacion))", lockedStudentId, "STUDENT");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(salud_u.desde_codigo_api('rol', ?) as salud_u.codigo_rol_aplicacion))", concurrentStudentId, "STUDENT");
@@ -400,7 +400,7 @@ class DatabaseActorContextIntegrationTest {
         assertEquals(profileStudentId, authenticationService.login("profile-updated@example.invalid", "profile-new-password").principal().id());
 
         assertEquals(2, migratorJdbc.queryForObject(
-            "select count(*) from salud_u.evento_auditoria where id_actor = ? and accion in ('PROFILE_UPDATED', 'PASSWORD_CHANGED')", Integer.class, profileStudentId
+            "select count(*) from salud_u.evento_auditoria where id_actor = ? and accion in ('PERFIL_ACTUALIZADO', 'CONTRASENA_CAMBIADA')", Integer.class, profileStudentId
         ));
     }
 
@@ -427,10 +427,43 @@ class DatabaseActorContextIntegrationTest {
         ));
         assertEquals(patientId, updatedId);
         assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.historia_clinica where id_paciente = ?", Integer.class, patientId));
-        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.inscripcion_academica where id_paciente = ? and estado = 'ACTIVE'", Integer.class, patientId));
+        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.inscripcion_academica where id_paciente = ? and estado = 'ACTIVA'", Integer.class, patientId));
         assertFalse(migratorJdbc.queryForObject(
             "select has_table_privilege('salud_u_runtime', 'salud_u.paciente', 'SELECT, INSERT, UPDATE, DELETE')", Boolean.class
         ));
+    }
+
+    @Test
+    void spanishPatientDomainsKeepApiCodesAndEmailWhilePreservingEnrollmentRules() {
+        var administrator = new SessionPrincipal(administratorId, "administrator@example.invalid", "Administrativo", java.util.List.of("ADMINISTRATIVE"));
+        String suffix = UUID.randomUUID().toString();
+        UUID patient = transaction.execute(status -> patientService.create(administrator,
+            new PatientService.PatientCommand("ES07-" + suffix, "REG-ES07-" + suffix, "Paciente", "ES07", null, null,
+                "  ES07@EXAMPLE.INVALID  ", patientCareerId, "ES07-2026", LocalDate.now())));
+        assertEquals("es07@example.invalid", migratorJdbc.queryForObject("select correo from salud_u.paciente where id=?", String.class, patient));
+        assertEquals("ACTIVO", migratorJdbc.queryForObject("select estado_academico from salud_u.paciente where id=?", String.class, patient));
+        for (var entry : Map.of("ACTIVO", "ACTIVE", "INACTIVO", "INACTIVE", "EGRESADO", "GRADUATED", "SUSPENDIDO", "SUSPENDED").entrySet()) {
+            migratorJdbc.update("update salud_u.paciente set estado_academico=? where id=?", entry.getKey(), patient);
+            var detail = transaction.execute(status -> patientService.get(administrator, patient).orElseThrow());
+            assertEquals(entry.getValue(), detail.academicStatus());
+            assertEquals("es07@example.invalid", detail.email());
+            var listed = transaction.execute(status -> patientService.list(administrator, "ES07-" + suffix));
+            assertEquals(entry.getValue(), listed.stream().filter(item -> item.id().equals(patient)).findFirst().orElseThrow().academicStatus());
+        }
+        for (var entry : Map.of("ACTIVA", "ACTIVE", "INACTIVA", "INACTIVE", "COMPLETADA", "COMPLETED").entrySet()) {
+            migratorJdbc.update("update salud_u.inscripcion_academica set estado=? where id_paciente=?", entry.getKey(), patient);
+            assertEquals(entry.getValue(), transaction.execute(status -> patientService.get(administrator, patient).orElseThrow().enrollment().status()));
+        }
+        assertThrows(DataAccessException.class, () -> migratorJdbc.update("update salud_u.paciente set estado_academico='ACTIVE' where id=?", patient));
+        assertThrows(DataAccessException.class, () -> migratorJdbc.update("update salud_u.inscripcion_academica set estado='ACTIVE' where id_paciente=?", patient));
+        transaction.executeWithoutResult(status -> patientService.update(administrator, patient,
+            new PatientService.PatientCommand("ES07-" + suffix, "REG-ES07-" + suffix, "Paciente", "ES07", null, null,
+                null, patientCareerId, "ES07-2027", LocalDate.now())));
+        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.inscripcion_academica where id_paciente=? and estado='ACTIVA'", Integer.class, patient));
+        org.junit.jupiter.api.Assertions.assertNull(transaction.execute(status -> patientService.get(administrator, patient).orElseThrow().email()));
+        assertThrows(DataAccessException.class, () -> migratorJdbc.update(
+            "insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en) values (?,?,'ES07-duplicada',current_date)", patient, patientCareerId));
+        assertEquals(0, migratorJdbc.queryForObject("select count(*) from information_schema.columns where table_schema='salud_u' and table_name in ('paciente','principal') and column_name='email'", Integer.class));
     }
 
     @Test
@@ -497,6 +530,39 @@ class DatabaseActorContextIntegrationTest {
     }
 
     @Test
+    void documentTypeCatalogStoresKnownApiCodesInSpanishAndKeepsCustomCodes() {
+        String save = "select salud_u.guardar_catalogo_administracion(?, ?, ?, ?, ?)";
+        UUID[] ids = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            return new UUID[] {
+                runtimeJdbc.queryForObject(save, UUID.class, "DOCUMENT_TYPE", null, "blood_chemistry", "Química sanguínea", true),
+                runtimeJdbc.queryForObject(save, UUID.class, "DOCUMENT_TYPE", null, "ECOGRAFIA", "Ecografía", true)
+            };
+        });
+        try {
+            assertEquals("QUIMICA_SANGUINEA", migratorJdbc.queryForObject("select codigo from salud_u.tipo_documento where id=?", String.class, ids[0]));
+            assertEquals("ECOGRAFIA", migratorJdbc.queryForObject("select codigo from salud_u.tipo_documento where id=?", String.class, ids[1]));
+            transaction.executeWithoutResult(status -> {
+                actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+                assertEquals(java.util.List.of("ECOGRAFIA", "BLOOD_CHEMISTRY"), runtimeJdbc.queryForList(
+                    "select codigo from salud_u.listar_catalogo('DOCUMENT_TYPE') where id = any(?)", String.class, (Object) ids));
+                assertEquals(ids[0], runtimeJdbc.queryForObject(save, UUID.class, "DOCUMENT_TYPE", ids[0], "BLOOD_CHEMISTRY", "Química sanguínea", false));
+                assertEquals(java.util.List.of("ECOGRAFIA", "BLOOD_CHEMISTRY"), runtimeJdbc.queryForList(
+                    "select codigo from salud_u.listar_catalogo_administracion('DOCUMENT_TYPE') where id = any(?)", String.class, (Object) ids));
+            });
+            for (String kind : new String[] {"TIPO_DOCUMENTO", "OTRA", ""}) {
+                var error = assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+                    actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+                    runtimeJdbc.queryForList("select codigo from salud_u.listar_catalogo(?)", String.class, kind);
+                }));
+                assertTrue(error.getMessage().contains("Tipo de catálogo no válido"), error.getMessage());
+            }
+        } finally {
+            migratorJdbc.update("delete from salud_u.tipo_documento where id = any(?)", (Object) ids);
+        }
+    }
+
+    @Test
     void reviewDoctorFinalizesStructuredRecordPersistsClinicalDataAndCannotCloseItTwice() throws Exception {
         UUID principalId = UUID.randomUUID();
         UUID personalId = UUID.randomUUID();
@@ -505,7 +571,7 @@ class DatabaseActorContextIntegrationTest {
         UUID appointmentId = UUID.randomUUID();
         UUID encounterId = UUID.randomUUID();
         UUID backgroundId = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", principalId, "be10-doctor@example.invalid", "Médico BE-10");
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", principalId, "be10-doctor@example.invalid", "Médico BE-10");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, 'MEDICO_REVISION')", principalId);
         migratorJdbc.update("insert into salud_u.personal(id, id_principal, codigo_personal) values (?, ?, ?)", personalId, principalId, "BE10-DOCTOR");
         migratorJdbc.update("insert into salud_u.paciente(id, carnet, carnet_normalizado, codigo_registro, codigo_registro_normalizado, nombres, apellidos, creado_por, actualizado_por) values (?, 'BE10-01', 'BE1001', 'REG-BE10', 'REGBE10', 'Paciente', 'Prueba', ?, ?)", patientId, principalId, principalId);
@@ -513,7 +579,7 @@ class DatabaseActorContextIntegrationTest {
         migratorJdbc.update("insert into salud_u.version_antecedente_clinico(id, id_paciente, numero_version, datos, registrado_por, motivo_cambio) values (?, ?, 1, cast(? as jsonb), ?, 'Ingreso inicial')", backgroundId, patientId, "{\"schemaVersion\":1,\"allergies\":[],\"personalConditions\":[],\"surgeries\":[],\"medications\":[],\"familyHistory\":[],\"habits\":{}}", principalId);
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id, id_personal, inicia_a, termina_a, capacidad, estado, publicado_en, creado_por) values (?, ?, now() + interval '1 day', now() + interval '1 day 30 minutes', 1, 'PUBLICADO', now(), ?)", slotId, personalId, principalId);
         migratorJdbc.update("insert into salud_u.cita(id, id_paciente, id_cupo, tipo_cita, id_personal_asignado, programada_para) values (?, ?, ?, 'INICIAL', ?, now() + interval '1 day')", appointmentId, patientId, slotId, personalId);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id, id_cita, id_paciente, id_personal, tipo_encuentro, id_version_antecedente_clinico) values (?, ?, ?, ?, 'INITIAL', ?)", encounterId, appointmentId, patientId, personalId, backgroundId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id, id_cita, id_paciente, id_personal, tipo_encuentro, id_version_antecedente_clinico) values (?, ?, ?, ?, 'INICIAL', ?)", encounterId, appointmentId, patientId, personalId, backgroundId);
 
         String reviewHistory = "{\"schemaVersion\":1,\"personalHistory\":{},\"habits\":{},\"vitals\":{\"bloodPressureSystolic\":\"120\",\"heartRate\":\"72\",\"weight\":\"70.5\"},\"physicalExam\":{},\"laboratory\":{},\"conduct\":{}}";
         assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
@@ -521,7 +587,7 @@ class DatabaseActorContextIntegrationTest {
             runtimeJdbc.queryForObject("select salud_u.finalizar_encuentro_revision(?, ?, ?, ?, ?, ?, ?, cast(? as jsonb))", String.class,
                 encounterId, "Control clínico", "Evaluación estable", null, null, "ATTACHED", null, reviewHistory);
         }));
-        assertEquals("DRAFT", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id = ?", String.class, encounterId));
+        assertEquals("BORRADOR", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id = ?", String.class, encounterId));
         assertEquals(0, migratorJdbc.queryForObject("select count(*) from salud_u.ficha_revision_version where id_encuentro = ?", Integer.class, encounterId));
         transaction.executeWithoutResult(status -> {
             actorContext.apply(new DatabaseActor(principalId, java.util.Set.of("REVIEW_DOCTOR")));
@@ -532,7 +598,7 @@ class DatabaseActorContextIntegrationTest {
             assertTrue(result.contains("\"reviewHistoryVersion\": 1"));
         });
 
-        assertEquals("CLOSED", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id = ?", String.class, encounterId));
+        assertEquals("CERRADA", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id = ?", String.class, encounterId));
         assertEquals("ATENDIDA", migratorJdbc.queryForObject("select estado from salud_u.cita where id = ?", String.class, appointmentId));
         assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_cita where id_cita = ? and estado_nuevo = 'ATENDIDA'", Integer.class, appointmentId));
         assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.ficha_revision_version where id_encuentro = ?", Integer.class, encounterId));
@@ -541,7 +607,7 @@ class DatabaseActorContextIntegrationTest {
         UUID secondSlot=UUID.randomUUID(),secondAppointment=UUID.randomUUID(),secondEncounter=UUID.randomUUID();
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?,?,now()+interval '2 days',now()+interval '2 days 30 minutes',1,'PUBLICADO',now(),?)",secondSlot,personalId,principalId);
         migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para) values (?,?,?,'INICIAL',?,now()+interval '2 days')",secondAppointment,patientId,secondSlot,personalId);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro) values (?,?,?,?,'INITIAL')",secondEncounter,secondAppointment,patientId,personalId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro) values (?,?,?,?,'INICIAL')",secondEncounter,secondAppointment,patientId,personalId);
         var controller=new bo.edu.uagrm.saludu.agenda.api.MedicalEncounterController(runtimeJdbc,actorContext,auditWriter,new ObjectMapper());
         var owner=new SessionPrincipal(principalId,"be10-doctor@example.invalid","Médico BE-10",java.util.List.of("REVIEW_DOCTOR"));
         CountDownLatch closeStart=new CountDownLatch(1);
@@ -581,15 +647,15 @@ class DatabaseActorContextIntegrationTest {
         UUID slotId = UUID.randomUUID();
         UUID appointmentId = UUID.randomUUID();
         UUID encounterId = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?)", principalId, "be11-owner@example.invalid", "Médico propietario");
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?)", otherPrincipalId, "be11-other@example.invalid", "Médico ajeno");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?)", principalId, "be11-owner@example.invalid", "Médico propietario");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?)", otherPrincipalId, "be11-other@example.invalid", "Médico ajeno");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?, 'MEDICO_REVISION'), (?, 'MEDICO_REVISION')", principalId, otherPrincipalId);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,?), (?,?,?)", personalId, principalId, "BE11-OWNER", otherPersonalId, otherPrincipalId, "BE11-OTHER");
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?, 'BE11-01','BE1101','REG-BE11','REGBE11','Paciente','Documento',?,?)", patientId, principalId, principalId);
         migratorJdbc.update("insert into salud_u.historia_clinica(id_paciente,abierta_por) values (?,?)", patientId, principalId);
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, now()+interval '1 day', now()+interval '1 day 30 minutes',1,'PUBLICADO',now(),?)", slotId, personalId, principalId);
         migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para) values (?, ?, ?, 'INICIAL', ?, now()+interval '1 day')", appointmentId, patientId, slotId, personalId);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro) values (?, ?, ?, ?, 'INITIAL')", encounterId, appointmentId, patientId, personalId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro) values (?, ?, ?, ?, 'INICIAL')", encounterId, appointmentId, patientId, personalId);
         Path root = Files.createTempDirectory("salud-u-be11-");
         ClinicalDocumentService documents = new ClinicalDocumentService(runtimeJdbc, actorContext, auditWriter, root.toString());
         SessionPrincipal owner = new SessionPrincipal(principalId, "be11-owner@example.invalid", "Médico propietario", java.util.List.of("REVIEW_DOCTOR"));
@@ -601,7 +667,7 @@ class DatabaseActorContextIntegrationTest {
         assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->documents.list(outsider,encounterId)));
         assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->documents.upload(outsider,patientId,encounterId,"OTHER",null,null,new MockMultipartFile("file","ajeno.pdf","application/pdf",pdf))));
 
-        assertEquals("AVAILABLE", migratorJdbc.queryForObject("select estado from salud_u.documento_clinico where id=?", String.class, documentId));
+        assertEquals("DISPONIBLE", migratorJdbc.queryForObject("select estado from salud_u.documento_clinico where id=?", String.class, documentId));
         assertEquals(64, migratorJdbc.queryForObject("select length(checksum_sha256) from salud_u.documento_clinico where id=?", Integer.class, documentId));
         String path = migratorJdbc.queryForObject("select ruta_objeto from salud_u.documento_clinico where id=?", String.class, documentId);
         assertTrue(Files.isRegularFile(root.resolve(path)));
@@ -634,7 +700,7 @@ class DatabaseActorContextIntegrationTest {
         var migratorTransaction=new TransactionTemplate(new DataSourceTransactionManager(migratorJdbc.getDataSource()));
         try(var pool=Executors.newFixedThreadPool(2)) {
             var closing=pool.submit(()->migratorTransaction.execute(status->{
-                migratorJdbc.update("update salud_u.encuentro_clinico set estado='CLOSED',cerrado_en=now(),cerrado_por=? where id=?",principalId,encounterId);locked.countDown();
+                migratorJdbc.update("update salud_u.encuentro_clinico set estado='CERRADA',cerrado_en=now(),cerrado_por=? where id=?",principalId,encounterId);locked.countDown();
                 try{assertTrue(release.await(5,TimeUnit.SECONDS));}catch(InterruptedException exception){throw new RuntimeException(exception);}return true;
             }));
             try {
@@ -673,7 +739,7 @@ class DatabaseActorContextIntegrationTest {
         var invalid=assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->controller.save(patient,Map.of("data",Map.of("allergies",Map.of("status","PRESENT","items",java.util.List.of())),"expectedVersion",1,"changeReason","Lista vacía"),owner)));
         assertEquals(400,invalid.status());
         assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.version_antecedente_clinico where id_paciente=?",Integer.class,patient));
-        migratorJdbc.update("update salud_u.encuentro_clinico set estado='CLOSED',cerrado_en=now(),cerrado_por=? where id=?",owner.id(),encounter);
+        migratorJdbc.update("update salud_u.encuentro_clinico set estado='CERRADA',cerrado_en=now(),cerrado_por=? where id=?",owner.id(),encounter);
         transaction.execute(status->controller.save(patient,Map.of("data",draft,"expectedVersion",1,"changeReason","Actualización global posterior"),owner));
         var closed=transaction.execute(status->controller.get(patient,encounter,owner).data());
         assertEquals(2,closed.path("current").path("versionNo").asInt());assertEquals(1,closed.path("encounter").path("versionNo").asInt());
@@ -688,7 +754,7 @@ class DatabaseActorContextIntegrationTest {
         assertEquals(3,migratorJdbc.queryForObject("select count(*) from salud_u.version_antecedente_clinico where id_paciente=?",Integer.class,patient));
         assertEquals(checksum,migratorJdbc.queryForObject("select md5(datos::text) from salud_u.version_antecedente_clinico where id=?",String.class,first.get("id")));
         UUID outsider=UUID.randomUUID(),staff=UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,'fe03-outsider@example.invalid','Ajeno FE03')",outsider);
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,'fe03-outsider@example.invalid','Ajeno FE03')",outsider);
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'MEDICO_REVISION')",outsider);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,'FE03-AJENO')",staff,outsider);
         var other=new SessionPrincipal(outsider,"fe03-outsider@example.invalid","Ajeno",java.util.List.of("REVIEW_DOCTOR"));
@@ -700,7 +766,7 @@ class DatabaseActorContextIntegrationTest {
     void administrativeAccountListingMapsActualSqlColumnsAndEmptyRevokedOrMultipleRoles() {
         var service = new bo.edu.uagrm.saludu.catalogs.application.CatalogService(runtimeJdbc, actorContext, auditWriter);
         UUID withoutRoles = UUID.randomUUID(), revoked = UUID.randomUUID(), multiple = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado,activo) values (?,'fecat-empty@example.invalid','FE-CAT A',false),(?,'fecat-revoked@example.invalid','FE-CAT B',true),(?,'fecat-multiple@example.invalid','FE-CAT C',true)", withoutRoles, revoked, multiple);
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado,activo) values (?,'fecat-empty@example.invalid','FE-CAT A',false),(?,'fecat-revoked@example.invalid','FE-CAT B',true),(?,'fecat-multiple@example.invalid','FE-CAT C',true)", withoutRoles, revoked, multiple);
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol,revocado_en) values (?,'ESTUDIANTE',now()),(?,'MEDICO_REVISION',null),(?,'ESPECIALISTA',null)", revoked, multiple, multiple);
         var administrator = new SessionPrincipal(administratorId, "administrator@example.invalid", "Admin", java.util.List.of("ADMINISTRATIVE"));
         var accounts = transaction.execute(status -> service.principals(administrator));
@@ -718,7 +784,7 @@ class DatabaseActorContextIntegrationTest {
     void medicalDraftOpeningIsConcurrentIdempotentAndOwnedWithCompleteAgendaContract() throws Exception {
         UUID patient = UUID.randomUUID(), slot = UUID.randomUUID(), appointment = UUID.randomUUID();
         UUID outsider = UUID.randomUUID(), outsiderStaff = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,'fe09-outsider@example.invalid','Médico ajeno')", outsider);
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,'fe09-outsider@example.invalid','Médico ajeno')", outsider);
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'MEDICO_REVISION')", outsider);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,'FE09-OUTSIDER')", outsiderStaff, outsider);
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?,'FE09-OWN','FE09OWN','REG-FE09','REGFE09','Paciente','FE09',?,?)", patient, administratorId, administratorId);
@@ -859,15 +925,15 @@ class DatabaseActorContextIntegrationTest {
         UUID incompatibleSlotId = UUID.randomUUID();
         UUID compatibleSlotId = UUID.randomUUID();
 
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?),(?,?,?)", sourcePrincipalId, "be14-source@example.invalid", "Médico origen", specialistPrincipalId, "be14-specialist@example.invalid", "Especialista destino");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?),(?,?,?)", sourcePrincipalId, "be14-source@example.invalid", "Médico origen", specialistPrincipalId, "be14-specialist@example.invalid", "Especialista destino");
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,?),(?,?,?)", sourceStaffId, sourcePrincipalId, "BE14-SOURCE", specialistStaffId, specialistPrincipalId, "BE14-SPECIALIST");
         migratorJdbc.update("insert into salud_u.especialidad(id,codigo,nombre,activo) values (?, 'BE14-SPECIALTY', 'Especialidad BE-14', true),(?, 'BE14-OTHER', 'Otra especialidad', true)", specialtyId, otherSpecialtyId);
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?, 'BE14-01','BE1401','REG-BE14','REGBE14','Paciente','Derivación',?,?)", patientId, sourcePrincipalId, sourcePrincipalId);
         migratorJdbc.update("insert into salud_u.historia_clinica(id_paciente,abierta_por) values (?,?)", patientId, sourcePrincipalId);
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, now()+interval '2 days', now()+interval '2 days 30 minutes',1,'PUBLICADO',now(),?)", sourceSlotId, sourceStaffId, sourcePrincipalId);
         migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para,estado) values (?, ?, ?, 'INICIAL', ?, now()+interval '2 days', 'ATENDIDA')", sourceAppointmentId, patientId, sourceSlotId, sourceStaffId);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado) values (?, ?, ?, ?, 'INITIAL', 'CLOSED')", sourceEncounterId, sourceAppointmentId, patientId, sourceStaffId);
-        migratorJdbc.update("insert into salud_u.derivacion(id,id_paciente,id_encuentro_origen,id_especialidad,prioridad,motivo,resumen_para_especialista,creada_por) values (?, ?, ?, ?, 'PRIORITY', 'Motivo BE-14', 'Resumen para especialista', ?)", referralId, patientId, sourceEncounterId, specialtyId, sourcePrincipalId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado) values (?, ?, ?, ?, 'INICIAL', 'CERRADA')", sourceEncounterId, sourceAppointmentId, patientId, sourceStaffId);
+        migratorJdbc.update("insert into salud_u.derivacion(id,id_paciente,id_encuentro_origen,id_especialidad,prioridad,motivo,resumen_para_especialista,creada_por) values (?, ?, ?, ?, 'PRIORITARIA', 'Motivo BE-14', 'Resumen para especialista', ?)", referralId, patientId, sourceEncounterId, specialtyId, sourcePrincipalId);
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,id_especialidad,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, ?, now()+interval '3 days', now()+interval '3 days 30 minutes',1,'PUBLICADO',now(),?),(?, ?, ?, now()+interval '4 days', now()+interval '4 days 30 minutes',1,'PUBLICADO',now(),?)", incompatibleSlotId, specialistStaffId, otherSpecialtyId, specialistPrincipalId, compatibleSlotId, specialistStaffId, specialtyId, specialistPrincipalId);
 
         String originalSource=migratorJdbc.queryForObject("select to_jsonb(e)::text from salud_u.encuentro_clinico e where id=?",String.class,sourceEncounterId);
@@ -898,22 +964,22 @@ class DatabaseActorContextIntegrationTest {
             var a=pool.submit(assign);var b=pool.submit(assign);startAssign.countDown();assertEquals(java.util.Set.of(200,409),java.util.Set.of(a.get(10,TimeUnit.SECONDS),b.get(10,TimeUnit.SECONDS)));
         }
         UUID appointmentId=assigned.get();
-        assertEquals("ASSIGNED", migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?", String.class, referralId));
+        assertEquals("ASIGNADA", migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?", String.class, referralId));
         assertEquals(referralId, migratorJdbc.queryForObject("select id_derivacion from salud_u.cita where id=?", UUID.class, appointmentId));
         assertEquals(originalSource,migratorJdbc.queryForObject("select to_jsonb(e)::text from salud_u.encuentro_clinico e where id=?",String.class,sourceEncounterId));
         assertEquals(originalClinical,migratorJdbc.queryForObject("select (to_jsonb(d)-array['estado','id_personal_asignado','asignada_en'])::text from salud_u.derivacion d where id=?",String.class,referralId));
-        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_nuevo='ASSIGNED' and id_actor=?",Integer.class,referralId,administratorId));
+        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_nuevo='ASIGNADA' and id_actor=?",Integer.class,referralId,administratorId));
         assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='DERIVACION_PROGRAMADA' and id_actor=?",Integer.class,referralId,administratorId));
         var referrals=new bo.edu.uagrm.saludu.referrals.api.ReferralController(runtimeJdbc,actorContext,auditWriter);
         assertTrue(transaction.execute(status->referrals.inbox(admin)).data().stream().anyMatch(item->item.get("id").equals(referralId)&&item.get("status").equals("ASSIGNED")&&item.get("appointment_id").equals(appointmentId)));
-        migratorJdbc.update("update salud_u.derivacion set estado='CLOSED' where id=?",referralId);
+        migratorJdbc.update("update salud_u.derivacion set estado='CERRADA' where id=?",referralId);
         assertEquals(409,assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->creator.create(body,admin))).status());
         assertTrue(transaction.execute(status->referrals.patient(patientId,admin)).data().stream().noneMatch(item->item.get("id").equals(referralId)));
         assertTrue(transaction.execute(status->referrals.inbox(admin)).data().stream().anyMatch(item->item.get("id").equals(referralId)&&item.get("status").equals("CLOSED")));
-        migratorJdbc.update("update salud_u.derivacion set estado='ASSIGNED' where id=?",referralId);
+        migratorJdbc.update("update salud_u.derivacion set estado='ASIGNADA' where id=?",referralId);
         assertEquals("ESPECIALIDAD", migratorJdbc.queryForObject("select tipo_cita from salud_u.cita where id=?", String.class, appointmentId));
         assertEquals(1, migratorJdbc.queryForObject("select cantidad_reservada from salud_u.cupo_disponibilidad where id=?", Integer.class, compatibleSlotId));
-        assertEquals("CLOSED", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?", String.class, sourceEncounterId));
+        assertEquals("CERRADA", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?", String.class, sourceEncounterId));
         assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
             actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
             runtimeJdbc.queryForObject("select salud_u.asignar_solicitud_cita(?,?)", UUID.class, requestId, compatibleSlotId);
@@ -922,8 +988,8 @@ class DatabaseActorContextIntegrationTest {
         migratorJdbc.update("insert into salud_u.especialidad_personal(id_personal,id_especialidad,vigente_desde) values (?,?,current_date)",specialistStaffId,specialtyId);
         UUID specialized=transaction.execute(status -> { actorContext.apply(new DatabaseActor(specialistPrincipalId,java.util.Set.of("SPECIALIST"))); return runtimeJdbc.queryForObject("select id_encuentro from salud_u.abrir_encuentro_borrador(?)",UUID.class,appointmentId); });
         assertEquals(specialized,transaction.execute(status -> { actorContext.apply(new DatabaseActor(specialistPrincipalId,java.util.Set.of("SPECIALIST"))); return runtimeJdbc.queryForObject("select id_encuentro from salud_u.abrir_encuentro_borrador(?)",UUID.class,appointmentId); }));
-        assertEquals("IN_PROGRESS",migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?",String.class,referralId));
-        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_nuevo='IN_PROGRESS'",Integer.class,referralId));
+        assertEquals("EN_CURSO",migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?",String.class,referralId));
+        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_nuevo='EN_CURSO'",Integer.class,referralId));
         var specialistSession=new SessionPrincipal(specialistPrincipalId,"be14-specialist@example.invalid","Especialista destino",java.util.List.of("SPECIALIST"));
         assertEquals(409,assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->referrals.resolve(referralId,Map.of("action","RESOLVE"),specialistSession))).status());
         var returnedBody=Map.<String,Object>of("action","RETURN","reason","Motivo de devolución","followUpText","Seguimiento");
@@ -931,18 +997,18 @@ class DatabaseActorContextIntegrationTest {
         assertEquals(403,assertThrows(bo.edu.uagrm.saludu.agenda.application.AvailabilityException.class,()->transaction.execute(status->referrals.resolve(referralId,returnedBody,specialistSession))).status());
         migratorJdbc.update("update salud_u.especialidad set activo=true where id=?",specialtyId);
         assertThrows(IllegalStateException.class,()->transaction.executeWithoutResult(status->{referrals.resolve(referralId,returnedBody,specialistSession);throw new IllegalStateException("Fallo posterior para comprobar rollback");}));
-        assertEquals("IN_PROGRESS",migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?",String.class,referralId));
+        assertEquals("EN_CURSO",migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?",String.class,referralId));
         assertEquals(0,migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='DERIVACION_DEVUELTA'",Integer.class,referralId));
         var startReturn=new CountDownLatch(1);
         try(var pool=Executors.newFixedThreadPool(2)){
             java.util.concurrent.Callable<Integer> change=()->{startReturn.await();try{transaction.execute(status->referrals.resolve(referralId,returnedBody,specialistSession));return 200;}catch(bo.edu.uagrm.saludu.agenda.application.AvailabilityException exception){return exception.status();}};
             var a=pool.submit(change);var b=pool.submit(change);startReturn.countDown();assertEquals(java.util.Set.of(200,403),java.util.Set.of(a.get(10,TimeUnit.SECONDS),b.get(10,TimeUnit.SECONDS)));
         }
-        assertEquals("RETURNED",migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?",String.class,referralId));
+        assertEquals("DEVUELTA",migratorJdbc.queryForObject("select estado from salud_u.derivacion where id=?",String.class,referralId));
         assertEquals("Motivo de devolución",migratorJdbc.queryForObject("select motivo_devolucion from salud_u.derivacion where id=?",String.class,referralId));
         assertEquals("Seguimiento",migratorJdbc.queryForObject("select seguimiento from salud_u.derivacion where id=?",String.class,referralId));
         assertEquals(specialistPrincipalId,migratorJdbc.queryForObject("select devuelta_por from salud_u.derivacion where id=?",UUID.class,referralId));
-        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_nuevo='RETURNED' and id_actor=?",Integer.class,referralId,specialistPrincipalId));
+        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_estado_derivacion where id_derivacion=? and estado_nuevo='DEVUELTA' and id_actor=?",Integer.class,referralId,specialistPrincipalId));
         assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='DERIVACION_DEVUELTA' and id_actor=?",Integer.class,referralId,specialistPrincipalId));
         assertEquals(originalSource,migratorJdbc.queryForObject("select to_jsonb(e)::text from salud_u.encuentro_clinico e where id=?",String.class,sourceEncounterId));
     }
@@ -952,7 +1018,7 @@ class DatabaseActorContextIntegrationTest {
         UUID specialist = UUID.randomUUID(), outsider = UUID.randomUUID(), specialistStaff = UUID.randomUUID(), outsiderStaff = UUID.randomUUID();
         UUID patient = UUID.randomUUID(), specialty = UUID.randomUUID(), slot = UUID.randomUUID(), appointment = UUID.randomUUID();
         UUID template = UUID.randomUUID(), replacementTemplate = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?),(?,?,?)", specialist,"be15-specialist@example.invalid","Especialista BE-15",outsider,"be15-outsider@example.invalid","Ajeno BE-15");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?),(?,?,?)", specialist,"be15-specialist@example.invalid","Especialista BE-15",outsider,"be15-outsider@example.invalid","Ajeno BE-15");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'ESPECIALISTA'),(?,'ESPECIALISTA')", specialist,outsider);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,?),(?,?,?)", specialistStaff,specialist,"BE15-OWN",outsiderStaff,outsider,"BE15-OTHER");
         migratorJdbc.update("insert into salud_u.especialidad(id,codigo,nombre,activo) values (?, 'BE15-CARDIO', 'Cardiología BE-15', true)", specialty);
@@ -971,7 +1037,7 @@ class DatabaseActorContextIntegrationTest {
         migratorJdbc.update("update salud_u.cita set estado='AUSENTE' where id=?",appointment);
         assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(specialist,java.util.Set.of("SPECIALIST"))); runtimeJdbc.queryForObject("select salud_u.finalizar_encuentro_especialidad(?,?,?,?,?,?,cast(? as jsonb))",String.class,encounter,"Motivo","Evaluación","Plan","Control","Diagnóstico",history); }));
         assertEquals(0,migratorJdbc.queryForObject("select count(*) from salud_u.version_ficha_especialidad where id_encuentro=?",Integer.class,encounter));
-        assertEquals("DRAFT",migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?",String.class,encounter));
+        assertEquals("BORRADOR",migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?",String.class,encounter));
         assertEquals(0,migratorJdbc.queryForObject("select count(*) from salud_u.diagnostico_encuentro where id_encuentro=?",Integer.class,encounter));
         migratorJdbc.update("update salud_u.cita set estado='PROGRAMADA' where id=?",appointment);
         migratorJdbc.update("update salud_u.especialidad set activo=false where id=?",specialty);
@@ -985,7 +1051,7 @@ class DatabaseActorContextIntegrationTest {
         assertEquals(specialist,migratorJdbc.queryForObject("select cerrado_por from salud_u.encuentro_clinico where id=?",UUID.class,encounter));
         assertTrue(result.contains("specialtyHistoryVersion"));
         assertTrue(migratorJdbc.queryForObject("select jsonb_exists(datos,'codigoEspecialidad') AND jsonb_exists(datos,'ginecologia') AND NOT jsonb_exists(datos,'specialtyCode') from salud_u.version_ficha_especialidad where id_encuentro=?",Boolean.class,encounter));
-        assertEquals("CLOSED", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?", String.class, encounter));
+        assertEquals("CERRADA", migratorJdbc.queryForObject("select estado from salud_u.encuentro_clinico where id=?", String.class, encounter));
         assertEquals("ATENDIDA", migratorJdbc.queryForObject("select estado from salud_u.cita where id=?", String.class, appointment));
         assertEquals(template, migratorJdbc.queryForObject("select id_plantilla from salud_u.version_ficha_especialidad where id_encuentro=?", UUID.class, encounter));
         migratorJdbc.update("update salud_u.plantilla_ficha_especialidad set activa=false where id=?", template);
@@ -1014,9 +1080,9 @@ class DatabaseActorContextIntegrationTest {
         assertTrue(peerHistory.contains(encounter.toString()));
         assertTrue(peerHistory.contains("specialtyHistoryVersion"));
         UUID doc=UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.documento_clinico(id,id_paciente,id_encuentro,tipo_documento,estado,ruta_objeto,nombre_original,tipo_mime,tamano_bytes,checksum_sha256,cargado_por,disponible_en) values (?,?,?,'OTHER','AVAILABLE','be17/doc','Documento de área','application/pdf',10,?,?,now())",doc,patient,encounter,"a".repeat(64),specialist);
+        migratorJdbc.update("insert into salud_u.documento_clinico(id,id_paciente,id_encuentro,tipo_documento,estado,ruta_objeto,nombre_original,tipo_mime,tamano_bytes,checksum_sha256,cargado_por,disponible_en) values (?,?,?,'OTRO','DISPONIBLE','be17/doc','Documento de área','application/pdf',10,?,?,now())",doc,patient,encounter,"a".repeat(64),specialist);
         assertEquals("Documento de área",transaction.execute(status->{actorContext.apply(new DatabaseActor(outsider,java.util.Set.of("SPECIALIST")));return runtimeJdbc.queryForObject("select nombre_original from salud_u.obtener_documento_autorizado(?)",String.class,doc);}));
-        migratorJdbc.update("with nuevas as (insert into salud_u.cita(id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para,estado) select ?,?,'ESPECIALIDAD',?,now(),'ATENDIDA' from generate_series(1,1000) returning id) insert into salud_u.encuentro_clinico(id_cita,id_paciente,id_personal,tipo_encuentro,id_especialidad,estado,motivo_consulta,evaluacion) select id,?,?,'SPECIALTY',?,'CLOSED','Registro sintético de búsqueda','Evaluación de prueba' from nuevas",patient,slot,specialistStaff,patient,specialistStaff,specialty);
+        migratorJdbc.update("with nuevas as (insert into salud_u.cita(id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para,estado) select ?,?,'ESPECIALIDAD',?,now(),'ATENDIDA' from generate_series(1,1000) returning id) insert into salud_u.encuentro_clinico(id_cita,id_paciente,id_personal,tipo_encuentro,id_especialidad,estado,motivo_consulta,evaluacion) select id,?,?,'ESPECIALIDAD',?,'CERRADA','Registro sintético de búsqueda','Evaluación de prueba' from nuevas",patient,slot,specialistStaff,patient,specialistStaff,specialty);
         String originalClinical=migratorJdbc.queryForObject("select to_jsonb(e)::text from salud_u.encuentro_clinico e where id=?",String.class,encounter);
         UUID requestKey=UUID.randomUUID();
         var gate=new CountDownLatch(1);var amendmentIds=new java.util.ArrayList<UUID>();
@@ -1067,7 +1133,7 @@ class DatabaseActorContextIntegrationTest {
     void clinicalReportCombinesListsHistoricalSnapshotsAndBoliviaDatesWithRoleScope() throws Exception {
         UUID doctor=UUID.randomUUID(),peer=UUID.randomUUID(),reporter=UUID.randomUUID(),staff=UUID.randomUUID(),peerStaff=UUID.randomUUID(),patient=UUID.randomUUID(),slot=UUID.randomUUID(),background=UUID.randomUUID();
         String seed=UUID.randomUUID().toString().substring(0,8);
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?),(?,?,?),(?,?,?)",doctor,"fe21."+seed+"@example.invalid","Revisión FE21",peer,"fe21.peer."+seed+"@example.invalid","Colega FE21",reporter,"fe21.reports."+seed+"@example.invalid","Reportes FE21");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?),(?,?,?),(?,?,?)",doctor,"fe21."+seed+"@example.invalid","Revisión FE21",peer,"fe21.peer."+seed+"@example.invalid","Colega FE21",reporter,"fe21.reports."+seed+"@example.invalid","Reportes FE21");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'MEDICO_REVISION'),(?,'MEDICO_REVISION'),(?,'RESPONSABLE_REPORTES')",doctor,peer,reporter);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,?),(?,?,?)",staff,doctor,"FE21-"+seed,peerStaff,peer,"FE21-P-"+seed);
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?,?,?,?,?,'Paciente','FE21',?,?)",patient,"FE21-"+seed,"FE21"+seed,"REGFE21"+seed,"REGFE21"+seed,doctor,doctor);
@@ -1077,13 +1143,13 @@ class DatabaseActorContextIntegrationTest {
         var ids=new java.util.ArrayList<UUID>();String[] dates={"2055-01-15T03:59:59Z","2055-01-15T04:00:00Z","2055-01-16T03:59:59Z","2055-01-16T04:00:00Z"};
         for(int i=0;i<4;i++){UUID appointment=UUID.randomUUID(),encounter=UUID.randomUUID();ids.add(encounter);
             migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para,estado) values (?,?,?,'INICIAL',?,now(),'ATENDIDA')",appointment,patient,slot,i==3?peerStaff:staff);
-            migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,motivo_consulta,evaluacion,seguimiento,id_version_antecedente_clinico) values (?,?,?,?,'INITIAL','CLOSED',cast(? as timestamptz),'Síntoma FE21','Evaluación FE21','Seguimiento exclusivo FE21',?)",encounter,appointment,patient,i==3?peerStaff:staff,dates[i],background);
+            migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,motivo_consulta,evaluacion,seguimiento,id_version_antecedente_clinico) values (?,?,?,?,'INICIAL','CERRADA',cast(? as timestamptz),'Síntoma FE21','Evaluación FE21','Seguimiento exclusivo FE21',?)",encounter,appointment,patient,i==3?peerStaff:staff,dates[i],background);
             migratorJdbc.update("insert into salud_u.diagnostico_encuentro(id_encuentro,texto_libre,creado_por) values (?,'Diagnóstico Ácido FE21',?)",encounter,doctor);
         }
         var filters=Map.of("from","2055-01-15","to","2055-01-15","allergies",java.util.List.of("  penicilina  ","latex"),"histories",java.util.List.of("ASMA"),"positiveHabits",java.util.List.of("tobacco","physicalActivity"),"habitTerms",java.util.List.of("alimentacion: adecuada"),"diagnosis","acido","search","seguimiento exclusivo");
         var objectMapper=new ObjectMapper();String query=objectMapper.writeValueAsString(filters);
         var rows=transaction.execute(status->{actorContext.apply(new DatabaseActor(doctor,java.util.Set.of("REVIEW_DOCTOR")));return runtimeJdbc.queryForList("select * from salud_u.reporte_clinico_detallado(cast(? as jsonb))",query);});
-        assertEquals(java.util.List.of(ids.get(2),ids.get(1)),rows.stream().map(r->r.get("encounter_id")).toList());assertEquals("Penicilína · Látex",rows.getFirst().get("allergies"));assertTrue(rows.getFirst().get("background_summary").toString().contains("Antecedentes personales: Asma"));assertEquals(null,rows.getFirst().get("specialty_history"));
+        assertEquals(java.util.List.of(ids.get(2),ids.get(1)),rows.stream().map(r->r.get("id_encuentro")).toList());assertEquals("Penicilína · Látex",rows.getFirst().get("alergias"));assertTrue(rows.getFirst().get("resumen_antecedentes").toString().contains("Antecedentes personales: Asma"));assertEquals(null,rows.getFirst().get("ficha_especialidad"));
         String global="{\"from\":\"2055-01-14\",\"to\":\"2055-01-17\"}";
         assertEquals(4,transaction.<Integer>execute(status->{actorContext.apply(new DatabaseActor(reporter,java.util.Set.of("REPORTING_OFFICER")));return runtimeJdbc.queryForList("select * from salud_u.reporte_clinico_detallado(cast(? as jsonb))",global).size();}));
         assertEquals(1,transaction.<Integer>execute(status->{actorContext.apply(new DatabaseActor(peer,java.util.Set.of("REVIEW_DOCTOR")));return runtimeJdbc.queryForList("select * from salud_u.reporte_clinico_detallado(cast(? as jsonb))",global).size();}));
@@ -1096,7 +1162,7 @@ class DatabaseActorContextIntegrationTest {
         var principal=new SessionPrincipal(doctor,"fe22@example.invalid","Revisión FE22",java.util.List.of("REVIEW_DOCTOR"));
         var file=transaction.execute(status->{try{return service.export(request,principal);}catch(java.io.IOException exception){throw new AssertionError(exception);}});
         assertEquals(2,file.rowCount());assertEquals(64,file.sha256().length());assertEquals(doctor,migratorJdbc.queryForObject("select id_solicitante from salud_u.exportacion_reporte_clinico where id=?",UUID.class,file.id()));
-        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='CLINICAL_REPORT_EXPORTED'",Integer.class,file.id()));
+        assertEquals(1,migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='REPORTE_CLINICO_EXPORTADO'",Integer.class,file.id()));
         String receipt=transaction.execute(status->{actorContext.apply(new DatabaseActor(doctor,java.util.Set.of("REVIEW_DOCTOR")));return runtimeJdbc.queryForObject("select salud_u.obtener_exportacion_reporte(?)::text",String.class,file.id());});assertTrue(receipt.contains("COMPLETED"));assertTrue(receipt.contains("penicilina"));
         assertThrows(DataAccessException.class,()->transaction.executeWithoutResult(status->{actorContext.apply(new DatabaseActor(peer,java.util.Set.of("REVIEW_DOCTOR")));runtimeJdbc.queryForObject("select salud_u.obtener_exportacion_reporte(?)::text",String.class,file.id());}));
         assertFalse(runtimeJdbc.queryForObject("select has_table_privilege(current_user,'salud_u.exportacion_reporte_clinico','SELECT')",Boolean.class));
@@ -1111,14 +1177,14 @@ class DatabaseActorContextIntegrationTest {
         UUID compliant = UUID.randomUUID(), checkedIn = UUID.randomUUID(), absent = UUID.randomUUID();
         UUID slot = UUID.randomUUID(), closedAppointment = UUID.randomUUID(), checkedInAppointment = UUID.randomUUID(), absentAppointment = UUID.randomUUID(), closedEncounter = UUID.randomUUID(), draftEncounter = UUID.randomUUID();
         String period = "BE23-" + UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?),(?,?,?)", clinician,"be23-clinician@example.invalid","Clínico BE-23",reporting,"be23-reports@example.invalid","Reportes BE-23");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?),(?,?,?)", clinician,"be23-clinician@example.invalid","Clínico BE-23",reporting,"be23-reports@example.invalid","Reportes BE-23");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'MEDICO_REVISION'),(?,'RESPONSABLE_REPORTES')", clinician,reporting);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,?)", staff,clinician,"BE23-STAFF");
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?, 'BE23-C','BE23C','REG-BE23-C','REGBE23C','Cerrado','Cumple',?,?),(?, 'BE23-I','BE23I','REG-BE23-I','REGBE23I','Llegada','Pendiente',?,?),(?, 'BE23-A','BE23A','REG-BE23-A','REGBE23A','Ausencia','Pendiente',?,?)", compliant,clinician,clinician,checkedIn,clinician,clinician,absent,clinician,clinician);
-        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, ?, current_date - 1, 'ACTIVE'), (?, ?, ?, current_date - 1, 'ACTIVE'), (?, ?, ?, current_date - 1, 'ACTIVE')", compliant,patientCareerId,period,checkedIn,patientCareerId,period,absent,patientCareerId,period);
+        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, ?, current_date - 1, 'ACTIVA'), (?, ?, ?, current_date - 1, 'ACTIVA'), (?, ?, ?, current_date - 1, 'ACTIVA')", compliant,patientCareerId,period,checkedIn,patientCareerId,period,absent,patientCareerId,period);
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, now(), now()+interval '30 minutes',3,'PUBLICADO',now(),?)", slot,staff,clinician);
         migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,id_personal_asignado,programada_para,estado) values (?, ?, ?, 'INICIAL', ?, now(), 'ATENDIDA'), (?, ?, ?, 'INICIAL', ?, now(), 'LLEGADA'), (?, ?, ?, 'INICIAL', ?, now(), 'AUSENTE')", closedAppointment,compliant,slot,staff,checkedInAppointment,checkedIn,slot,staff,absentAppointment,absent,slot,staff);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en) values (?, ?, ?, ?, 'INITIAL','CLOSED',now()), (?, ?, ?, ?, 'INITIAL','DRAFT',null)", closedEncounter,closedAppointment,compliant,staff,draftEncounter,checkedInAppointment,checkedIn,staff);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en) values (?, ?, ?, ?, 'INICIAL','CERRADA',now()), (?, ?, ?, ?, 'INICIAL','BORRADOR',null)", closedEncounter,closedAppointment,compliant,staff,draftEncounter,checkedInAppointment,checkedIn,staff);
 
         var rows = transaction.execute(status -> {
             actorContext.apply(new DatabaseActor(reporting, java.util.Set.of("REPORTING_OFFICER")));
@@ -1134,7 +1200,7 @@ class DatabaseActorContextIntegrationTest {
         assertEquals(0, otherCareerRows.intValue());
         assertEquals(0, otherPeriodRows.intValue());
         assertTrue(hasClosedActivity);
-        migratorJdbc.update("update salud_u.inscripcion_academica set iniciado_en='2026-10-26',finalizado_en='2026-10-26',estado='INACTIVE' where id_paciente=?",compliant);
+        migratorJdbc.update("update salud_u.inscripcion_academica set iniciado_en='2026-10-26',finalizado_en='2026-10-26',estado='INACTIVA' where id_paciente=?",compliant);
         migratorJdbc.update("update salud_u.encuentro_clinico set cerrado_en='2026-10-27T03:59:59Z' where id=?",closedEncounter);
         var boundary=transaction.execute(status->{actorContext.apply(new DatabaseActor(reporting,java.util.Set.of("REPORTING_OFFICER")));return runtimeJdbc.queryForList("select * from salud_u.reporte_cumplimiento_institucional(?,?)",patientCareerId,period);});
         assertEquals("COMPLIANT",boundary.stream().filter(row->compliant.equals(row.get("id_paciente"))).findFirst().orElseThrow().get("estado_cumplimiento"));
@@ -1148,6 +1214,73 @@ class DatabaseActorContextIntegrationTest {
     }
 
     @Test
+    void spanishAuditCodesNormalizeHistoricalReadsAndFiltersWithoutChangingStoredEvidence() {
+        UUID actor = UUID.randomUUID(), resource = UUID.randomUUID(), historical = UUID.randomUUID();
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,'Actor ES08')", actor, "es08-" + actor + "@example.invalid");
+        migratorJdbc.update("insert into salud_u.evento_auditoria(id,id_actor,accion,tipo_recurso,id_recurso,resultado,detalles) values (?,?,'PATIENT_CREATED','patient',?,'EXITO','{}')", historical, actor, resource);
+        for (var outcome : AuditOutcome.values()) {
+            UUID id = transaction.execute(status -> {
+                actorContext.apply(new DatabaseActor(actor, java.util.Set.of("ADMINISTRATIVE")));
+                return auditWriter.append("PACIENTE_CREADO", "paciente", resource, outcome, Map.of());
+            });
+            String stored = switch (outcome) { case SUCCESS -> "EXITO"; case DENIED -> "DENEGADO"; case FAILURE -> "FALLO"; };
+            assertEquals(stored, migratorJdbc.queryForObject("select resultado::text from salud_u.evento_auditoria where id=?", String.class, id));
+        }
+        for (String action : java.util.List.of("PATIENT_CREATED", "PACIENTE_CREADO", "PATIENT_", "PACIENTE_")) {
+            for (String kind : java.util.List.of("patient", "paciente")) {
+                var rows = transaction.execute(status -> {
+                    actorContext.apply(new DatabaseActor(auditorId, java.util.Set.of("AUDITOR")));
+                    return runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria(null,null,?,?,?,null,100)", actor, action, kind);
+                });
+                assertEquals(4, rows.size(), action + "/" + kind);
+                assertTrue(rows.stream().allMatch(row -> "PACIENTE_CREADO".equals(row.get("accion")) && "paciente".equals(row.get("tipo_recurso"))));
+                assertEquals(java.util.Set.of("SUCCESS", "DENIED", "FAILURE"), rows.stream().map(row -> row.get("resultado")).collect(java.util.stream.Collectors.toSet()));
+            }
+        }
+        for (var outcome : AuditOutcome.values()) {
+            var rows = transaction.execute(status -> {
+                actorContext.apply(new DatabaseActor(auditorId, java.util.Set.of("AUDITOR")));
+                return runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria(null,null,?,null,null,?,100)", actor, outcome.name());
+            });
+            assertEquals(outcome == AuditOutcome.SUCCESS ? 2 : 1, rows.size());
+        }
+        assertEquals("PATIENT_CREATED/patient", migratorJdbc.queryForObject("select accion||'/'||tipo_recurso from salud_u.evento_auditoria where id=?", String.class, historical));
+        assertThrows(DataAccessException.class, () -> runtimeJdbc.update("update salud_u.evento_auditoria set accion='CAMBIADO' where id=?", historical));
+        assertThrows(DataAccessException.class, () -> runtimeJdbc.update("delete from salud_u.evento_auditoria where id=?", historical));
+        assertThrows(DataAccessException.class, () -> runtimeJdbc.queryForList("select * from salud_u.equivalencia_codigo_auditoria"));
+        assertThrows(DataAccessException.class, () -> runtimeJdbc.update("insert into salud_u.equivalencia_codigo_auditoria values ('X','Y')"));
+        UUID unknown = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(actor, java.util.Set.of("ADMINISTRATIVE")));
+            return auditWriter.append("ACCION_PROPIA_ES08", "recurso_propio", resource, AuditOutcome.SUCCESS, Map.of());
+        });
+        var unchanged = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(auditorId, java.util.Set.of("AUDITOR")));
+            return runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria(null,null,?,'ACCION_PROPIA_ES08','recurso_propio',null,100)", actor);
+        });
+        assertEquals(unknown, unchanged.getFirst().get("id"));
+        assertEquals("ACCION_PROPIA_ES08", unchanged.getFirst().get("accion"));
+    }
+
+    @Test
+    void failedReportExportStoresSpanishStateAndOutcomeWhileReceiptKeepsApiCode() throws Exception {
+        UUID id = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            return runtimeJdbc.queryForObject("select salud_u.registrar_exportacion_reporte('Prueba ES08','{}','[]','[]','CSV','FAILED',0,null)", UUID.class);
+        });
+        assertEquals("FALLIDA", migratorJdbc.queryForObject("select estado from salud_u.exportacion_reporte_clinico where id=?", String.class, id));
+        assertEquals("EXPORTACION_REPORTE_CLINICO_FALLIDA/FALLO", migratorJdbc.queryForObject("select accion||'/'||resultado::text from salud_u.evento_auditoria where id_recurso=?", String.class, id));
+        String receipt = transaction.execute(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            return runtimeJdbc.queryForObject("select salud_u.obtener_exportacion_reporte(?)::text", String.class, id);
+        });
+        assertEquals("FAILED", new ObjectMapper().readTree(receipt).path("state").asText());
+        assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
+            actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE")));
+            runtimeJdbc.queryForObject("select salud_u.registrar_exportacion_reporte('Prueba ES08','{}','[]','[]','CSV','COMPLETED',0,null)", UUID.class);
+        }));
+    }
+
+    @Test
     void auditorCanFilterAppendOnlyEventsWithoutReceivingSensitiveDetails() {
         UUID resourceId = UUID.randomUUID();
         transaction.executeWithoutResult(status -> {
@@ -1158,7 +1291,7 @@ class DatabaseActorContextIntegrationTest {
             actorContext.apply(new DatabaseActor(auditorId, java.util.Set.of("AUDITOR")));
             return runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria(?, ?, ?, ?, ?, ?, ?)", LocalDate.now(), LocalDate.now(), clinicianId, "record_read", "patient", "SUCCESS", 100);
         });
-        assertTrue(events.stream().anyMatch(event -> clinicianId.equals(event.get("id_actor")) && resourceId.equals(event.get("id_recurso")) && "CLINICAL_RECORD_READ".equals(event.get("accion"))));
+        assertTrue(events.stream().anyMatch(event -> clinicianId.equals(event.get("id_actor")) && resourceId.equals(event.get("id_recurso")) && "HISTORIA_CLINICA_CONSULTADA".equals(event.get("accion"))));
         assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> {
             actorContext.apply(new DatabaseActor(clinicianId, java.util.Set.of("REVIEW_DOCTOR")));
             runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria(null, null, null, null, null, null, 100)");
@@ -1167,7 +1300,7 @@ class DatabaseActorContextIntegrationTest {
             actorContext.apply(new DatabaseActor(clinicianId, java.util.Set.of("REVIEW_DOCTOR")));
             auditWriter.append("UNSAFE", "patient", resourceId, AuditOutcome.SUCCESS, Map.of("token", "never-store-this"));
         }));
-        UUID boundary=UUID.randomUUID();migratorJdbc.update("insert into salud_u.evento_auditoria(id,ocurrido_en,id_actor,accion,tipo_recurso,resultado,detalles) values (?,'2026-10-26T03:59:59Z',?,'FE24_BOUNDARY','audit_fixture','SUCCESS','{}')",boundary,clinicianId);
+        UUID boundary=UUID.randomUUID();migratorJdbc.update("insert into salud_u.evento_auditoria(id,ocurrido_en,id_actor,accion,tipo_recurso,resultado,detalles) values (?,'2026-10-26T03:59:59Z',?,'FE24_BOUNDARY','audit_fixture','EXITO','{}')",boundary,clinicianId);
         var dated=transaction.execute(status->{actorContext.apply(new DatabaseActor(auditorId,java.util.Set.of("AUDITOR")));return runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria_paginados(?,?,?,?,?,?,?,?,?,?)",LocalDate.parse("2026-10-25"),LocalDate.parse("2026-10-25"),clinicianId,"FE24_BOUNDARY",null,null,100,null,null,null);});assertEquals(java.util.List.of(boundary),dated.stream().map(r->r.get("id")).toList());
         var next=transaction.execute(status->{actorContext.apply(new DatabaseActor(auditorId,java.util.Set.of("AUDITOR")));return runtimeJdbc.queryForList("select * from salud_u.listar_eventos_auditoria_paginados(?,?,?,?,?,?,?,?,?,?)",(Object)null,null,clinicianId,"FE24_BOUNDARY",null,null,100,java.time.OffsetDateTime.parse("2026-10-26T03:59:59Z"),boundary,null);});assertTrue(next.isEmpty());
         assertFalse(runtimeJdbc.queryForObject("select has_table_privilege(current_user,'salud_u.evento_auditoria','UPDATE')",Boolean.class));assertFalse(runtimeJdbc.queryForObject("select has_table_privilege(current_user,'salud_u.evento_auditoria','DELETE')",Boolean.class));
@@ -1282,14 +1415,14 @@ class DatabaseActorContextIntegrationTest {
         assertTrue(applied.get("intervalJustification").isNull());
         assertTrue(reader.readTree(adminView).get("ownApplicatorStaffId").isNull());
         assertTrue(reader.readTree(adminView).get("applicators").size() >= 1);
-        assertEquals(2, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='VACCINATION_RECORD_READ' and id_recurso=?", Integer.class, own));
+        assertEquals(2, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='REGISTRO_VACUNACION_CONSULTADO' and id_recurso=?", Integer.class, own));
     }
 
     @Test
     void medicalAgendaKeepsActiveAppointmentsBeyondTwoHundredAndGetsOneById() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         UUID doctor = UUID.randomUUID(), staff = UUID.randomUUID(), patient = UUID.randomUUID(), upcoming = UUID.randomUUID(), upcomingSlot = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,'Médico con agenda larga')", doctor, "agenda-" + suffix + "@example.invalid");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,'Médico con agenda larga')", doctor, "agenda-" + suffix + "@example.invalid");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'MEDICO_REVISION')", doctor);
         migratorJdbc.update("insert into salud_u.personal(id,id_principal,codigo_personal) values (?,?,?)", staff, doctor, "AGENDA-" + suffix);
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?,?,?,?,?,'Paciente','Agenda',?,?)", patient, "AG-" + suffix, "AG" + suffix, "REG-AG-" + suffix, "REGAG" + suffix, administratorId, administratorId);
@@ -1389,10 +1522,10 @@ class DatabaseActorContextIntegrationTest {
     void vaccinationCardIsPrivateToStudentAndCoverageCountsEachEnrolledStudentOnce() {
         String suffix = UUID.randomUUID().toString().substring(0, 8), period = "2026-VAC-" + suffix;
         UUID student = UUID.randomUUID(), reporter = UUID.randomUUID(), patient = UUID.randomUUID(), pendingPatient = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?),(?,?,?)", student, "be27-student-" + suffix + "@example.invalid", "Estudiante BE-27", reporter, "be27-report-" + suffix + "@example.invalid", "Reportes BE-27");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?),(?,?,?)", student, "be27-student-" + suffix + "@example.invalid", "Estudiante BE-27", reporter, "be27-report-" + suffix + "@example.invalid", "Reportes BE-27");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'ESTUDIANTE'),(?,'RESPONSABLE_REPORTES')", student, reporter);
         migratorJdbc.update("insert into salud_u.paciente(id,id_principal,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,creado_por,actualizado_por) values (?,?, ?, ?, ?, ?, 'Estudiante','Vacunado',?,?),(?,null, ?, ?, ?, ?, 'Estudiante','Pendiente',?,?)", patient, student, "VC-" + suffix, "VC" + suffix, "REG-VC-" + suffix, "REGVC" + suffix, administratorId, administratorId, pendingPatient, "VP-" + suffix, "VP" + suffix, "REG-VP-" + suffix, "REGVP" + suffix, administratorId, administratorId);
-        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, ?, current_date, 'ACTIVE'), (?, ?, ?, current_date, 'ACTIVE')", patient, patientCareerId, period, pendingPatient, patientCareerId, period);
+        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, ?, current_date, 'ACTIVA'), (?, ?, ?, current_date, 'ACTIVA')", patient, patientCareerId, period, pendingPatient, patientCareerId, period);
         UUID vaccine = transaction.execute(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); return runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(null, ?, ?, true, cast(? as jsonb))", UUID.class, "VC-" + suffix, "Vacuna cobertura", "[{\"doseNumber\":1,\"minimumIntervalDays\":0}]"); });
         transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); runtimeJdbc.queryForObject("select id from salud_u.registrar_dosis_vacuna(?, ?, 1, current_date, 'CARD-1', ?, null)", UUID.class, patient, vaccine, availabilityStaffId); });
         transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); runtimeJdbc.queryForObject("select salud_u.guardar_vacuna_y_esquema(?, ?, ?, true, cast(? as jsonb))", UUID.class, vaccine, "VC-" + suffix, "Vacuna cobertura", "[{\"doseNumber\":1,\"minimumIntervalDays\":0}]"); });
@@ -1413,21 +1546,21 @@ class DatabaseActorContextIntegrationTest {
         assertFalse(adminCard.contains(unused.toString()));
         DataAccessException missing = assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); runtimeJdbc.queryForObject("select salud_u.obtener_carnet_vacunacion(null)::text", String.class); }));
         assertTrue(missing.getMostSpecificCause().getMessage().contains("PACIENTE_REQUERIDO"));
-        assertEquals(2, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='VACCINATION_CARD_READ' and id_recurso=?", Integer.class, patient));
-        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='VACCINATION_COVERAGE_READ' and id_actor=?", Integer.class, reporter));
+        assertEquals(2, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='CARNET_VACUNACION_CONSULTADO' and id_recurso=?", Integer.class, patient));
+        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where accion='COBERTURA_VACUNACION_CONSULTADA' and id_actor=?", Integer.class, reporter));
     }
 
     @Test
     void researchDatasetIsPseudonymizedAuditedAndRestricted() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         UUID reporter = UUID.randomUUID(), patient = UUID.randomUUID(), slot = UUID.randomUUID(), appointment = UUID.randomUUID(), encounter = UUID.randomUUID();
-        migratorJdbc.update("insert into salud_u.principal(id,email,nombre_mostrado) values (?,?,?)", reporter, "research-" + suffix + "@example.invalid", "Reportes investigación");
+        migratorJdbc.update("insert into salud_u.principal(id,correo,nombre_mostrado) values (?,?,?)", reporter, "research-" + suffix + "@example.invalid", "Reportes investigación");
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal,codigo_rol) values (?,'RESPONSABLE_REPORTES')", reporter);
         migratorJdbc.update("insert into salud_u.paciente(id,carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,fecha_nacimiento,creado_por,actualizado_por) values (?, 'CARNET-SECRETO', 'CARNETSECRETO" + suffix + "', 'REGISTRO-SECRETO', 'REGISTROSECRETO" + suffix + "', 'Nombre Reservado', 'Apellido Reservado', current_date - interval '22 years', ?, ?)", patient, administratorId, administratorId);
-        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, '2026-II', current_date - 1, 'ACTIVE')", patient, patientCareerId);
+        migratorJdbc.update("insert into salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado) values (?, ?, '2026-II', current_date - 1, 'ACTIVA')", patient, patientCareerId);
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, now()-interval '2 days', now()-interval '2 days'+interval '30 minutes', 1, 'CERRADO', now()-interval '3 days', ?)", slot, availabilityStaffId, availabilityClinicianId);
         migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,estado,id_personal_asignado,programada_para) values (?, ?, ?, 'INICIAL', 'ATENDIDA', ?, now()-interval '2 days')", appointment, patient, slot, availabilityStaffId);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,cerrado_por) values (?, ?, ?, ?, 'INITIAL', 'CLOSED', now()-interval '2 days', ?)", encounter, appointment, patient, availabilityStaffId, availabilityClinicianId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,cerrado_por) values (?, ?, ?, ?, 'INICIAL', 'CERRADA', now()-interval '2 days', ?)", encounter, appointment, patient, availabilityStaffId, availabilityClinicianId);
         migratorJdbc.update("insert into salud_u.diagnostico_encuentro(id_encuentro,texto_libre,creado_por) values (?, 'Nombre Reservado no debe salir', ?)", encounter, availabilityClinicianId);
         var first = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb))", "{}"); });
         var second = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select * from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb))", "{}"); });
@@ -1438,7 +1571,7 @@ class DatabaseActorContextIntegrationTest {
         assertFalse(serialized.contains("CARNET-SECRETO") || serialized.contains("REGISTRO-SECRETO") || serialized.contains("Nombre Reservado") || serialized.contains("Apellido Reservado"));
         UUID export = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForObject("select salud_u.registrar_exportacion_investigacion(?, cast(? as jsonb), 'CSV', ?, ?)", UUID.class, "Análisis epidemiológico institucional", "{\"careerId\":\"" + patientCareerId + "\"}", first.size(), "a".repeat(64)); });
         assertEquals(reporter, migratorJdbc.queryForObject("select id_solicitante from salud_u.exportacion_investigacion where id=?", UUID.class, export));
-        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='RESEARCH_EXPORT_COMPLETED' and detalles->>'purpose'='Análisis epidemiológico institucional' and detalles->'filterFields'='[\"careerId\"]'::jsonb", Integer.class, export));
+        assertEquals(1, migratorJdbc.queryForObject("select count(*) from salud_u.evento_auditoria where id_recurso=? and accion='EXPORTACION_INVESTIGACION_COMPLETADA' and detalles->>'purpose'='Análisis epidemiológico institucional' and detalles->'filterFields'='[\"careerId\"]'::jsonb", Integer.class, export));
         var provenance = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForObject("select salud_u.obtener_exportacion_investigacion(?)::text", String.class, export); });
         assertTrue(provenance.contains("\"purpose\": \"Análisis epidemiológico institucional\"") && provenance.contains("\"policyVersion\": \"MONTHLY-V1\"") && provenance.contains("\"sha256\": \"" + "a".repeat(64)));
         assertThrows(DataAccessException.class, () -> transaction.executeWithoutResult(status -> { actorContext.apply(new DatabaseActor(administratorId, java.util.Set.of("ADMINISTRATIVE"))); runtimeJdbc.queryForObject("select salud_u.obtener_exportacion_investigacion(?)::text", String.class, export); }));
@@ -1450,7 +1583,7 @@ class DatabaseActorContextIntegrationTest {
         UUID lateSlot = UUID.randomUUID(), lateAppointment = UUID.randomUUID(), lateEncounter = UUID.randomUUID();
         migratorJdbc.update("insert into salud_u.cupo_disponibilidad(id,id_personal,inicia_a,termina_a,capacidad,estado,publicado_en,creado_por) values (?, ?, timestamptz '2026-08-31 20:00:00+00', timestamptz '2026-08-31 20:30:00+00', 1, 'CERRADO', timestamptz '2026-08-30 12:00:00+00', ?)", lateSlot, availabilityStaffId, availabilityClinicianId);
         migratorJdbc.update("insert into salud_u.cita(id,id_paciente,id_cupo,tipo_cita,estado,id_personal_asignado,programada_para) values (?, ?, ?, 'INICIAL', 'ATENDIDA', ?, timestamptz '2026-08-31 20:00:00+00')", lateAppointment, patient, lateSlot, availabilityStaffId);
-        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,cerrado_por) values (?, ?, ?, ?, 'INITIAL', 'CLOSED', timestamptz '2026-09-01 02:00:00+00', ?)", lateEncounter, lateAppointment, patient, availabilityStaffId, availabilityClinicianId);
+        migratorJdbc.update("insert into salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,estado,cerrado_en,cerrado_por) values (?, ?, ?, ?, 'INICIAL', 'CERRADA', timestamptz '2026-09-01 02:00:00+00', ?)", lateEncounter, lateAppointment, patient, availabilityStaffId, availabilityClinicianId);
         var august = transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select mes_atencion::text as mes from salud_u.conjunto_investigacion_seudonimizado(cast(? as jsonb)) where seudonimo = ?", "{\"from\":\"2026-08-31\",\"to\":\"2026-08-31\"}", row.get("seudonimo")); });
         assertEquals(java.util.List.of(Map.of("mes", "2026-08-01")), august);
         assertFalse(transaction.execute(status -> { actorContext.apply(new DatabaseActor(reporter, java.util.Set.of("REPORTING_OFFICER"))); return runtimeJdbc.queryForList("select * from salud_u.listar_vacunas(true)"); }) == null);

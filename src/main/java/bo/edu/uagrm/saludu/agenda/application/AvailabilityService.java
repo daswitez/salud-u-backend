@@ -43,13 +43,14 @@ public class AvailabilityService {
         Map<String, Object> result = new LinkedHashMap<>();
         jdbcTemplate.query("select * from salud_u.listar_mi_disponibilidad(?, ?)", resultSet -> {
             try {
-                String kind = switch (resultSet.getString("kind")) {
+                String kind = switch (resultSet.getString("tipo")) {
                     case "horarios" -> "schedules";
-                    case "recurrenteBlocks" -> "recurringBlocks";
+                    case "bloqueos_recurrentes" -> "recurringBlocks";
                     case "cupos" -> "slots";
-                    default -> resultSet.getString("kind");
+                    case "bloqueos_fecha" -> "dateBlocks";
+                    default -> resultSet.getString("tipo");
                 };
-                JsonNode payload = objectMapper.readTree(resultSet.getString("payload"));
+                JsonNode payload = objectMapper.readTree(resultSet.getString("datos"));
                 if (payload.isArray()) for (JsonNode item : payload) if (item instanceof ObjectNode value) {
                     Map<String, String> fields = Map.ofEntries(
                         Map.entry("id_especialidad", "specialty_id"), Map.entry("dia_semana", "weekday"),
@@ -86,7 +87,7 @@ public class AvailabilityService {
         requireClinician(principal);
         apply(principal);
         int generated = jdbcTemplate.queryForObject("select salud_u.reemplazar_mi_horario_disponibilidad(cast(? as jsonb), cast(? as jsonb))", Integer.class, json(normalizeRules(rules)), json(normalizeRecurringBlocks(recurringBlocks)));
-        auditWriter.append("AVAILABILITY_SCHEDULE_REPLACED", "availability_schedule", null, AuditOutcome.SUCCESS, Map.of("generatedSlots", generated));
+        auditWriter.append("HORARIO_DISPONIBILIDAD_REEMPLAZADO", "horario_disponibilidad", null, AuditOutcome.SUCCESS, Map.of("generatedSlots", generated));
         return generated;
     }
 
@@ -95,7 +96,7 @@ public class AvailabilityService {
         requireClinician(principal);
         apply(principal);
         UUID id = jdbcTemplate.queryForObject("select salud_u.crear_mi_bloqueo_disponibilidad(?, ?, ?, ?)", UUID.class, date, startsAt, endsAt, label);
-        auditWriter.append("AVAILABILITY_BLOCK_CREATED", "availability_block", id, AuditOutcome.SUCCESS, Map.of("wholeDay", startsAt == null));
+        auditWriter.append("BLOQUEO_DISPONIBILIDAD_CREADO", "bloqueo_disponibilidad", id, AuditOutcome.SUCCESS, Map.of("wholeDay", startsAt == null));
         return id;
     }
 
@@ -109,7 +110,7 @@ public class AvailabilityService {
         } catch (DataAccessException exception) {
             throw slotRejection(exception);
         }
-        auditWriter.append("AVAILABILITY_SLOT_PUBLISHED", "availability_slot", id, AuditOutcome.SUCCESS, Map.of("capacity", capacity));
+        auditWriter.append("CUPO_DISPONIBILIDAD_PUBLICADO", "cupo_disponibilidad", id, AuditOutcome.SUCCESS, Map.of("capacity", capacity));
         return id;
     }
 
@@ -128,7 +129,7 @@ public class AvailabilityService {
         requireClinician(principal);
         apply(principal);
         jdbcTemplate.query("select salud_u.eliminar_mi_bloqueo_disponibilidad(?)", resultSet -> {}, blockId);
-        auditWriter.append("AVAILABILITY_BLOCK_DELETED", "availability_block", blockId, AuditOutcome.SUCCESS, Map.of());
+        auditWriter.append("BLOQUEO_DISPONIBILIDAD_ELIMINADO", "bloqueo_disponibilidad", blockId, AuditOutcome.SUCCESS, Map.of());
     }
 
     private void requireClinician(SessionPrincipal principal) {

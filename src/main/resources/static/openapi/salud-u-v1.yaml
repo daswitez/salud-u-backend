@@ -10,6 +10,97 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /api/notifications:
+    get:
+      summary: Bandeja propia con cursor y contador de no leídos
+      description: |
+        Cualquier sesión autenticada. Solo avisos propios DELIVERED/READ cuya
+        programación y entrega ya vencieron. Un APPOINTMENT_REMINDER solo aparece
+        mientras su cita sigue programada para la fecha que anuncia. Orden deliveredAt DESC, id DESC.
+        El cursor conserva microsegundos y se devuelve en pagination.nextCursor.
+        unreadCount cuenta todas las no leídas visibles, no solo la página.
+        Página y contador se leen en la misma instantánea. Las reprogramaciones
+        actualizan el mismo ID y su entrega; vuelven a los más recientes al recargar.
+        No admite elegir destinatario ni consulta individual por ID.
+      security: [{sessionCookie: []}]
+      parameters:
+        - {in: query, name: limit, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+        - {in: query, name: before, description: Cursor opaco entregado por la página anterior (fecha ISO con offset y UUID separados por barra vertical), schema: {type: string, maxLength: 120}}
+      responses:
+        '200':
+          description: Bandeja propia; lista vacía y cero son resultados válidos. Cache-Control no-store, private.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NotificationPage'}
+        '400': {$ref: '#/components/responses/NotificationInvalid'}
+        '401': {$ref: '#/components/responses/NotificationUnauthenticated'}
+        '500': {$ref: '#/components/responses/NotificationFailure'}
+  /api/notifications/{id}/read:
+    patch:
+      summary: Marcar un aviso propio como leído
+      description: Idempotente; conserva readAt al repetir. La escritura y su auditoría son atómicas. Requiere CSRF.
+      security: [{sessionCookie: [], csrfSession: []}]
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Aviso propio con status READ. Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, data]
+                properties:
+                  ok: {type: boolean, const: true}
+                  data: {$ref: '#/components/schemas/Notification'}
+        '400': {$ref: '#/components/responses/NotificationInvalid'}
+        '401': {$ref: '#/components/responses/NotificationUnauthenticated'}
+        '403': {description: CSRF ausente o inválido; error legacy de texto}
+        '404':
+          description: Aviso ajeno, inexistente o aún no entregado; mismo cuerpo sin revelar existencia.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NotificationError'}
+              example: {ok: false, error: Notificación no encontrada.}
+        '500': {$ref: '#/components/responses/NotificationFailure'}
+  /api/me/notification-preferences:
+    get:
+      summary: Preferencias propias de recordatorios de bandeja
+      description: Sin fila persistida devuelve true/true y updatedAt null, sin escribir. No incluye SMTP ni correo.
+      security: [{sessionCookie: []}]
+      responses:
+        '200':
+          description: Preferencias efectivas. Cache-Control no-store, private.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NotificationPreferencesSuccess'}
+        '401': {$ref: '#/components/responses/NotificationUnauthenticated'}
+        '500': {$ref: '#/components/responses/NotificationFailure'}
+    put:
+      summary: Guardar ambas preferencias propias de recordatorios
+      description: Dos booleanos estrictos, sin otros campos ni identidad destinataria. Escritura y auditoría atómicas; requiere CSRF.
+      security: [{sessionCookie: [], csrfSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [receiveReminders, reinforcedReminder]
+              properties:
+                receiveReminders: {type: boolean}
+                reinforcedReminder: {type: boolean}
+      responses:
+        '200':
+          description: Preferencias guardadas. Cache-Control no-store, private.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NotificationPreferencesSuccess'}
+        '400': {$ref: '#/components/responses/NotificationInvalid'}
+        '401': {$ref: '#/components/responses/NotificationUnauthenticated'}
+        '403': {description: CSRF ausente o inválido; error legacy de texto}
+        '500': {$ref: '#/components/responses/NotificationFailure'}
   /api/reports/administrative-summary:
     get:
       summary: Panorama administrativo sin contenido clínico
@@ -1355,6 +1446,21 @@ components:
       in: cookie
       name: SALUD_U_SESSION
   responses:
+    NotificationInvalid:
+      description: Parámetros o cuerpo inválidos.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/NotificationError'}
+    NotificationUnauthenticated:
+      description: Sesión ausente o caducada.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/NotificationError'}
+    NotificationFailure:
+      description: Fallo recuperable con mensaje sanitizado; no se devuelve una bandeja vacía como sustituto.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/NotificationError'}
     Unauthenticated:
       description: Falta una sesión autenticada.
       content:
@@ -1368,6 +1474,54 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    Notification:
+      type: object
+      required: [id, appointmentId, eventType, channel, subject, message, status, scheduledFor, deliveredAt, readAt, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        appointmentId: {type: string, format: uuid}
+        eventType: {type: string, enum: [APPOINTMENT_ASSIGNED, APPOINTMENT_CANCELLED, APPOINTMENT_NO_SHOW, APPOINTMENT_RESCHEDULED, APPOINTMENT_REMINDER]}
+        channel: {type: string, enum: [INBOX]}
+        subject: {type: string}
+        message: {type: string, description: Texto operativo sin motivos privados ni contenido clínico}
+        status: {type: string, enum: [DELIVERED, READ]}
+        scheduledFor: {type: string, format: date-time}
+        deliveredAt: {type: string, format: date-time}
+        readAt: {type: [string, 'null'], format: date-time}
+        createdAt: {type: string, format: date-time}
+    NotificationPage:
+      type: object
+      required: [ok, data, pagination, unreadCount]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/Notification'}
+        pagination:
+          type: object
+          required: [hasMore, nextCursor]
+          properties:
+            hasMore: {type: boolean}
+            nextCursor: {type: [string, 'null']}
+        unreadCount: {type: integer, minimum: 0, format: int64}
+    NotificationPreferencesSuccess:
+      type: object
+      required: [ok, data]
+      properties:
+        ok: {type: boolean, const: true}
+        data:
+          type: object
+          required: [receiveReminders, reinforcedReminder, updatedAt]
+          properties:
+            receiveReminders: {type: boolean}
+            reinforcedReminder: {type: boolean}
+            updatedAt: {type: [string, 'null'], format: date-time}
+    NotificationError:
+      type: object
+      required: [ok, error]
+      properties:
+        ok: {type: boolean, const: false}
+        error: {type: string}
     EncounterAmendment:
       type: object
       required: [id, amendmentNo, reason, content, createdAt, createdBy, createdByName, clientRequestId]

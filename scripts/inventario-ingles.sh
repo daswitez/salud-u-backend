@@ -8,7 +8,7 @@ set -euo pipefail
 saludu_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 saludu_env_file="${SALUDU_ENV_FILE:-$saludu_root/.env}"
 saludu_project="${SALUDU_PROJECT:-salud-u}"
-saludu_sql="$saludu_root/src/test/resources/inventario/inventario-ingles.sql"
+saludu_sql="$saludu_root/scripts/inventario-ingles.sql"
 
 if [[ ! -f "$saludu_env_file" ]]; then
   printf 'No se encontró el archivo de entorno: %s\n' "$saludu_env_file" >&2
@@ -18,6 +18,16 @@ fi
 saludu_result="$(docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
   sh -ceu 'psql --no-psqlrc --quiet --tuples-only --no-align --field-separator="|" --set=ON_ERROR_STOP=1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' \
   < "$saludu_sql")"
+
+# ES-10: contrato utilizable desde CI; falla si reaparece inglés.
+if [[ "${1:-}" == "--exigir-cero" ]]; then
+  if [[ -n "$saludu_result" ]]; then
+    printf '%s\n' "$saludu_result" >&2
+    exit 1
+  fi
+  printf '0\n'
+  exit 0
+fi
 
 if [[ "${1:-}" == "--detalle" ]]; then
   printf '%s\n' "$saludu_result"

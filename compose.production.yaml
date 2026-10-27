@@ -28,6 +28,8 @@ services:
       DB_MIGRATOR_USER: ${DB_MIGRATOR_USER:-salud_u_migrator}
       DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Define DB_MIGRATOR_PASSWORD en .env}
       DOCUMENTS_ROOT: /var/lib/salud-u/documents
+      SALUD_U_SCHEDULING_ENABLED: ${SALUD_U_SCHEDULING_ENABLED:-true}
+      SALUD_U_REMINDER_CRON: "${SALUD_U_REMINDER_CRON:-0 */15 * * * *}"
       SESSION_COOKIE_SECURE: "true"
     volumes:
       - clinical_documents:/var/lib/salud-u/documents

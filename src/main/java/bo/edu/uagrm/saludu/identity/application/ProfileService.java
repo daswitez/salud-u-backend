@@ -28,16 +28,16 @@ public class ProfileService {
         String result = jdbcTemplate.queryForObject(
             "select salud_u.actualizar_mi_perfil(?, ?, ?)", String.class, displayName, email, currentPassword
         );
-        if ("INVALID_CURRENT_PASSWORD".equals(result)) {
+        if ("CONTRASENA_ACTUAL_INVALIDA".equals(result)) {
             throw new InvalidCredentialsException();
         }
-        if ("EMAIL_ALREADY_USED".equals(result)) {
+        if ("CORREO_YA_UTILIZADO".equals(result)) {
             throw new EmailAlreadyUsedException();
         }
-        if (!"UPDATED".equals(result)) {
+        if (!"ACTUALIZADO".equals(result)) {
             throw new IllegalStateException("Resultado de perfil no reconocido.");
         }
-        auditWriter.append("PROFILE_UPDATED", "principal", principal.id(), AuditOutcome.SUCCESS, Map.of("sessionsRevoked", true));
+        auditWriter.append("PERFIL_ACTUALIZADO", "principal", principal.id(), AuditOutcome.SUCCESS, Map.of("sessionsRevoked", true));
     }
 
     @Transactional
@@ -46,13 +46,13 @@ public class ProfileService {
         String result = jdbcTemplate.queryForObject(
             "select salud_u.cambiar_mi_contrasena(?, ?)", String.class, currentPassword, newPassword
         );
-        if ("INVALID_CURRENT_PASSWORD".equals(result)) {
+        if ("CONTRASENA_ACTUAL_INVALIDA".equals(result)) {
             throw new InvalidCredentialsException();
         }
-        if (!"UPDATED".equals(result)) {
+        if (!"ACTUALIZADO".equals(result)) {
             throw new IllegalStateException("Resultado de contraseña no reconocido.");
         }
-        auditWriter.append("PASSWORD_CHANGED", "principal", principal.id(), AuditOutcome.SUCCESS, Map.of("sessionsRevoked", true));
+        auditWriter.append("CONTRASENA_CAMBIADA", "principal", principal.id(), AuditOutcome.SUCCESS, Map.of("sessionsRevoked", true));
     }
 
     private void apply(SessionPrincipal principal) {

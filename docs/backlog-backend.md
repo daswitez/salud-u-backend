@@ -671,3 +671,48 @@ RF-27 es transversal a T-03 y cada historia clínica. RNF-01–05 y 11 se aplica
 - UC-26 → BE-26 → RF-30.
 - UC-27 → BE-27 → RF-31, RF-32.
 - RF-28 → BE-CAT; RF-34 → BE-INV; RF-27 → T-03, BE-24 y autorización de todos los casos.
+
+## Migración de la base al español — ES-07
+
+**Estado (26/10/2026): terminada y aplicada localmente.** V78 traduce los estados académicos y de inscripción y renombra `email` a `correo` en pacientes y cuentas. SQL y Java mantienen el contrato HTTP existente. Dieciocho funciones actualizadas; diez recreadas con sus permisos. `mvn verify`: 200 pruebas sin fallos, errores ni omisiones; `plpgsql_check` aprobado; inventario de 294 a 260. Comparación antes/después de 741 filas y cinco consultas sin diferencias, normalizando los elementos traducidos. Backend reconstruido, Flyway V78 y salud `UP`.
+
+Evidencia, límites y comandos: [ES-07 · Pacientes en español](operations/es07-pacientes-en-espanol.md). El backlog vigente del cambio de alcance es `../../BACKLOG_PENDIENTE.md`.
+
+## Migración de la base al español — ES-08
+
+**Estado (26/10/2026): terminada y aplicada localmente.** V79 traduce estados de exportación, etiquetas del enum de resultado y nuevos códigos de acción/recurso; `AuditOutcome` conserva sus miembros y `AuditWriter` traduce al escribir. Catorce funciones actualizadas y diccionario privado de 54 equivalencias para lectura/filtros antiguos y actuales. Las filas históricas no se actualizan ni eliminan: comparación de 7.462 eventos y 90 exportaciones sin diferencias, normalizando solo las etiquetas traducidas. `mvn verify`: 202 pruebas sin fallos, errores ni omisiones; `plpgsql_check` aprobado; inventario de 260 a 217. Docker V79 y salud UP. Pantalla validada con Chromium, regresión FE-24 aprobada.
+
+Evidencia, comandos y límites: [ES-08 · Exportaciones y auditoría en español](operations/es08-exportaciones-y-auditoria-en-espanol.md).
+
+## Migración de la base al español — ES-09 y ES-10
+
+**Estado (26/10/2026): terminadas y aplicadas localmente, Flyway V81.** V80 recrea 31 funciones y renombra un auxiliar, 38 restricciones, 10 índices y 23 políticas; Java conserva HTTP y reconoce `vacuna_codigo_unico`. V81 traduce los códigos internos restantes y deja solo `tiene_rol_actor(codigo_rol_aplicacion)`. Diccionario API: 87 equivalencias/26 dominios. Inventario **217 → 35 → 0**, incluida la base local; línea base vacía y cierre obligatorio probado. `mvn verify`: 203 pruebas sin fallos, errores ni omisiones; `plpgsql_check` y caracterización aprobados; comprobación final de 49 pruebas de integración aprobada.
+
+Se conservaron 16.039 filas existentes, con solo tres equivalencias añadidas. Comparación de 24 consultas (3.063 filas) sin diferencias tras normalizar nombres. Chromium aprobó el recorrido de seis roles/nueve vistas, permisos, CSV, vacuna duplicada 409 y logout 401. La validación humana del centro continúa en C-03.
+
+Evidencias: [ES-09](operations/es09-nombres-sql-en-espanol.md), [base en español y cierre ES-10](operations/base-en-espanol.md).
+
+## Incremento 7 — N-01 · Avisos por cambios de cita
+
+**Estado (26/10/2026): terminada y aplicada localmente, Flyway V82.** Tablas notificacion y preferencia_notificacion con RLS forzada, lectura propia para runtime y gestión del migrador. Índice único por evento/cita/destinatario/canal y función privada de registro. Trigger transaccional en inserción y cambios efectivos de estado, cupo, fecha o profesional, sin reescribir las cuatro funciones de agenda. Canal BANDEJA y entrega inmediata; sin SMTP. Por decisión del usuario, reprogramaciones sucesivas actualizan el mismo aviso y vuelven a dejarlo sin leer.
+
+`mvn verify`: 209 pruebas sin fallos, errores ni omisiones; seis casos nuevos de integración, `plpgsql_check` y caracterización aprobados. Inventario cero. Definiciones protegidas idénticas y 459 citas/385 solicitudes sin cambios al migrar. Ensayo local de asignación/reprogramación/cancelación/RLS aprobado y revertido. La API de bandeja y preferencias continúa en N-02; las pantallas en F-01/F-02.
+
+Evidencia y límites: [N-01 · Avisos de cita en bandeja](operations/n01-avisos-de-cita-en-bandeja.md).
+
+## Incremento 7 — N-02 · Bandeja y preferencias por API
+
+**Estado (27/10/2026): terminada y aplicada localmente, Flyway V83.** Paquete notifications con API y servicio transaccional. Lista propia por cursor (50 por defecto, máximo 100) y contador global de no leídos; lectura idempotente con el mismo 404 para ajenos/inexistentes/no entregados; GET de preferencias sin escribir y PUT propio con dos booleanos estrictos. Cinco funciones SQL con autorización por actor, RLS y permisos limitados, auditoría atómica y errores sanitizados. CSRF en escrituras y respuestas privadas no-store. OpenAPI actualizado y reglas de proxy Next comprobadas, sin construir todavía las pantallas.
+
+`mvn verify`: 224 pruebas sin fallos, errores ni omisiones (9 MockMvc y 6 de integración API nuevas). Comprobación final de 6 casos API aprobada; `plpgsql_check`, caracterización y N-01 aprobados. Inventario cero. Sesiones/cookies reales por Next temporal verificaron PA-20, cursor, contador, preferencias y 400/401/403. Backend V83 UP.
+
+Evidencia: [N-02 · Bandeja y preferencias por API](operations/n02-bandeja-y-preferencias-api.md).
+
+
+## Incremento 7 — N-03 · Recordatorios programados
+
+**Estado (27/10/2026): terminada y aplicada localmente, Flyway V84.** RN-36; PV-7.2. Programador condicionado por `salud-u.scheduling.enabled`, apagado por defecto; cron configurable cada 15 minutos en Bolivia. Genera RECORDATORIO_CITA para citas PROGRAMADA de mañana con cuenta vinculada y preferencia recibir_recordatorios habilitada (true si no existe fila). Entrega en bandeja, sin SMTP. Índice único conservado; reintentos preservan lectura, reprogramación actualiza el mismo ID cuando vuelve a ser elegible. Lote transaccional, bloqueo de citas con SKIP LOCKED y reintento tras fallo. Núcleo fechado privado y entrada runtime acotada sin parámetros.
+
+`mvn verify`: 235 pruebas sin fallos, errores ni omisiones; 7 PostgreSQL y 4 del programador nuevas, incluida ejecución real por @Scheduled. Caracterización, plpgsql_check e inventario cero aprobados. Once funciones y datos previos preservados al migrar; ensayo local de generación, bandeja, preferencias e idempotencia aprobado y revertido. Backend UP; diccionario 96/29. Activación por SALUD_U_SCHEDULING_ENABLED=true y recreación del backend. Recordatorio reforzado diferido a O-03 según alcance.
+
+Evidencia: [N-03 · Recordatorios programados](operations/n03-recordatorios-programados.md).

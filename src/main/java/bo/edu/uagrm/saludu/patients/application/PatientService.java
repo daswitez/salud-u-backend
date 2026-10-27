@@ -44,12 +44,12 @@ public class PatientService {
 
     @Transactional
     public UUID create(SessionPrincipal principal, PatientCommand command) {
-        return save(principal, null, command, "PATIENT_CREATED");
+        return save(principal, null, command, "PACIENTE_CREADO");
     }
 
     @Transactional
     public UUID update(SessionPrincipal principal, UUID patientId, PatientCommand command) {
-        return save(principal, patientId, command, "PATIENT_UPDATED");
+        return save(principal, patientId, command, "PACIENTE_ACTUALIZADO");
     }
 
     private UUID save(SessionPrincipal principal, UUID patientId, PatientCommand command, String auditAction) {
@@ -62,10 +62,10 @@ public class PatientService {
                 command.birthDate(), command.phone(), command.email(), command.careerId(), command.academicPeriod(), command.enrollmentStart()
             );
             if (results.size() != 1 || results.getFirst().patientId() == null) {
-                throw resultException(results.isEmpty() ? "INVALID" : results.getFirst().resultCode());
+                throw resultException(results.isEmpty() ? "INVALIDO" : results.getFirst().resultCode());
             }
             UUID savedId = results.getFirst().patientId();
-            auditWriter.append(auditAction, "patient", savedId, AuditOutcome.SUCCESS, Map.of("hasEnrollment", command.careerId() != null));
+            auditWriter.append(auditAction, "paciente", savedId, AuditOutcome.SUCCESS, Map.of("hasEnrollment", command.careerId() != null));
             return savedId;
         } catch (DuplicateKeyException exception) {
             throw new DuplicatePatientIdentifierException();
@@ -74,8 +74,8 @@ public class PatientService {
 
     private static RuntimeException resultException(String resultCode) {
         return switch (resultCode) {
-            case "NOT_FOUND" -> new PatientNotFoundException();
-            case "DUPLICATE_CARNET", "DUPLICATE_REGISTRATION", "DUPLICATE_IDENTIFIER" -> new DuplicatePatientIdentifierException();
+            case "NO_ENCONTRADO" -> new PatientNotFoundException();
+            case "CARNET_DUPLICADO", "REGISTRO_DUPLICADO", "IDENTIFICADOR_DUPLICADO" -> new DuplicatePatientIdentifierException();
             default -> new InvalidPatientException("Los datos del paciente no son válidos.");
         };
     }
@@ -87,10 +87,10 @@ public class PatientService {
         return new PatientSummary(
             resultSet.getObject("id_paciente", UUID.class), resultSet.getString("carnet"), resultSet.getString("codigo_registro"),
             (resultSet.getString("nombres") + " " + resultSet.getString("apellidos")).trim(),
-            resultSet.getObject("fecha_nacimiento", LocalDate.class), resultSet.getString("telefono"), resultSet.getString("email"),
+            resultSet.getObject("fecha_nacimiento", LocalDate.class), resultSet.getString("telefono"), resultSet.getString("correo"),
             resultSet.getString("estado_academico"), resultSet.getObject("creado_en", OffsetDateTime.class).toInstant(), resultSet.getObject("actualizado_en", OffsetDateTime.class).toInstant(),
-            careerId == null ? null : new PatientSummary.Career(careerId, resultSet.getString("carrera_code"), resultSet.getString("carrera_name")),
-            enrollmentId == null ? null : new PatientSummary.Enrollment(enrollmentId, resultSet.getString("periodo_academico"), resultSet.getObject("inscripcion_started_on", LocalDate.class), resultSet.getString("inscripcion_status"))
+            careerId == null ? null : new PatientSummary.Career(careerId, resultSet.getString("codigo_carrera"), resultSet.getString("nombre_carrera")),
+            enrollmentId == null ? null : new PatientSummary.Enrollment(enrollmentId, resultSet.getString("periodo_academico"), resultSet.getObject("inscripcion_iniciada_en", LocalDate.class), resultSet.getString("estado_inscripcion"))
         );
     }
 

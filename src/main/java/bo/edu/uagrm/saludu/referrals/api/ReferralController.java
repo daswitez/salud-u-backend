@@ -26,12 +26,12 @@ public class ReferralController {
     apply(p);
     var result=jdbc.query("select * from salud_u.listar_bandeja_derivaciones_administracion()",(r,n)->{
       Map<String,Object> item=new java.util.LinkedHashMap<>();
-      item.put("id",r.getObject("id",UUID.class));item.put("patient_id",r.getObject("patient_id",UUID.class));
-      item.put("patient_name",r.getString("patient_name"));item.put("patient_carnet",r.getString("patient_carnet"));
-      item.put("specialty_id",r.getObject("specialty_id",UUID.class));item.put("specialty_name",r.getString("specialty_name"));
-      item.put("priority",r.getString("priority"));item.put("reason",r.getString("reason"));item.put("comment_for_specialist",r.getString("comment_for_specialist"));item.put("status",r.getString("status"));
-      item.put("requested_at",r.getObject("requested_at"));item.put("requested_by_name",r.getString("requested_by_name"));
-      item.put("assigned_staff_name",r.getString("assigned_staff_name"));item.put("appointment_id",r.getObject("appointment_id",UUID.class));item.put("scheduled_for",r.getObject("scheduled_for"));return item;
+      item.put("id",r.getObject("id",UUID.class));item.put("patient_id",r.getObject("id_paciente",UUID.class));
+      item.put("patient_name",r.getString("nombre_paciente"));item.put("patient_carnet",r.getString("carnet_paciente"));
+      item.put("specialty_id",r.getObject("id_especialidad",UUID.class));item.put("specialty_name",r.getString("nombre_especialidad"));
+      item.put("priority",r.getString("prioridad"));item.put("reason",r.getString("motivo"));item.put("comment_for_specialist",r.getString("resumen_para_especialista"));item.put("status",r.getString("estado"));
+      item.put("requested_at",r.getObject("solicitada_en"));item.put("requested_by_name",r.getString("nombre_solicitante"));
+      item.put("assigned_staff_name",r.getString("nombre_personal_asignado"));item.put("appointment_id",r.getObject("id_cita",UUID.class));item.put("scheduled_for",r.getObject("programada_para"));return item;
     });
     audit.append("BANDEJA_DERIVACIONES_CONSULTADA","principal",p.id(),AuditOutcome.SUCCESS,Map.of());
     return LegacyAvailabilityResponse.success(result);
@@ -39,7 +39,7 @@ public class ReferralController {
   @GetMapping("/api/patients/{patientId}/referrals") @PreAuthorize("hasRole('ADMINISTRATIVE')") @Transactional
   public LegacyAvailabilityResponse<List<Map<String,Object>>> patient(@PathVariable UUID patientId,@AuthenticationPrincipal SessionPrincipal p){
     apply(p);
-    var result=jdbc.query("select * from salud_u.listar_derivaciones_paciente_para_cita(?)",(r,n)->Map.<String,Object>of("id",r.getObject("id",UUID.class),"specialty_id",r.getObject("specialty_id",UUID.class),"specialty_name",r.getString("specialty_name"),"status",r.getString("status")),patientId);
+    var result=jdbc.query("select * from salud_u.listar_derivaciones_paciente_para_cita(?)",(r,n)->Map.<String,Object>of("id",r.getObject("id",UUID.class),"specialty_id",r.getObject("id_especialidad",UUID.class),"specialty_name",r.getString("nombre_especialidad"),"status",r.getString("estado")),patientId);
     audit.append("DERIVACIONES_PACIENTE_CONSULTADAS","paciente",patientId,AuditOutcome.SUCCESS,Map.of());
     return LegacyAvailabilityResponse.success(result);
   }

@@ -36,7 +36,7 @@ public class AppointmentAttendanceController {
         actorContext.apply(new DatabaseActor(principal.id(), Set.copyOf(principal.roles())));
         try {
             jdbc.query("select salud_u.registrar_llegada_cita(?)", row -> {}, id);
-            audit.append("APPOINTMENT_CHECKED_IN", "appointment", id, AuditOutcome.SUCCESS, Map.of());
+            audit.append("LLEGADA_CITA_REGISTRADA", "cita", id, AuditOutcome.SUCCESS, Map.of());
             return AppointmentMutationResponse.success();
         } catch (DataAccessException exception) {
             throw new AvailabilityException(409, "La cita no puede registrar ingreso.");
@@ -57,7 +57,7 @@ public class AppointmentAttendanceController {
         actorContext.apply(new DatabaseActor(principal.id(), Set.copyOf(principal.roles())));
         try {
             jdbc.query("select salud_u.registrar_ausencia_cita(?,?)", row -> {}, id, reason);
-            audit.append("APPOINTMENT_NO_SHOW", "appointment", id, AuditOutcome.SUCCESS, Map.of());
+            audit.append("AUSENCIA_CITA_REGISTRADA", "cita", id, AuditOutcome.SUCCESS, Map.of());
             return AppointmentMutationResponse.success();
         } catch (DataAccessException exception) {
             throw new AvailabilityException(409, "La cita no puede marcarse como inasistencia.");

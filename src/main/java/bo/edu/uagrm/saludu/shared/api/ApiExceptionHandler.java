@@ -43,7 +43,7 @@ public class ApiExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "La solicitud contiene campos inválidos.", violations, request);
     }
 
-    @ExceptionHandler({HttpMessageNotReadableException.class, IllegalArgumentException.class})
+    @ExceptionHandler({HttpMessageNotReadableException.class, IllegalArgumentException.class, org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
     ResponseEntity<?> invalidRequest(Exception exception, HttpServletRequest request) {
         return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "La solicitud no tiene un formato válido.", Map.of(), request);
     }

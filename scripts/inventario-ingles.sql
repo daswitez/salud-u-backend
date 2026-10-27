@@ -1,0 +1,1 @@
+../src/test/resources/inventario/inventario-ingles.sql

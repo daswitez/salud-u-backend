@@ -64,6 +64,9 @@ management:
         readiness:
           include: readinessState,db
 salud-u:
+  scheduling:
+    enabled: ${SALUD_U_SCHEDULING_ENABLED:false}
+    reminder-cron: "${SALUD_U_REMINDER_CRON:0 */15 * * * *}"
   auth:
     session-ttl: 8h
     cookie-secure: ${SESSION_COOKIE_SECURE:true}

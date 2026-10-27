@@ -95,6 +95,10 @@ valores(categoria, elemento, texto) AS (
   ) v
   WHERE a.attname ~ '^(estado.*|tipo.*|codigo_rol|resultado|accion|prioridad|origin|origen|parentesco|decision|canal|via|sexo)$'
     AND a.attname <> 'tipo_mime'
+    -- ES-08: los códigos históricos conocidos son evidencia inmutable, no traducción pendiente.
+    -- Solo se exceptúan equivalencias explícitas; un código inglés desconocido sigue apareciendo.
+    AND NOT (t.relname='evento_auditoria' AND a.attname IN ('accion','tipo_recurso')
+      AND EXISTS (SELECT 1 FROM salud_u.equivalencia_codigo_auditoria eq WHERE eq.codigo_anterior=v.valor))
 )
 SELECT DISTINCT e.categoria, e.elemento
 FROM (SELECT * FROM nombres UNION ALL SELECT * FROM valores) e

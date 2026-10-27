@@ -298,7 +298,7 @@ class CaracterizacionFlujosIntegrationTest {
     private static SessionPrincipal principal(String name, String role) {
         UUID id = UUID.randomUUID();
         String email = "car-" + id + "@example.invalid";
-        migratorJdbc.update("insert into salud_u.principal(id, email, nombre_mostrado) values (?, ?, ?)", id, email, name);
+        migratorJdbc.update("insert into salud_u.principal(id, correo, nombre_mostrado) values (?, ?, ?)", id, email, name);
         migratorJdbc.update("insert into salud_u.rol_principal(id_principal, codigo_rol) values (?, cast(salud_u.desde_codigo_api('rol', ?) as salud_u.codigo_rol_aplicacion))", id, role);
         return new SessionPrincipal(id, email, name, List.of(role));
     }

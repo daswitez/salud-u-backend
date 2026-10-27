@@ -48,7 +48,7 @@ public class CatalogService {
     public UUID saveCatalog(SessionPrincipal principal, CatalogKind kind, UUID id, String code, String name, boolean active) {
         apply(principal);
         UUID savedId = jdbcTemplate.queryForObject("select salud_u.guardar_catalogo_administracion(?, ?, ?, ?, ?)", UUID.class, kind.name(), id, code, name, active);
-        auditWriter.append("CATALOG_SAVED", kind.name(), savedId, AuditOutcome.SUCCESS, Map.of("active", active, "code", code));
+        auditWriter.append("CATALOGO_GUARDADO", kind.auditResourceType(), savedId, AuditOutcome.SUCCESS, Map.of("active", active, "code", code));
         return savedId;
     }
 
@@ -59,7 +59,7 @@ public class CatalogService {
             "select salud_u.crear_principal_administrativo(?, ?, ?, ?)", UUID.class, email, displayName, password,
             String.join(",", roles.stream().distinct().toList())
         );
-        auditWriter.append("PRINCIPAL_CREATED", "principal", savedId, AuditOutcome.SUCCESS, Map.of("roles", roles.stream().distinct().toList()));
+        auditWriter.append("CUENTA_CREADA", "principal", savedId, AuditOutcome.SUCCESS, Map.of("roles", roles.stream().distinct().toList()));
         return savedId;
     }
 
@@ -67,21 +67,21 @@ public class CatalogService {
     public void setPrincipalRole(SessionPrincipal principal, UUID principalId, String role, boolean active) {
         apply(principal);
         jdbcTemplate.query("select salud_u.establecer_rol_principal(?, ?, ?)", resultSet -> {}, principalId, role, active);
-        auditWriter.append("PRINCIPAL_ROLE_CHANGED", "principal", principalId, AuditOutcome.SUCCESS, Map.of("role", role, "active", active));
+        auditWriter.append("ROL_CUENTA_CAMBIADO", "principal", principalId, AuditOutcome.SUCCESS, Map.of("role", role, "active", active));
     }
 
     @Transactional
     public void setPrincipalActive(SessionPrincipal principal, UUID principalId, boolean active) {
         apply(principal);
         jdbcTemplate.query("select salud_u.establecer_principal_activo(?, ?)", resultSet -> {}, principalId, active);
-        auditWriter.append("PRINCIPAL_ACTIVE_CHANGED", "principal", principalId, AuditOutcome.SUCCESS, Map.of("active", active));
+        auditWriter.append("ESTADO_CUENTA_CAMBIADO", "principal", principalId, AuditOutcome.SUCCESS, Map.of("active", active));
     }
 
     @Transactional
     public UUID upsertStaff(SessionPrincipal principal, UUID principalId, String staffCode, boolean active) {
         apply(principal);
         UUID savedId = jdbcTemplate.queryForObject("select salud_u.guardar_personal(?, ?, ?)", UUID.class, principalId, staffCode, active);
-        auditWriter.append("STAFF_SAVED", "staff_member", savedId, AuditOutcome.SUCCESS, Map.of("active", active));
+        auditWriter.append("PERSONAL_GUARDADO", "personal", savedId, AuditOutcome.SUCCESS, Map.of("active", active));
         return savedId;
     }
 
@@ -89,16 +89,16 @@ public class CatalogService {
     public void assignStaffSpecialty(SessionPrincipal principal, UUID staffMemberId, UUID specialtyId, LocalDate activeFrom, LocalDate activeTo) {
         apply(principal);
         jdbcTemplate.query("select salud_u.asignar_especialidad_personal(?, ?, ?, ?)", resultSet -> {}, staffMemberId, specialtyId, activeFrom, activeTo);
-        auditWriter.append("STAFF_SPECIALTY_ASSIGNED", "staff_member", staffMemberId, AuditOutcome.SUCCESS, Map.of("specialtyId", specialtyId.toString()));
+        auditWriter.append("ESPECIALIDAD_PERSONAL_ASIGNADA", "personal", staffMemberId, AuditOutcome.SUCCESS, Map.of("specialtyId", specialtyId.toString()));
     }
 
     @Transactional(readOnly = true)
     public List<AdministrativePrincipal> principals(SessionPrincipal principal) {
         apply(principal);
-        return jdbcTemplate.query("select id, email, nombre_mostrado, activo, rols as roles from salud_u.listar_principales_administracion()", (resultSet, rowNumber) -> {
+        return jdbcTemplate.query("select id, correo, nombre_mostrado, activo, roles from salud_u.listar_principales_administracion()", (resultSet, rowNumber) -> {
             java.sql.Array roles = resultSet.getArray("roles");
             String[] values = roles == null ? new String[0] : (String[]) roles.getArray();
-            return new AdministrativePrincipal(resultSet.getObject("id", UUID.class), resultSet.getString("email"), resultSet.getString("nombre_mostrado"), resultSet.getBoolean("activo"), List.of(values));
+            return new AdministrativePrincipal(resultSet.getObject("id", UUID.class), resultSet.getString("correo"), resultSet.getString("nombre_mostrado"), resultSet.getBoolean("activo"), List.of(values));
         });
     }
 
@@ -106,7 +106,7 @@ public class CatalogService {
     public List<StaffMember> staff(SessionPrincipal principal) {
         apply(principal);
         return jdbcTemplate.query("select * from salud_u.listar_personal_administracion()", (resultSet, rowNumber) ->
-            new StaffMember(resultSet.getObject("id", UUID.class), resultSet.getObject("id_principal", UUID.class), resultSet.getString("email"), resultSet.getString("nombre_mostrado"), resultSet.getString("codigo_personal"), resultSet.getBoolean("activo")));
+            new StaffMember(resultSet.getObject("id", UUID.class), resultSet.getObject("id_principal", UUID.class), resultSet.getString("correo"), resultSet.getString("nombre_mostrado"), resultSet.getString("codigo_personal"), resultSet.getBoolean("activo")));
     }
 
     private void apply(SessionPrincipal principal) {

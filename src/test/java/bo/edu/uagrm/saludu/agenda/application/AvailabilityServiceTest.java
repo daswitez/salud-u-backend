@@ -18,8 +18,8 @@ class AvailabilityServiceTest {
  @Test void persistedSpanishScheduleIsReturnedInTheLegacyManagementContract() throws Exception {
   var jdbc=mock(JdbcTemplate.class);var mapper=new ObjectMapper();var actor=mock(DatabaseActorContext.class);
   doAnswer(call->{RowCallbackHandler handler=call.getArgument(1);
-   for(var row:Map.of("horarios","[{\"dia_semana\":1,\"id_especialidad\":null,\"inicia_a\":\"08:00:00\",\"termina_a\":\"09:00:00\",\"duracion_cupo_minutos\":30}]","recurrenteBlocks","[{\"dia_semana\":1,\"etiqueta\":\"Pausa\"}]","dateBlocks","[{\"fecha_bloqueo\":\"2026-10-26\",\"inicia_a\":null}]","cupos","[{\"estado\":\"PUBLISHED\",\"capacidad\":1,\"cantidad_reservada\":0}]").entrySet()) {
-    var rs=mock(ResultSet.class);when(rs.getString("kind")).thenReturn(row.getKey());when(rs.getString("payload")).thenReturn(row.getValue());handler.processRow(rs);
+   for(var row:Map.of("horarios","[{\"dia_semana\":1,\"id_especialidad\":null,\"inicia_a\":\"08:00:00\",\"termina_a\":\"09:00:00\",\"duracion_cupo_minutos\":30}]","bloqueos_recurrentes","[{\"dia_semana\":1,\"etiqueta\":\"Pausa\"}]","bloqueos_fecha","[{\"fecha_bloqueo\":\"2026-10-26\",\"inicia_a\":null}]","cupos","[{\"estado\":\"PUBLISHED\",\"capacidad\":1,\"cantidad_reservada\":0}]").entrySet()) {
+    var rs=mock(ResultSet.class);when(rs.getString("tipo")).thenReturn(row.getKey());when(rs.getString("datos")).thenReturn(row.getValue());handler.processRow(rs);
    }return null;
   }).when(jdbc).query(anyString(),any(RowCallbackHandler.class),any(LocalDate.class),any(LocalDate.class));
   var service=new AvailabilityService(jdbc,actor,mock(AuditWriter.class),mapper);

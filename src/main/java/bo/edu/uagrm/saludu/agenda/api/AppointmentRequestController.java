@@ -96,7 +96,7 @@ public class AppointmentRequestController {
                 if(detail.contains("PACIENTE_NO_DISPONIBLE")) throw new AvailabilityException(404,"El estudiante no está disponible.");
                 throw exception;
             }
-            audit.append("REFERRAL_SCHEDULE_REQUEST_CREATED", "appointment_request", saved, AuditOutcome.SUCCESS, Map.of("referralId", referralId));
+            audit.append("SOLICITUD_CITA_DERIVACION_CREADA", "solicitud_cita", saved, AuditOutcome.SUCCESS, Map.of("referralId", referralId));
             return org.springframework.http.ResponseEntity.status(201).body(LegacyAvailabilityResponse.success(Map.of("id", saved)));
         }
         if ("SPECIALTY".equals(type)) {
@@ -106,7 +106,7 @@ public class AppointmentRequestController {
             UUID patientId = UUID.fromString(patientValue);
             UUID specialtyId = UUID.fromString(specialtyValue);
             UUID saved = jdbc.queryForObject("select salud_u.crear_solicitud_especialidad_directa(?, ?)", UUID.class, patientId, specialtyId);
-            audit.append("SPECIALTY_APPOINTMENT_REQUEST_CREATED", "appointment_request", saved, AuditOutcome.SUCCESS, Map.of("patientId", patientId.toString(), "specialtyId", specialtyId.toString()));
+            audit.append("SOLICITUD_CITA_ESPECIALIDAD_CREADA", "solicitud_cita", saved, AuditOutcome.SUCCESS, Map.of("patientId", patientId.toString(), "specialtyId", specialtyId.toString()));
             return org.springframework.http.ResponseEntity.status(201).body(LegacyAvailabilityResponse.success(Map.of("id", saved)));
         }
         if (!"INITIAL".equals(type)) throw new AvailabilityException(400, "Tipo de solicitud no válido.");
@@ -115,7 +115,7 @@ public class AppointmentRequestController {
         if (principal.roles().contains("STUDENT") && patientId != null) throw new AvailabilityException(403, "Una estudiante sólo puede solicitar su propia atención.");
         if (principal.roles().contains("ADMINISTRATIVE") && patientId == null) throw new AvailabilityException(400, "Selecciona un estudiante para crear la solicitud.");
         UUID saved = jdbc.queryForObject("select salud_u.crear_solicitud_inicial(?)", UUID.class, patientId);
-        audit.append("APPOINTMENT_REQUEST_CREATED", "appointment_request", saved, AuditOutcome.SUCCESS, Map.of());
+        audit.append("SOLICITUD_CITA_CREADA", "solicitud_cita", saved, AuditOutcome.SUCCESS, Map.of());
         return org.springframework.http.ResponseEntity.status(201).body(LegacyAvailabilityResponse.success(Map.of("id", saved)));
     }
 
@@ -138,7 +138,7 @@ public class AppointmentRequestController {
             }
             throw new AvailabilityException(409, "La cita asignada ya no puede cancelarse.");
         }
-        audit.append("APPOINTMENT_REQUEST_CANCELLED", "appointment_request", id, AuditOutcome.SUCCESS, Map.of());
+        audit.append("SOLICITUD_CITA_CANCELADA", "solicitud_cita", id, AuditOutcome.SUCCESS, Map.of());
         return AppointmentMutationResponse.success();
     }
 }

@@ -10,7 +10,7 @@ INSERT INTO cuenta VALUES
  (gen_random_uuid(),'carga.auditor@example.invalid','Auditoría Carga','AUDITOR');
 INSERT INTO cuenta SELECT gen_random_uuid(),'carga.revision'||n||'@example.invalid','Médico revisión '||n,'REVIEW_DOCTOR' FROM generate_series(1,4) n;
 INSERT INTO cuenta SELECT gen_random_uuid(),'carga.especialista'||n||'@example.invalid','Especialista '||n,'SPECIALIST' FROM generate_series(1,3) n;
-INSERT INTO salud_u.principal(id,email,nombre_mostrado) SELECT id,email,nombre FROM cuenta;
+INSERT INTO salud_u.principal(id,correo,nombre_mostrado) SELECT id,email,nombre FROM cuenta;
 INSERT INTO salud_u.rol_principal(id_principal,codigo_rol) SELECT id,rol::salud_u.codigo_rol_aplicacion FROM cuenta;
 INSERT INTO salud_u.credencial_principal(id_principal,hash_contrasena) SELECT id,salud_u.crypt(:'clave',salud_u.gen_salt('bf',10)) FROM cuenta;
 INSERT INTO salud_u.personal(id_principal,codigo_personal) SELECT id,upper(split_part(email,'@',1)) FROM cuenta;
@@ -23,12 +23,12 @@ INSERT INTO salud_u.esquema_vacuna(id_vacuna,version,creado_por) SELECT v.id,1,(
 INSERT INTO salud_u.dosis_esquema_vacuna(id_esquema_vacuna,numero_dosis,intervalo_minimo_dias) SELECT e.id,d,CASE WHEN d=1 THEN 0 ELSE 28 END FROM salud_u.esquema_vacuna e JOIN salud_u.vacuna v ON v.id=e.id_vacuna AND v.codigo LIKE 'CARGA_V%', generate_series(1,2) d;
 
 -- Pacientes estudiantes con historia e inscripción vigente.
-INSERT INTO salud_u.paciente(carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,fecha_nacimiento,email,creado_por,actualizado_por)
+INSERT INTO salud_u.paciente(carnet,carnet_normalizado,codigo_registro,codigo_registro_normalizado,nombres,apellidos,fecha_nacimiento,correo,creado_por,actualizado_por)
  SELECT 'CG'||n,'CG'||n,'REG-CG-'||n,'REGCG'||n,'Estudiante'||n,'Carga '||(n%97),date '2000-01-01'+(n%2500),'cg'||n||'@example.invalid',a.id,a.id
  FROM generate_series(1,:pacientes) n, (SELECT id FROM cuenta WHERE rol='ADMINISTRATIVE') a;
 INSERT INTO salud_u.historia_clinica(id_paciente,abierta_por) SELECT p.id,(SELECT id FROM cuenta WHERE rol='ADMINISTRATIVE') FROM salud_u.paciente p WHERE p.carnet LIKE 'CG%';
 INSERT INTO salud_u.inscripcion_academica(id_paciente,id_carrera,periodo_academico,iniciado_en,estado)
- SELECT p.id,(SELECT id FROM salud_u.carrera WHERE codigo='CARGA_'||(1+(substring(p.carnet from 3)::int % 8))),'2026-2',date '2026-07-01','ACTIVE' FROM salud_u.paciente p WHERE p.carnet LIKE 'CG%';
+ SELECT p.id,(SELECT id FROM salud_u.carrera WHERE codigo='CARGA_'||(1+(substring(p.carnet from 3)::int % 8))),'2026-2',date '2026-07-01','ACTIVA' FROM salud_u.paciente p WHERE p.carnet LIKE 'CG%';
 
 -- Atenciones cerradas de 12 meses con pico en el mes en curso (fin de mes); 1 de cada 4 es de especialidad.
 CREATE TEMP TABLE atencion ON COMMIT DROP AS

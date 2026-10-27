@@ -31,7 +31,7 @@ public class AuditEventController {
    },from,to,actorId,action,resource,outcome,limit+(paginated?1:0),cursorTime,cursorId,actor);
    boolean more=paginated&&events.size()>limit;if(more)events=new ArrayList<>(events.subList(0,limit));Map<String,Object> response=new LinkedHashMap<>();response.put("ok",true);response.put("data",events);response.put("error",null);
    if(paginated){Map<String,Object> pagination=new LinkedHashMap<>();pagination.put("hasMore",more);pagination.put("nextCursor",more?events.getLast().get("occurredAt")+"|"+events.getLast().get("id"):null);response.put("pagination",pagination);}
-   auditWriter.append("AUDIT_EVENTS_READ","audit_event",null,AuditOutcome.SUCCESS,Map.of("limit",limit,"count",events.size()));return ResponseEntity.ok().header("Cache-Control","no-store, private").body(response);
+   auditWriter.append("EVENTOS_AUDITORIA_CONSULTADOS","evento_auditoria",null,AuditOutcome.SUCCESS,Map.of("limit",limit,"count",events.size()));return ResponseEntity.ok().header("Cache-Control","no-store, private").body(response);
   }catch(DataAccessException ex){String message=ex.getMostSpecificCause().getMessage();if(message!=null&&message.contains("AUDITOR_REQUERIDO"))throw new AvailabilityException(403,"No tienes permiso para consultar la auditoría.");throw new AvailabilityException(500,"No se pudo consultar la auditoría. Puedes reintentar.");}
  }
  private static String filter(String text){if(text==null||text.isBlank())return null;if(text.trim().length()>200)throw invalid();return text.trim();}

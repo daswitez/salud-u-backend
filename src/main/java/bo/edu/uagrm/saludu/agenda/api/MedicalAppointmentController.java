@@ -68,7 +68,7 @@ public class MedicalAppointmentController {
         patient.put("fullName", (rs.getString("nombres") + " " + rs.getString("apellidos")).trim());
         patient.put("birthDate", rs.getObject("fecha_nacimiento", java.time.LocalDate.class));
         patient.put("phone", rs.getString("telefono"));
-        patient.put("email", rs.getString("email"));
+        patient.put("email", rs.getString("correo"));
         Map<String, Object> appointment = new LinkedHashMap<>();
         appointment.put("id", rs.getObject("id", UUID.class));
         appointment.put("appointmentType", rs.getString("tipo_cita"));

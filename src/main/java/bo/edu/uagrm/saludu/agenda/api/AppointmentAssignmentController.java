@@ -45,7 +45,7 @@ public class AppointmentAssignmentController {
                 "select salud_u.asignar_solicitud_cita(?,?)", UUID.class, requestId, slotId
             );
             a.append(
-                "APPOINTMENT_REQUEST_ASSIGNED", "appointment_request", requestId, AuditOutcome.SUCCESS,
+                "SOLICITUD_CITA_ASIGNADA", "solicitud_cita", requestId, AuditOutcome.SUCCESS,
                 Map.of("appointmentId", appointmentId.toString(), "slotId", slotId.toString())
             );
             return LegacyAvailabilityResponse.success(Map.of("appointmentId", appointmentId));

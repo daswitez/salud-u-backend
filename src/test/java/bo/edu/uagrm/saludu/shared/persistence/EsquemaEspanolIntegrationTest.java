@@ -69,11 +69,14 @@ class EsquemaEspanolIntegrationTest {
         Map.entry("documento_clinico.estado", "estado_documento"),
         Map.entry("documento_clinico.tipo_documento", "tipo_documento"),
         Map.entry("exportacion_reporte_clinico.estado", "estado_exportacion"),
-        Map.entry("evento_auditoria.resultado", "resultado_auditoria"));
+        Map.entry("evento_auditoria.resultado", "resultado_auditoria"),
+        Map.entry("notificacion.tipo_evento", "tipo_evento_notificacion"),
+        Map.entry("notificacion.canal", "canal_notificacion"),
+        Map.entry("notificacion.estado", "estado_notificacion"));
 
     /** Dominios que solo existen en el contrato HTTP (parámetros o valores calculados), sin columna propia. */
     private static final Set<String> DOMINIOS_SOLO_API = Set.of(
-        "acceso_historia", "accion_derivacion", "tipo_catalogo", "estado_cumplimiento", "estado_esquema_vacunacion", "rango_edad");
+        "acceso_historia", "accion_derivacion", "tipo_catalogo", "estado_cumplimiento", "estado_esquema_vacunacion", "rango_edad", "tipo_diagnostico", "dato_ausente");
 
     private static PostgreSQLContainer<?> postgres;
     private static JdbcTemplate migratorJdbc;
@@ -213,26 +216,59 @@ class EsquemaEspanolIntegrationTest {
 
     /**
      * ES-02: el contexto del actor guarda los roles en español (DatabaseActorContext los traduce al fijarlo).
-     * Durante la transición, tiene_rol_actor acepta los dos nombres; un rol que no existe es un error, no un "no".
+     * ES-10: tiene_rol_actor solo acepta el enum español; un rol inexistente o de API se rechaza.
      */
     @Test
-    void tieneRolActorAceptaAmbosNombresEnTransicionYLosRolesEstanEnEspanol() {
+    void tieneRolActorSoloAceptaEnumEspanolYRechazaElPuenteAnterior() {
         var conexion = new SingleConnectionDataSource(postgres.getJdbcUrl(), "salud_u_runtime", "runtime-test-password", true);
         try {
             var jdbc = new JdbcTemplate(conexion);
             jdbc.queryForObject("select set_config('salud_u.roles_actor', 'ESTUDIANTE,MEDICO_REVISION', false)", String.class);
-            for (String rol : List.of("MEDICO_REVISION", "REVIEW_DOCTOR", "ESTUDIANTE", "STUDENT")) {
-                assertTrue(jdbc.queryForObject("select salud_u.tiene_rol_actor(?)", Boolean.class, rol), rol);
+            for (String rol : List.of("MEDICO_REVISION", "ESTUDIANTE")) {
+                assertTrue(jdbc.queryForObject("select salud_u.tiene_rol_actor(cast(? as salud_u.codigo_rol_aplicacion))", Boolean.class, rol), rol);
             }
-            for (String rol : List.of("ADMINISTRATIVO", "ADMINISTRATIVE", "AUDITOR")) {
-                assertEquals(false, jdbc.queryForObject("select salud_u.tiene_rol_actor(?)", Boolean.class, rol), rol);
+            for (String rol : List.of("ADMINISTRATIVO", "AUDITOR")) {
+                assertEquals(false, jdbc.queryForObject("select salud_u.tiene_rol_actor(cast(? as salud_u.codigo_rol_aplicacion))", Boolean.class, rol), rol);
             }
             assertThrows(DataAccessException.class, () -> jdbc.queryForObject("select salud_u.tiene_rol_actor('NO_EXISTE')", Boolean.class));
+            for (String anterior : List.of("ADMINISTRATIVE", "REVIEW_DOCTOR", "SPECIALIST", "STUDENT", "REPORTING_OFFICER")) {
+                assertThrows(DataAccessException.class, () -> jdbc.queryForObject("select salud_u.tiene_rol_actor(cast(? as salud_u.codigo_rol_aplicacion))", Boolean.class, anterior));
+            }
+            assertNull(jdbc.queryForObject("select to_regprocedure('salud_u.tiene_rol_actor(text)')::text", String.class));
         } finally {
             conexion.destroy();
         }
         assertEquals(List.of("ADMINISTRATIVO", "MEDICO_REVISION", "ESPECIALISTA", "ESTUDIANTE", "AUDITOR", "RESPONSABLE_REPORTES"),
             migratorJdbc.queryForList("select unnest(enum_range(null::salud_u.codigo_rol_aplicacion))::text", String.class));
+    }
+
+    @Test
+    void cierreNoAdmiteInglesNiAmpliaLosPermisosDeFuncionesInternas() {
+        assertTrue(migratorJdbc.queryForList(sql("inventario-ingles.sql")).isEmpty(), "ES-10 requiere inventario cero");
+        for (String firma : List.of("identificar_paciente(text)", "cupo_esta_bloqueado(uuid,timestamptz,timestamptz)", "generar_cupos_disponibilidad(uuid,date,date)", "elementos_antecedente_reporte(jsonb,text)")) {
+            assertEquals(false, runtimeJdbc.queryForObject("select has_function_privilege(current_user,?,'EXECUTE')", Boolean.class, "salud_u." + firma), firma);
+        }
+    }
+
+    @Test
+    void ningunaFuncionQuedaAbiertaAPublicYTodasLasTablasTienenRlsForzada() {
+        assertEquals(List.of(), migratorJdbc.queryForList("""
+            select p.oid::regprocedure::text from pg_proc p
+             where p.pronamespace = 'salud_u'::regnamespace and has_function_privilege('public', p.oid, 'EXECUTE') order by 1
+            """, String.class));
+        assertEquals(List.of(), migratorJdbc.queryForList("""
+            select c.relname::text from pg_class c
+             where c.relnamespace = 'salud_u'::regnamespace and c.relkind in ('r', 'p') and c.relname <> 'flyway_schema_history'
+               and not (c.relrowsecurity and c.relforcerowsecurity) order by 1
+            """, String.class));
+        // El privilegio por defecto del migrador hace que las funciones nuevas también nazcan cerradas.
+        migratorJdbc.execute("create function salud_u.prueba_privilegio_por_defecto() returns integer language sql as 'select 1'");
+        try {
+            assertEquals(false, migratorJdbc.queryForObject(
+                "select has_function_privilege('public', 'salud_u.prueba_privilegio_por_defecto()', 'EXECUTE')", Boolean.class));
+        } finally {
+            migratorJdbc.execute("drop function salud_u.prueba_privilegio_por_defecto()");
+        }
     }
 
     private static String sql(String nombre) {

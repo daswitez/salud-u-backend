@@ -51,8 +51,8 @@ public class VaccineController {
         String message = String.valueOf(exception.getMostSpecificCause().getMessage());
         if (message.contains("VACUNA_NO_ENCONTRADA")) return new AvailabilityException(404, "La vacuna no existe.");
         if (message.contains("VACUNA_VERSION_DESACTUALIZADA")) return new AvailabilityException(409, "Otra persona modificó esta vacuna. Recarga el catálogo y vuelve a aplicar tus cambios.");
-        if (message.contains("VACUNA_CODIGO_DUPLICADO") || message.contains("vacuna_codigo_key")) return new AvailabilityException(409, "Ya existe una vacuna con ese código.");
-        if (message.contains("Se requiere el rol ADMINISTRATIVE")) return new AvailabilityException(403, "No tiene permiso para modificar el catálogo de vacunas.");
+        if (message.contains("VACUNA_CODIGO_DUPLICADO") || message.contains("vacuna_codigo_unico")) return new AvailabilityException(409, "Ya existe una vacuna con ese código.");
+        if (message.contains("Se requiere el rol ADMINISTRATIVO")) return new AvailabilityException(403, "No tiene permiso para modificar el catálogo de vacunas.");
         return new AvailabilityException(400, "El esquema de vacuna no es válido.");
     }
     private void apply(SessionPrincipal principal) { actorContext.apply(new DatabaseActor(principal.id(), Set.copyOf(principal.roles()))); }
