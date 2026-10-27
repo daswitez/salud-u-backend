@@ -1,0 +1,15 @@
+# O-09: escenarios de la simulación. VALORES DE EJEMPLO: reemplazarlos por los que informe el personal (valor_inicial_agenda).
+# Cada fila es un tramo de semanas seguidas de una especialidad; el orden de las filas es el calendario.
+# demanda_diaria, asistencia_esperada y peso_citas son los valores iniciales que recibe el modelo.
+# asistencia_real es la que se usa para sortear quién llega: si difiere de la esperada, el modelo tiene algo que aprender.
+# temporada (ALTA, NORMAL, BAJA) solo decide qué criterio del cuadro 3.70 se evalúa en el tramo.
+# Ojo: RN-35 permite hasta ⌊C × 1,10⌋ citas; con menos de 10 lugares por jornada no hay sobrecupo posible.
+especialidad,medicos,capacidad_jornada,tipo_periodo,temporada,semanas,demanda_diaria,asistencia_esperada,peso_citas,asistencia_real
+Odontología,2,12,SEMESTER_START,ALTA,3,28,0.80,10,0.75
+Odontología,2,12,CLASSES,NORMAL,8,20,0.80,10,0.75
+Odontología,2,12,EXAMS,NORMAL,3,16,0.80,10,0.75
+Odontología,2,12,VACATIONS,BAJA,4,8,0.70,10,0.65
+Psicología,1,10,SEMESTER_START,NORMAL,3,9,0.85,10,0.85
+Psicología,1,10,CLASSES,NORMAL,8,8,0.85,10,0.85
+Psicología,1,10,EXAMS,ALTA,3,13,0.85,10,0.80
+Psicología,1,10,VACATIONS,BAJA,4,3,0.75,10,0.70

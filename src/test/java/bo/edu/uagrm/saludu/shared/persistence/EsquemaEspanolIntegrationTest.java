@@ -79,7 +79,8 @@ class EsquemaEspanolIntegrationTest {
         Map.entry("estimacion_agenda.tipo_periodo", "tipo_periodo_academico"),
         Map.entry("estimacion_agenda.fuente_vigente", "fuente_estimacion"),
         Map.entry("sugerencia_agenda.tipo", "tipo_sugerencia"),
-        Map.entry("decision_sugerencia.decision", "estado_sugerencia"));
+        Map.entry("decision_sugerencia.decision", "estado_sugerencia"),
+        Map.entry("propuesta_bloqueo.estado", "estado_propuesta_bloqueo"));
 
     /** Dominios que solo existen en el contrato HTTP (parámetros o valores calculados), sin columna propia. */
     private static final Set<String> DOMINIOS_SOLO_API = Set.of(

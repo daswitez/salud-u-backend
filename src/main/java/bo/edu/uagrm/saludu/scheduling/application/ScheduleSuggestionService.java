@@ -85,8 +85,9 @@ public class ScheduleSuggestionService {
     }
 
     /**
-     * O-06: registra la decisión y, si es un sobrecupo aceptado o modificado, sube la capacidad de los cupos, todo en
-     * una transacción. {@code slots} solo va con MODIFIED: [{id_cupo, capacidad}] con claves internas.
+     * O-06 y O-07: registra la decisión y aplica su efecto en una transacción: un sobrecupo sube la capacidad de los
+     * cupos y una reprogramación mueve la cita. {@code slots} solo va con MODIFIED: [{id_cupo, capacidad}] para un
+     * sobrecupo o [{id_cupo}] para una reprogramación, con claves internas.
      */
     @Transactional
     public ScheduleSuggestion decide(SessionPrincipal principal, UUID id, String decision, String reason, ArrayNode slots) {
@@ -106,7 +107,8 @@ public class ScheduleSuggestionService {
         return jdbc.queryForObject("select salud_u.vencer_sugerencias_agenda()", Integer.class);
     }
 
-    private List<ScheduleSuggestion> query(LocalDate date) {
+    /** Sin actor: quien llama ya lo aplicó. */
+    List<ScheduleSuggestion> query(LocalDate date) {
         return jdbc.query("select * from salud_u.listar_sugerencias_agenda(?)", (rs, n) -> {
             try {
                 OffsetDateTime decidedAt = rs.getObject("decidida_en", OffsetDateTime.class);
@@ -136,6 +138,12 @@ public class ScheduleSuggestionService {
         if (detail.contains("SOBRECUPO_EXCEDE_LIMITE"))
             return new AvailabilityException(400, "El sobrecupo supera el 10 % de la capacidad de la jornada (RN-35).");
         if (detail.contains("MOTIVO_DECISION_REQUERIDO")) return new AvailabilityException(400, "Indica el motivo para modificar o rechazar la sugerencia.");
+        if (detail.contains("REPROGRAMACION_SIN_CUPO"))
+            return new AvailabilityException(400, "No hay un cupo sugerido; modifica la sugerencia eligiendo otro cupo o recházala.");
+        if (detail.contains("CITA_NO_REPROGRAMABLE")) return new AvailabilityException(409, "La cita ya no está programada a futuro o ya tiene una atención.");
+        if (detail.contains("CUPO_NO_DISPONIBLE")) return new AvailabilityException(409, "El cupo ya no está disponible.");
+        if (detail.contains("CUPO_INCOMPATIBLE")) return new AvailabilityException(400, "El cupo no es de la misma especialidad que la cita.");
+        if (detail.contains("PACIENTE_CON_CITA_ACTIVA")) return new AvailabilityException(409, "El paciente ya tiene otra cita en ese horario.");
         if (detail.contains("DECISION_SUGERENCIA_INVALIDA")) return new AvailabilityException(400, "La decisión no es válida para esta sugerencia.");
         return exception;
     }

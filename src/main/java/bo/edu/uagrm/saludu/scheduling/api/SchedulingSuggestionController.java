@@ -43,8 +43,9 @@ public class SchedulingSuggestionController {
     }
 
     /**
-     * O-06: {"decision": ACCEPTED | MODIFIED | REJECTED, "reason": texto, "slots": [{"slotId", "capacity"}]}. El motivo es
-     * obligatorio salvo al aceptar; slots solo va con MODIFIED de un OVERBOOKING, con la capacidad final de cada cupo.
+     * O-06 y O-07: {"decision": ACCEPTED | MODIFIED | REJECTED, "reason": texto, "slots": [...]}. El motivo es obligatorio
+     * salvo al aceptar. slots solo va con MODIFIED: [{"slotId", "capacity"}] con la capacidad final de cada cupo en un
+     * OVERBOOKING, o [{"slotId"}] con el cupo de destino en un RESCHEDULE.
      */
     @PostMapping("/api/scheduling/suggestions/{id}/decision")
     public ResponseEntity<LegacyAvailabilityResponse<ScheduleSuggestion>> decide(@PathVariable UUID id, @RequestBody JsonNode body,
@@ -58,10 +59,12 @@ public class SchedulingSuggestionController {
             slots = JsonNodeFactory.instance.arrayNode();
             Set<String> seen = new HashSet<>();
             for (JsonNode slot : body.get("slots")) {
-                if (!onlyFields(slot, Set.of("slotId", "capacity")) || !slot.path("slotId").isTextual() || !slot.path("capacity").isIntegralNumber()
+                if (!onlyFields(slot, Set.of("slotId", "capacity")) || !slot.path("slotId").isTextual()
+                    || !(slot.path("capacity").isMissingNode() || slot.path("capacity").isIntegralNumber())
                     || !seen.add(slot.path("slotId").textValue())) throw invalidDecision();
                 try { UUID.fromString(slot.path("slotId").textValue()); } catch (IllegalArgumentException exception) { throw invalidDecision(); }
-                slots.addObject().put("id_cupo", slot.path("slotId").textValue()).put("capacidad", slot.path("capacity").intValue());
+                var item = slots.addObject().put("id_cupo", slot.path("slotId").textValue());
+                if (slot.has("capacity")) item.put("capacidad", slot.path("capacity").intValue());
             }
         }
         ScheduleSuggestion decided = suggestions.decide(principal, id, body.path("decision").textValue(),
@@ -76,6 +79,6 @@ public class SchedulingSuggestionController {
     }
 
     private static AvailabilityException invalidDecision() {
-        return new AvailabilityException(400, "Indica la decisión (ACCEPTED, MODIFIED o REJECTED), el motivo y, si modificas un sobrecupo, la capacidad de cada cupo.");
+        return new AvailabilityException(400, "Indica la decisión (ACCEPTED, MODIFIED o REJECTED), el motivo y, si modificas, los cupos.");
     }
 }

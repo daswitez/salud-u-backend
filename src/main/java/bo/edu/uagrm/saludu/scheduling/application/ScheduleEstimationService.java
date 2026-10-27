@@ -24,16 +24,8 @@ public class ScheduleEstimationService {
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public int recompute() {
-        List<EstimadorAgenda.Observacion> observaciones = jdbc.query("select * from salud_u.observaciones_para_estimacion()",
-            (rs, n) -> new EstimadorAgenda.Observacion(rs.getObject("fecha", LocalDate.class), rs.getObject("id_personal", UUID.class),
-                rs.getObject("id_especialidad", UUID.class), rs.getString("tipo_periodo"), rs.getInt("capacidad"),
-                rs.getInt("asistencias"), rs.getInt("ausencias"), rs.getObject("solicitudes_ingresadas", Integer.class)));
-        List<EstimadorAgenda.ValorInicial> iniciales = jdbc.query("select * from salud_u.valores_iniciales_para_estimacion()",
-            (rs, n) -> new EstimadorAgenda.ValorInicial(rs.getObject("id_especialidad", UUID.class), rs.getString("tipo_periodo"),
-                rs.getBigDecimal("demanda_diaria_esperada") == null ? null : rs.getBigDecimal("demanda_diaria_esperada").doubleValue(),
-                rs.getBigDecimal("asistencia_esperada").doubleValue(), rs.getInt("peso_citas")));
         ArrayNode filas = json.createArrayNode();
-        for (EstimadorAgenda.Estimacion estimacion : estimador.estimar(observaciones, iniciales)) {
+        for (EstimadorAgenda.Estimacion estimacion : estimador.estimar(observaciones(), valoresIniciales())) {
             ObjectNode fila = filas.addObject();
             fila.put("id_especialidad", estimacion.idEspecialidad() == null ? null : estimacion.idEspecialidad().toString());
             fila.put("id_personal", estimacion.idPersonal() == null ? null : estimacion.idPersonal().toString());
@@ -52,6 +44,21 @@ public class ScheduleEstimationService {
         }
         return jdbc.queryForObject("select salud_u.guardar_estimaciones_agenda(cast(? as jsonb), ?)", Integer.class,
             filas.toString(), EstimadorAgenda.VERSION_MODELO);
+    }
+
+    /** Todas las jornadas cerradas (O-02); también las usa la evaluación de O-08. */
+    List<EstimadorAgenda.Observacion> observaciones() {
+        return jdbc.query("select * from salud_u.observaciones_para_estimacion()",
+            (rs, n) -> new EstimadorAgenda.Observacion(rs.getObject("fecha", LocalDate.class), rs.getObject("id_personal", UUID.class),
+                rs.getObject("id_especialidad", UUID.class), rs.getString("tipo_periodo"), rs.getInt("capacidad"),
+                rs.getInt("asistencias"), rs.getInt("ausencias"), rs.getObject("solicitudes_ingresadas", Integer.class)));
+    }
+
+    List<EstimadorAgenda.ValorInicial> valoresIniciales() {
+        return jdbc.query("select * from salud_u.valores_iniciales_para_estimacion()",
+            (rs, n) -> new EstimadorAgenda.ValorInicial(rs.getObject("id_especialidad", UUID.class), rs.getString("tipo_periodo"),
+                rs.getBigDecimal("demanda_diaria_esperada") == null ? null : rs.getBigDecimal("demanda_diaria_esperada").doubleValue(),
+                rs.getBigDecimal("asistencia_esperada").doubleValue(), rs.getInt("peso_citas")));
     }
 
     private static BigDecimal decimal(double value, int scale) { return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP); }
