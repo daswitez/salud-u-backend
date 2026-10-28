@@ -28,17 +28,29 @@ public class AuthenticationService {
         this.properties = properties;
     }
 
+    /**
+     * Contraseña correcta: emite la sesión, salvo que algún rol esté en {@code salud-u.auth.second-factor-roles}
+     * (SEG-2FA). En ese caso no hay sesión todavía: se devuelve un desafío de segundo factor de 5 minutos.
+     */
     public AuthenticatedSession login(String email, String password) {
         String token = newToken();
-        Instant expiresAt = Instant.now().plus(properties.getSessionTtl());
+        String challenge = newToken();
+        Instant now = Instant.now();
+        List<String> secondFactorRoles = properties.getSecondFactorRoles();
         List<AuthenticationRow> rows = jdbcTemplate.query(
-            "select * from salud_u.autenticar_principal(?, ?, ?, ?)",
+            "select * from salud_u.iniciar_sesion_principal(?, ?, ?, ?, cast(? as text[]), ?, ?)",
             (resultSet, rowNumber) -> authenticationRow(resultSet),
             email,
             password,
             sha256(token),
-            OffsetDateTime.ofInstant(expiresAt, ZoneOffset.UTC)
+            OffsetDateTime.ofInstant(now.plus(properties.getSessionTtl()), ZoneOffset.UTC),
+            textArray(secondFactorRoles),
+            secondFactorRoles.isEmpty() ? null : sha256(challenge),
+            secondFactorRoles.isEmpty() ? null : OffsetDateTime.ofInstant(now.plus(properties.getSecondFactorChallengeTtl()), ZoneOffset.UTC)
         );
+        if (rows.size() == 1 && "SEGUNDO_FACTOR".equals(rows.getFirst().status())) {
+            return AuthenticatedSession.secondFactor(challenge, rows.getFirst().enrollmentRequired());
+        }
         if (rows.size() != 1 || !"AUTENTICADO".equals(rows.getFirst().status())) {
             throw new InvalidCredentialsException();
         }
@@ -75,11 +87,20 @@ public class AuthenticationService {
             resultSet.getObject("id_principal", UUID.class),
             resultSet.getString("correo"),
             resultSet.getString("nombre_mostrado"),
-            roles(resultSet)
+            roles(resultSet),
+            resultSet.getBoolean("requiere_activacion")
         );
     }
 
-    private static List<String> roles(ResultSet resultSet) throws SQLException {
+    /** Literal de arreglo de PostgreSQL; los roles ya vienen validados como [A-Z_]. */
+    static String textArray(List<String> values) {
+        if (values.stream().anyMatch(value -> !value.matches("[A-Z_]{2,64}"))) {
+            throw new IllegalStateException("salud-u.auth.second-factor-roles contiene un rol inválido.");
+        }
+        return "{" + String.join(",", values) + "}";
+    }
+
+    static List<String> roles(ResultSet resultSet) throws SQLException {
         java.sql.Array array = resultSet.getArray("roles");
         if (array == null) {
             return List.of();
@@ -91,13 +112,13 @@ public class AuthenticationService {
         return List.of();
     }
 
-    private static String newToken() {
+    static String newToken() {
         byte[] bytes = new byte[32];
         TOKEN_RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    private static byte[] sha256(String value) {
+    static byte[] sha256(String value) {
         try {
             return MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException exception) {
@@ -105,6 +126,6 @@ public class AuthenticationService {
         }
     }
 
-    private record AuthenticationRow(String status, UUID id, String email, String displayName, List<String> roles) {
+    private record AuthenticationRow(String status, UUID id, String email, String displayName, List<String> roles, boolean enrollmentRequired) {
     }
 }

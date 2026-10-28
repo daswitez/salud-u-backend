@@ -85,7 +85,8 @@ class EsquemaEspanolIntegrationTest {
         Map.entry("contacto_emergencia.parentesco", "parentesco"),
         Map.entry("texto_consentimiento.tipo", "tipo_consentimiento"),
         Map.entry("consentimiento.decision", "decision_consentimiento"),
-        Map.entry("consentimiento.via", "via_consentimiento"));
+        Map.entry("consentimiento.via", "via_consentimiento"),
+        Map.entry("desafio_segundo_factor.proposito", "proposito_desafio_segundo_factor"));
 
     /** Dominios que solo existen en el contrato HTTP (parámetros o valores calculados), sin columna propia. */
     private static final Set<String> DOMINIOS_SOLO_API = Set.of(

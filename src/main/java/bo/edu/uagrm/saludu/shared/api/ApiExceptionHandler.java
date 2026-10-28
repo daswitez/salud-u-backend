@@ -53,6 +53,11 @@ public class ApiExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Las credenciales no son válidas.", Map.of(), request);
     }
 
+    @ExceptionHandler(bo.edu.uagrm.saludu.identity.application.SecondFactorException.class)
+    ResponseEntity<?> secondFactor(bo.edu.uagrm.saludu.identity.application.SecondFactorException exception, HttpServletRequest request) {
+        return error(exception.status(), exception.code(), exception.getMessage(), Map.of(), request);
+    }
+
     @ExceptionHandler(EmailAlreadyUsedException.class)
     ResponseEntity<?> emailAlreadyUsed(EmailAlreadyUsedException exception, HttpServletRequest request) {
         return error(HttpStatus.CONFLICT, "EMAIL_ALREADY_USED", "El correo ya está asociado a otra cuenta.", Map.of(), request);

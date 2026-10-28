@@ -71,6 +71,12 @@ salud-u:
   auth:
     session-ttl: 8h
     cookie-secure: ${SESSION_COOKIE_SECURE:true}
+    # SEG-2FA: roles (códigos de API) que deben verificar un segundo factor TOTP. Vacío lo desactiva.
+    second-factor-roles: ${SALUD_U_SECOND_FACTOR_ROLES:REVIEW_DOCTOR,SPECIALIST}
+    second-factor-challenge-ttl: 5m
+    # Base64 de 32 bytes; nunca en el repositorio. La anterior solo se define durante una rotación.
+    totp-key: ${SALUD_U_TOTP_KEY:}
+    totp-previous-key: ${SALUD_U_TOTP_KEY_ANTERIOR:}
   documents:
     root: ${DOCUMENTS_ROOT:./var/clinical-documents}
   # A-03, paso 3 de la puesta en marcha: true cuando el frontend ya envía siempre la respuesta.

@@ -26,6 +26,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiEnvelope<LoginResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         var session = authenticationService.login(request.email(), request.password());
+        if (session.challenge() != null) {
+            // SEG-2FA: contraseña correcta, todavía sin sesión.
+            cookies.writeChallenge(session.token(), response);
+            return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(ApiEnvelope.success(LoginResponse.secondFactor(session.challenge().enrollmentRequired())));
+        }
         cookies.write(session.token(), response);
         return ResponseEntity.ok()
             .cacheControl(CacheControl.noStore())

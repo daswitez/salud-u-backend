@@ -100,7 +100,7 @@ class MetricasAgendaIntegrationTest {
         suggestion("CUPOS_JORNADA", today.minusDays(31), rivas, specialty, "now() - interval '30 days'"); // fuera del período
         // Esperas de 4 y 2 días asignadas en el período; una asignada hace 20 días no cuenta.
         request(4, "now() - interval '1 day'");
-        request(2, "now() - interval '1 hour'");
+        request(2, "now()"); // now(): sigue siendo de hoy aunque la prueba corra pasada la medianoche.
         request(9, "now() - interval '20 days'");
         UUID student = UUID.randomUUID(), studentPatient = patient(student), avisos = staff("Dr. Avisos");
         UUID first = booking(studentPatient, slot(avisos, null, OffsetDateTime.now().plusDays(3)));
@@ -137,7 +137,7 @@ class MetricasAgendaIntegrationTest {
         assertEquals(today.minusDays(30).toString(), recent.path("from").asText());
         assertEquals(3, recent.path("suggestions").path("issued").asInt());
         assertEquals(0, recent.path("notifications").path("registered").asInt());
-        assertEquals(2, recent.path("waitTime").path("assignedRequests").asInt(), "La de hace 20 días entra; la de hace una hora es de hoy");
+        assertEquals(2, recent.path("waitTime").path("assignedRequests").asInt(), "La de hace 20 días entra; la de ahora es de hoy");
     }
 
     @Test

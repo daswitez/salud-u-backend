@@ -33,6 +33,10 @@ services:
       SALUD_U_REMINDER_CRON: "${SALUD_U_REMINDER_CRON:-0 */15 * * * *}"
       SALUD_U_DAY_CLOSE_CRON: "${SALUD_U_DAY_CLOSE_CRON:-0 30 0 * * *}"
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      # SEG-2FA: clave AES-256 (Base64 de 32 bytes) del secreto TOTP. La anterior solo durante una rotación.
+      SALUD_U_TOTP_KEY: ${SALUD_U_TOTP_KEY:?Define SALUD_U_TOTP_KEY en .env}
+      SALUD_U_TOTP_KEY_ANTERIOR: ${SALUD_U_TOTP_KEY_ANTERIOR:-}
+      SALUD_U_SECOND_FACTOR_ROLES: ${SALUD_U_SECOND_FACTOR_ROLES:-REVIEW_DOCTOR,SPECIALIST}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
     volumes:
