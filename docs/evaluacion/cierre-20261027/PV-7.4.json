@@ -1,0 +1,12 @@
+{
+  "id": "PV-7.4",
+  "resultado": "APROBADA",
+  "alcance": "Escenario documental ejecutado con fixtures sintéticas.",
+  "casos": [
+    {
+      "id": "SugerenciasAgendaIntegrationTest#pv74LowAttendanceSuggestsOverbookingOnTheLatestSlotAndRegeneratesIdempotently",
+      "resultado": "APROBADA",
+      "segundos": 1.959
+    }
+  ]
+}

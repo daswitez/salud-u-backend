@@ -1,0 +1,22 @@
+# Puerta HTTPS LAN para Linux. Backend y Next deben escuchar solo en loopback.
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    network_mode: host
+    environment:
+      SALUDU_LAN_HOST: ${SALUDU_LAN_HOST:-127.0.0.1}
+      SALUDU_LAN_BIND: ${SALUDU_LAN_BIND:-127.0.0.1}
+      SALUDU_HTTP_PORT: ${SALUDU_HTTP_PORT:-8088}
+      SALUDU_HTTPS_PORT: ${SALUDU_HTTPS_PORT:-8443}
+      SALUDU_FRONTEND_ORIGIN: ${SALUDU_FRONTEND_ORIGIN:-http://127.0.0.1:3000}
+      SALUDU_BACKEND_ORIGIN: ${SALUDU_BACKEND_ORIGIN:-http://127.0.0.1:8080}
+    volumes:
+      - ./Caddyfile.lan:/etc/caddy/Caddyfile:ro
+      - caddy_lan_data:/data
+      - caddy_lan_config:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  caddy_lan_data:
+  caddy_lan_config:

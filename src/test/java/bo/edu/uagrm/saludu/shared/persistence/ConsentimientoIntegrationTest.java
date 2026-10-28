@@ -85,6 +85,12 @@ class ConsentimientoIntegrationTest {
     void withoutAcceptingTheTermsAndChoosingYesOrNoNothingAdvancesInThePortalOrInAdministration() throws Exception {
         Actor student = actor("STUDENT"), admin = actor("ADMINISTRATIVE");
         UUID own = patient(student.id(), "SIN-RESPUESTA"), other = patient(null, "RECEPCION");
+        mvc.perform(get(admin, "/api/consent-texts")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.pending").value(true))
+            .andExpect(jsonPath("$.data.terms.currentVersion").value("1"))
+            .andExpect(jsonPath("$.data.research.text").isNotEmpty())
+            .andExpect(header().string("Cache-Control", "no-store, private"));
+        mvc.perform(get(student, "/api/consent-texts")).andExpect(status().isForbidden());
         mvc.perform(get(student, "/api/me/consents")).andExpect(status().isOk())
             .andExpect(jsonPath("$.data.pending").value(true))
             .andExpect(jsonPath("$.data.terms.currentVersion").value("1"))

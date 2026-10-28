@@ -1,0 +1,9 @@
+{
+  "pruebas_nucleo": [
+    "ObservacionJornadaIntegrationTest#theCloseOnlyDependsOnAgendaAndCalendarColumnsAndNeverMentionsClinicalTables",
+    "EstimacionAgendaIntegrationTest#estimationFunctionsOnlyReadAgendaAndCalendarTables",
+    "SugerenciasAgendaIntegrationTest#generatorInputsOnlyReadAgendaCalendarAndEstimates"
+  ],
+  "lectura_derivacion_en_o05": true,
+  "observacion": "El núcleo de cierre/estimación/generación solo usa agenda/calendario. O-05 consulta derivacion (especialidad, prioridad, estado y paciente); no contenido clínico. PA-23 exige ninguna tabla clínica: discrepancia pendiente de resolución, no se aprueba de forma global."
+}

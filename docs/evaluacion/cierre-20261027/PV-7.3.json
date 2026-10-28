@@ -1,0 +1,17 @@
+{
+  "id": "PV-7.3",
+  "resultado": "APROBADA",
+  "alcance": "Escenario documental ejecutado con fixtures sintéticas.",
+  "casos": [
+    {
+      "id": "ObservacionJornadaIntegrationTest#closingADayCountsEachDoctorAndSpecialtyWithItsPeriodAndIsIdempotent",
+      "resultado": "APROBADA",
+      "segundos": 0.507
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#recomputeStoresVersionedEstimatesInSpanishFromObservationsAndInitialValues",
+      "resultado": "APROBADA",
+      "segundos": 0.158
+    }
+  ]
+}

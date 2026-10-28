@@ -1,8 +1,8 @@
 # Backlog de desarrollo y pruebas del backend Salud-U
 
-Fuente principal: `Proyecto Daniel Mercado v2 db.md`, cuadros 3.16 (RF-01–RF-34), 3.17 (RNF-01–RNF-12), 3.18 (RN-01–RN-32), 3.36 (UC-01–UC-27) y especificaciones críticas de UC-07/12/13/15/17/22. Referencia de implementación: 24 rutas `src/app/api`, Server Actions, consultas directas y SQL de `supabase/migrations`/`complete_schema.sql`.
+Fuente vigente del cierre C: `MSD-Documento proyecto de grado Ver.1.10 u.docx` (aclaración del usuario el 27/10/2026). Referencia histórica de este backlog: `Proyecto Daniel Mercado v2 db.md`, cuadros 3.16 (RF-01–RF-34), 3.17 (RNF-01–RNF-12), 3.18 (RN-01–RN-32), 3.36 (UC-01–UC-27) y especificaciones críticas de UC-07/12/13/15/17/22. Referencia de implementación: 24 rutas `src/app/api`, Server Actions, consultas directas y SQL de `supabase/migrations`/`complete_schema.sql`.
 
-Estado: pendiente. Se inspeccionó código/documento; todavía no se capturaron respuestas reales ni se ejecutaron pruebas de paridad. Las referencias SQL sin ruta no se presentan como endpoints HTTP existentes. El contrato final debe caracterizar la última definición de cada RPC y sus políticas, no solo la migración inicial.
+**Estado de cierre local (27/10/2026, C-01):** backend implementado hasta Flyway V96, **312 pruebas ejecutadas, sin fallos, errores ni omisiones**. BE-05…BE-27 y BE-INV tienen estado explícito abajo; BE-CORTE está aceptada solo para integración local, con condiciones institucionales/migración todavía abiertas. Se conserva la evidencia histórica de cada incremento y se distingue de la reejecución actual. [Registro A.6 y pruebas](evaluacion/cierre-20261027/registro-a6.md); [dictamen C-01/C-02](operations/cierre-c01-c02.md). No se declara aceptación institucional ni SUS.
 
 ## Orden, alcance y entrega
 
@@ -13,6 +13,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 ## Épica B0 — Base técnica, contratos y estrategia de datos (P0)
 
 ### T-01 · Fijar contratos de referencia
+
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
 
 **Estado:** referencia local verificada (129 casos pasan; 32 métodos de 24 rutas). Ensayo de integración preparado, pendiente de entorno real según alcance acordado. Evidencia y comandos: [referencia T-01](reference-t01/README.md). No se declara probado SQL/RLS ni paridad desplegada.
 
@@ -25,6 +27,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### T-02 · Ejecutar plataforma y recuperación
 
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
+
 **Estado:** configuración y ensayo automatizado preparados; validaciones estáticas aprobadas. La ejecución completa sigue pendiente porque este equipo no tiene Java, Maven, Docker, Compose ni PostgreSQL. Evidencia: `docs/operations/t02-validation.md`; ensayo: `scripts/verify-platform.sh`.
 
 - **Actor:** Desarrollador / operador.
@@ -36,6 +40,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### T-03 · Persistencia, contexto de seguridad y auditoría base
 
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
+
 **Estado:** diseño e implementación preparados; validación estática aprobada. Prueba de integración Testcontainers y ensayo Docker pendientes de ejecución en una máquina con Docker. Evidencia: `docs/operations/persistence-security.md` y `docs/operations/t03-validation.md`.
 
 - **Actor:** Desarrollador / responsable de seguridad.
@@ -46,6 +52,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Prueba:** ejecutar y registrar resultados automatizados o ensayo reproducible del caso antes de marcar terminado.
 
 ### T-04 · Publicar API comprobable sin frontend
+
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
 
 **Estado:** contratos, OpenAPI, colección Postman y pruebas preparados; validación estática aprobada. `mvn verify`, Testcontainers y Docker están pendientes de una máquina que disponga de Java, Maven y Docker. Evidencia: `docs/operations/api-contracts.md` y `docs/operations/t04-validation.md`.
 
@@ -59,6 +67,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 ## Épica B1 — Identidad, sesión y organización
 
 ### BE-01 · UC-01 — Autenticarme y obtener mi identidad y permisos vigentes
+
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
 
 **Estado:** implementación y pruebas MockMvc/Testcontainers preparadas; validación estática aprobada. La ejecución de Maven, PostgreSQL y Docker queda pendiente de una máquina que los tenga disponibles. Evidencia: `docs/operations/identity-session.md`, `docs/operations/be01-validation.md` y `docs/fixtures/be-01/identity-session.json`.
 
@@ -80,6 +90,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-CAT · Administrar catálogos y organización
 
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
+
 **Estado:** implementación y pruebas MockMvc/Testcontainers preparadas; validación estática aprobada. La ejecución contra Maven, Docker y PostgreSQL está pendiente. Evidencia: `docs/operations/catalogs-and-organization.md`, `docs/operations/becat-validation.md` y `docs/fixtures/be-cat/catalogs.json`.
 
 - **Actor:** Administrativo autorizado.
@@ -91,6 +103,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Prueba:** HTTP por rol y restricciones PostgreSQL; comparación de campos/estados existentes y contrato explícito de extensiones.
 
 ### BE-PER · Perfil y contraseña
+
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
 
 **Estado:** implementación, contratos y pruebas MockMvc/Testcontainers preparados; validación estática aprobada. La ejecución de Maven, PostgreSQL y Docker queda pendiente de una máquina que los tenga disponibles. Evidencia: `docs/operations/profile-and-password.md`, `docs/operations/beper-validation.md` y `docs/fixtures/be-per/profile-and-password.json`.
 
@@ -105,6 +119,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 ## Épica B2 — Admisión y pacientes
 
 ### BE-02 · UC-02 — Registrar, buscar y actualizar un paciente con una historia longitudinal única
+
+**Actualización de cierre (27/10/2026):** ejecutada la plataforma local y la suite actual de 312 pruebas con PostgreSQL/Testcontainers; las limitaciones de entorno descritas a continuación son históricas. El ensayo de migración/cuentas institucionales sigue pendiente según BE-CORTE.
 
 **Estado:** implementación, contratos y pruebas MockMvc/Testcontainers preparados; validación estática aprobada. La ejecución de Maven, PostgreSQL y Docker queda pendiente de una máquina que los tenga disponibles. Evidencia: `docs/operations/patients.md`, `docs/operations/be02-validation.md` y `docs/fixtures/be-02/patients.json`.
 
@@ -148,6 +164,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-05 · UC-05 — Solicitar una revisión y consultar o cancelar mi solicitud pendiente
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Solicitud inicial, listado propio y cancelación implementados; eventos y permisos conservados. Cobertura reejecutada: `DatabaseActorContextIntegrationTest, NotificacionIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fecorte.md).
+
 - **Actor:** Estudiante / Administrativo.
 - **Historia:** Como Estudiante / Administrativo, quiero solicitar una revisión y consultar o cancelar mi solicitud pendiente, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-05: solicitar una revisión y consultar o cancelar mi solicitud pendiente; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -165,6 +183,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-06 · UC-06 — Crear una solicitud de especialidad directa diferenciada de una derivación
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Solicitud de especialidad directa diferenciada de derivación, con validación de área/actor. Cobertura reejecutada: `CaracterizacionFlujosIntegrationTest, ReferralSchedulingRequestMvcTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe14.md).
+
 - **Actor:** Administrativo.
 - **Historia:** Como Administrativo, quiero crear una solicitud de especialidad directa diferenciada de una derivación, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-06: crear una solicitud de especialidad directa diferenciada de una derivación; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -181,6 +201,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-07 · UC-07 — Asignar una solicitud pendiente a un médico y cupo compatibles
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Asignación compatible y atómica; concurrencia y rollback verificados. Cobertura reejecutada: `DatabaseActorContextIntegrationTest, NotificacionIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe14.md).
 
 - **Actor:** Administrativo.
 - **Historia:** Como Administrativo, quiero asignar una solicitud pendiente a un médico y cupo compatibles, para completar el flujo con integridad y acceso autorizado.
@@ -200,6 +222,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-08 · UC-08 — Registrar llegada o ausencia y cancelar en las condiciones permitidas
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Llegada, ausencia y cancelación con transiciones/permisos y avisos transaccionales. Cobertura reejecutada: `AppointmentAttendanceMvcTest, NotificacionIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe08.md).
+
 - **Actor:** Administrativo; estudiante para cancelar su solicitud.
 - **Historia:** Como Administrativo; estudiante para cancelar su solicitud, quiero registrar llegada o ausencia y cancelar en las condiciones permitidas, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-08: registrar llegada o ausencia y cancelar en las condiciones permitidas; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -218,6 +242,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 ## Épica B4 — Revisión clínica, antecedentes y documentos
 
 ### BE-09 · UC-09 — Iniciar o recuperar el encuentro borrador de una cita asignada
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Inicio/recuperación idempotente de borrador asignado, incluidos casos de más de 200 citas. Cobertura reejecutada: `MedicalAppointmentControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe09.md).
 
 - **Actor:** Médico asignado.
 - **Historia:** Como Médico asignado, quiero iniciar o recuperar el encuentro borrador de una cita asignada, para completar el flujo con integridad y acceso autorizado.
@@ -255,6 +281,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-10 · UC-10 — Completar ficha estructurada, diagnósticos, mediciones e indicaciones de revisión
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Ficha de revisión estructurada, diagnósticos, mediciones e indicaciones persistidos. Cobertura reejecutada: `MedicalEncounterControllerMvcTest, ClinicalJsonTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe10.md).
+
 - **Actor:** Médico de revisión.
 - **Historia:** Como Médico de revisión, quiero completar ficha estructurada, diagnósticos, mediciones e indicaciones de revisión, para completar el flujo con integridad y acceso autorizado.
 - **Caso de uso / comportamiento esperado:** UC-10: completar ficha estructurada, diagnósticos, mediciones e indicaciones de revisión; ejecutar reglas en Spring/PostgreSQL y persistir únicamente cambios autorizados.
@@ -271,6 +299,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-11 · UC-11 — Adjuntar, clasificar, previsualizar y descargar documentos privados de la atención
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Carga, clasificación, previsualización y descarga privada con comprobación de contenido/ámbito. Cobertura reejecutada: `ClinicalDocumentControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe11.md).
 
 **Extensión de integración FE-11 (2026-10-25):** V49 incorpora listado autorizado de metadatos y serialización carga/cierre; descarga revalida acceso y registra auditoría. Se conservan multipart/201/data.id y data.url. Pasan 114 pruebas Java y navegador con 15 MiB, permisos, caducidad real de 60 s y recuperación de sesión/CSRF. [Contrato y evidencia](fe11-documentos-integracion.md).
 
@@ -294,6 +324,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-12 · UC-12 — Cerrar revisión conservando ficha inmutable y cita atendida
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Cierre atómico, ficha inmutable y cita atendida; rollback de fallo conservado. Cobertura reejecutada: `MedicalEncounterControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe12.md).
+
 **Aceptación desde FE-12 (2026-10-25):** cierre/recarga con cita ATTENDED, JSON RPC exacto, dos pestañas con 200/409 y un solo evento/auditoría, rechazo tardío sin datos parciales y checksum lógico intacto. Backend vigente validado con 114 pruebas; integración sin nueva migración ni cambios en las reglas SQL. [Evidencia frontend](../../salud-u/docs/evidencia-fe12.md).
 
 - **Actor:** Médico de revisión.
@@ -316,6 +348,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-13 · UC-13 — Emitir derivación con contexto de revisión, prioridad y elementos compartidos
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Derivación con prioridad/contexto/origen y elementos compartidos en el cierre de revisión. Cobertura reejecutada: `EmittedReferralControllerMvcTest, CaracterizacionFlujosIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe13.md).
+
 **Aceptación de integración FE-13 (2026-10-25):** V50 completa lectura propia, contexto recuperable y evento/auditoría de emisión atómica. Se conservan la firma de finalización y los elementos automáticos de referencia. Pasan 118 pruebas Java, con carrera 200/409 y rollback al fallar la derivación después del cierre interno; Chromium verifica tres prioridades, límites de acceso y recarga. [Evidencia frontend](../../salud-u/docs/evidencia-fe13.md).
 
 - **Actor:** Médico de revisión.
@@ -336,6 +370,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-14 · UC-14 — Programar una derivación activa sin cambiar su contenido clínico
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Bandeja administrativa y programación de derivación activa sin reescritura del origen. Cobertura reejecutada: `AdministrativeReferralControllerMvcTest, ReferralSchedulingRequestMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe14.md).
+
 **Verificación de integración FE-14 (2026-10-25):** V51 recupera bandeja/historial y orden de referencia, valida paciente/derivación al crear solicitud y agrega evento/auditoría de asignación en su transacción. Contratos HTTP y permisos documentados en OpenAPI. 124 pruebas Java pasan, incluidas creación/asignación concurrentes, rechazo de derivación cerrada e invariancia del origen. Chromium comprobó la integración administrativa y la regresión de asistencia. [Evidencia frontend y comandos](../../salud-u/docs/evidencia-fe14.md).
 
 - **Actor:** Administrativo.
@@ -354,6 +390,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-15 · UC-15 — Completar y cerrar ficha del área usando plantilla versionada
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Ficha del área con plantilla/versiones históricas, contexto remitido y cierre atómico. Cobertura reejecutada: `MedicalEncounterControllerMvcTest, CaracterizacionFlujosIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe15.md).
 
 **Verificación de integración FE-15 (2026-10-25):** V52 completa persistencia del resumen clínico, consulta de ficha/plantilla histórica, autorización vigente, serialización de versión y archivos compartidos de origen. templateId es una extensión opcional con control de plantilla activa. V53 corrige la ambigüedad de estado al iniciar una atención derivada y registra IN_PROGRESS una sola vez. Pasan 126 pruebas Java y seis grupos de navegador con Next en producción; regresión FE-14 aprobada. [Evidencia y comandos](../../salud-u/docs/evidencia-fe15.md).
 
@@ -375,6 +413,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-16 · UC-16 — Resolver o devolver una derivación dejando motivo y seguimiento
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Resolución/devolución con profesional/área vigentes, motivo y auditoría transaccional. Cobertura reejecutada: `AssignedReferralControllerMvcTest, CaracterizacionFlujosIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe16.md).
 
 **Verificación de integración FE-16 (2026-10-25):** se conserva PATCH /api/medical/referrals/{id} y se documentan GET propios /api/medical/assigned-referrals y /{id}. V54 verifica especialidad/afiliación vigentes y atención cerrada propia; registra resolución/devolución y auditoría en una transacción. Repetición mantiene 403 sin duplicar. Pasan 130 pruebas Java con rollback/carrera PostgreSQL y cinco grupos Chromium en producción; regresión FE-15 aprobada. [Evidencia y comandos](../../salud-u/docs/evidencia-fe16.md).
 
@@ -398,6 +438,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-17 · UC-17 — Consultar la historia longitudinal permitida por mi área
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Historia longitudinal por relación clínica/área, contexto remitido, documentos y lectura auditada. Cobertura reejecutada: `MedicalPatientHistoryControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe17.md).
+
 **Verificación de integración FE-17 (2026-10-25):** V55–V57 exigen relación clínica, aplican área/origen remitido, completan antecedentes/versiones/derivaciones y los campos heredados de historia, citas y diagnóstico. Firma/contenido/lista de documentos y búsqueda respetan el mismo ámbito. Historia vacía autorizada 200, sin acceso 404 de referencia; GET auditado y no-store. Pasan 133 pruebas Java, cuatro grupos Chromium en producción y regresión FE-16. [Evidencia y comandos](../../salud-u/docs/evidencia-fe17.md).
 
 - **Actor:** Médico con relación clínica.
@@ -417,6 +459,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-18 · UC-18 — Buscar por fechas y contenido dentro de la historia autorizada
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Búsqueda autorizada con fechas inclusivas de Bolivia y contenido histórico, sin texto clínico en auditoría. Cobertura reejecutada: `MedicalHistorySearchControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe18.md).
+
 **Verificación de integración FE-18 (2026-10-25):** V58/V59 completan normalización, fechas inclusivas America/La_Paz, contenido de fichas/diagnósticos/documentos vinculados e índices. GET /api/medical/patients/{id}/search conserva null mediante resultado tipado, audita sin término clínico y aplica la autorización FE-17. Pasan 136 pruebas Java y navegador/regresión. Perfil sintético: 1.001 atenciones, 20 consultas con concurrencia 10, p95 local menor de 3 s. El usuario describe un centro pequeño con picos y reportes de fin de mes; el volumen numérico y la carga mixta quedan para el corte integral. [Evidencia y comandos](../../salud-u/docs/evidencia-fe18.md).
 
 - **Actor:** Médico con relación clínica.
@@ -435,6 +479,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-19 · UC-19 — Añadir una corrección auditable sin reescribir la atención cerrada
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Adendas inmutables con numeración serializada, autor y clave de reintento opcional. Cobertura reejecutada: `EncounterAmendmentControllerMvcTest, CaracterizacionFlujosIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe19.md).
 
 **Verificación de integración FE-19 (2026-10-25):** POST confirmado y conservado como 200/data(id,amendmentNo,createdAt,createdBy); GET nuevo con canAdd/items documentado. V60 aplica autorización FE-17, escritura solo del autor, auditoría atómica, numeración serializada y clave opcional de reintento, preservando la firma SQL de tres argumentos. Tabla sin DML runtime y trigger contra UPDATE/DELETE; lectura y búsqueda autorizadas. Pasan 140 pruebas Java con concurrencia/rollback/inmutabilidad y cinco grupos Chromium en producción; regresión FE-18 aprobada. [Evidencia y comandos](../../salud-u/docs/evidencia-fe19.md).
 
@@ -456,6 +502,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-20 · UC-20 — Exportar una ficha individual a Word
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** DOCX de ficha cerrada autorizada, con procedencia, contexto histórico y generación íntegra. Cobertura reejecutada: `ClinicalWordExportControllerMvcTest, ClinicalWordDocumentTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe20.md).
+
 **Verificación de integración FE-20 (2026-10-26):** GET `/api/medical/encounters/{id}/export.docx` confirmado/documentado; V61 amplía el snapshot autorizado a ficha/versiones/plantilla/antecedentes vinculados/diagnósticos/mediciones/documentos y adendas ordenadas. DOCX con emblemas, fecha Bolivia, autor y secciones separadas; finalidad y procedencia auditadas tras generación, sin publicación parcial ante fallo. Rechazo uniforme 404 fuera del ámbito/no cerrado; errores internos 500 recuperables. Pasan 147 pruebas Java, cuatro grupos Chromium y regresión FE-19. Siete DOCX reabiertos en LibreOffice y clínica intacta. [Evidencia y comandos](../../salud-u/docs/evidencia-fe20.md).
 
 - **Actor:** Médico autorizado.
@@ -476,6 +524,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-21 · UC-21 — Construir reporte por período, múltiples filtros, columnas y agrupaciones
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Reporte clínico con filtros, columnas, agrupaciones y ámbito por rol/área; contratos HTTP preservados. Cobertura reejecutada: `ClinicalReportControllerMvcTest, ClinicalReportQueryTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe21.md).
+
 **Verificación de integración FE-21 (2026-10-26):** V62 completa paridad de listas/antecedentes/hábitos/17 columnas efectivas, ámbito institucional Reportes sin personal y médico propio/área vigente. Conserva firma SQL de 13 columnas; normalización literal y fallback seguro documentados. GET conserva ok/data/filters y agrega presentation opcional con columnas/grupos/IDs/orden explícitos. Auditado sin texto clínico; roles y fechas Bolivia verificados. POST compatible de registro conserva 201/data.id persistido y límites, sin declarar integración del archivo FE-22. Pasan 155 pruebas Java, cuatro grupos Chromium, regresión FE-20 y controles frontend. [Evidencia y comandos](../../salud-u/docs/evidencia-fe21.md).
 
 - **Actor:** Médico / responsable de Reportes.
@@ -494,6 +544,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-22 · UC-22 — Exportar el conjunto permitido en CSV/XLSX/PDF con finalidad
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Exportación clínica CSV/XLSX/PDF íntegra con finalidad, filtros y procedencia auditada. Cobertura reejecutada: `ClinicalReportExportControllerMvcTest, ClinicalReportFilesTest, ClinicalReportExportServiceTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe22.md).
 
 **Verificación de integración FE-22 (2026-10-26):** endpoint separado de archivo completo/documentado, con REPORTING_OFFICER y ámbito de FE-21; rechaza filas/cantidad del cliente y limita a 10000 sin truncar. CSV/XLSX/PDF comparten datos/columnas/grupos/metadatos; PDF real paginado, Excel reabierto con POI/SheetJS, protección de fórmulas y continuación de texto extenso. V63 guarda procedencia propia COMPLETED/FAILED con SHA-256 y auditoría atómica, sin publicar parciales. POST compatible conserva 201/data.id y límites 0..10000. Pasan 167 pruebas Java, cuatro grupos Chromium y regresión FE-21; clínica original intacta y recuperación real de sesión comprobada. [Evidencia, alcance tipográfico y comandos](../../salud-u/docs/evidencia-fe22.md).
 
@@ -515,6 +567,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-23 · UC-23 — Consultar cumplimiento institucional de atención obligatoria
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente; validación institucional pendiente, V96.** Cumplimiento institucional y filtros implementados y probados localmente; regla académica/volumen requieren validación institucional. Cobertura reejecutada: `InstitutionalComplianceControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe23.md).
+
 **Verificación de integración FE-23 (2026-10-26):** V64 usa días Bolivia en cumplimiento/actividad y agrega resumen administrativo de conteos, sin texto clínico. Se conservan contratos de listas y se audita lectura con no-store/private; fallos de infraestructura 500 recuperables. Cierres múltiples no duplican matrícula; llegada/ausencia/borrador y cierres fuera de ventana no cumplen. Pasan 169 pruebas Java, cuatro grupos Chromium y regresión FE-22. Regla y volumen institucionales aún pendientes de validación formal en FE-CORTE. [Evidencia y comandos](../../salud-u/docs/evidencia-fe23.md).
 
 - **Actor:** Administrativo / Reportes.
@@ -533,6 +587,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-24 · UC-24 — Consultar eventos de accesos, cambios y exportaciones sin modificar evidencia
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Consulta paginada de auditoría para Auditor; historial de solo inserción y códigos actuales sin reescritura. Cobertura reejecutada: `AuditEventControllerMvcTest, DatabaseActorContextIntegrationTest, EsquemaEspanolIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe24.md).
 
 **Integración FE-24 verificada (2026-10-26):** GET `/api/audit-events` real, solo autoridad Auditor. V65 agrega actor parcial, cursor por fecha/UUID y días de Bolivia conservando la firma SQL y respuesta compatible; OpenAPI actualizado. Runtime sin UPDATE/DELETE, sin endpoint de mutación; lecturas auditadas sin metadata clínica. 174 pruebas Java aprobadas y cinco grupos de aceptación Chromium con Next/Spring/PostgreSQL; regresión FE-23 completa. Evidencia: `../salud-u/docs/evidencia-fe24.md`.
 
@@ -555,6 +611,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-25 · UC-25 — Gestionar vacunas activas y sus dosis/intervalos
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Catálogo/esquema de vacunas con versión esperada y rechazo de edición desactualizada. Cobertura reejecutada: `VaccineControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe25.md).
+
 **Integración FE-25 verificada (2026-10-26):** `/api/vaccines` GET/POST/PUT en uso desde `/administrativo/vacunas`. V66 agrega `guardar_vacuna_y_esquema(..., p_version_esperada)` con bloqueo de fila: `expectedSchemaVersion` desactualizada → 409 sin nueva versión; código duplicado → 409; vacuna inexistente → 404 (antes todo era 400). Firma de cinco argumentos conservada; OpenAPI y pruebas MVC/PostgreSQL actualizadas. 176 pruebas Java aprobadas y seis grupos Chromium. Evidencia: `../salud-u/docs/evidencia-fe25.md`.
 
 - **Actor:** Administrativo.
@@ -573,6 +631,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 - **Pruebas:** contrato HTTP éxito/error; permisos por actor; integración PostgreSQL de persistencia/transacción; casos de concurrencia y versión indicados arriba. Comparar con fixtures de T-01 donde exista referencia actual.
 
 ### BE-26 · UC-26 — Registrar dosis aplicada conservando lote, fecha y responsables
+
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Dosis con fecha/lote/aplicador, orden, intervalo y justificación; permisos administrativos/clínicos. Cobertura reejecutada: `VaccinationControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe26.md).
 
 **Integración FE-26 verificada (2026-10-26):** V67 agrega `contexto_registro_vacunacion` (GET `/api/vaccinations/context`, auditado como `VACCINATION_RECORD_READ`) y reemplaza `registrar_dosis_vacuna` con la misma firma: el Médico de revisión requiere `requerir_acceso_medico_paciente` y la fecha futura se evalúa en día de Bolivia. Rechazos distinguibles: 422 intervalo sin justificación; 409 duplicado/orden/vacuna inactiva; 400 fechas, aplicador o justificación; 403 rol/aplicador ajeno; 404 paciente inexistente o ajeno. OpenAPI y pruebas MVC/PostgreSQL actualizadas. 179 pruebas Java y siete grupos Chromium. Evidencia: `../salud-u/docs/evidencia-fe26.md`.
 
@@ -594,6 +654,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-27 · UC-27 — Consultar carnet, estado de esquema y cobertura institucional
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Carnet propio/autorizado y cobertura con conteos sin duplicados. Cobertura reejecutada: `VaccinationQueryControllerMvcTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-fe27.md).
+
 **Integración FE-27 verificada (2026-10-26):** V68 reemplaza `obtener_carnet_vacunacion` y `reporte_cobertura_vacunacion` con las mismas firmas: carnet con lote/aplicador, vacunas desactivadas solo si hay dosis, Administración sin paciente → 400 y lectura auditada `VACCINATION_CARD_READ`; cobertura con día de Bolivia, `count(DISTINCT)` por grupo y auditoría `VACCINATION_COVERAGE_READ`. Controladores sin `readOnly` por la auditoría; OpenAPI y pruebas MVC/PostgreSQL actualizadas. 180 pruebas Java y seis grupos Chromium. Evidencia: `../salud-u/docs/evidencia-fe27.md`.
 
 - **Actor:** Administrativo / Estudiante / Reportes.
@@ -614,6 +676,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 
 ### BE-INV · H-INV — Exportación para investigación
 
+**Estado de cierre (27/10/2026, C-01): implementada y verificada localmente, V96.** Exportación seudonimizada con finalidad, checksum/diccionario y exclusión sin consentimiento vigente de A-03/V96. Cobertura reejecutada: `ResearchExportControllerMvcTest, ConsentimientoIntegrationTest, DatabaseActorContextIntegrationTest` dentro de las 312 pruebas aprobadas; no implica que las 312 correspondan solo a esta historia. [Pruebas actuales](evaluacion/cierre-20261027/pruebas.json); [evidencia funcional histórica](../../salud-u/docs/evidencia-feinv.md).
+
 **Integración FE-INV verificada (2026-10-26):** V69 valida filtros con `filtros_investigacion_normalizados` (sólo `from`, `to`, `careerId`, `specialtyId`, `vaccineId`; `400` ante clave, fecha o UUID inválidos), calcula mes de atención, edad, matrícula y mes de política en día de Bolivia, registra mes de política y SHA-256 y audita finalidad y nombres de filtros. El controlador responde `X-Export-Id`, `X-Export-Row-Count`, `X-Content-SHA256` y `X-Pseudonym-Policy`, aplica el límite con `limit 10001`, escribe CSV con BOM y fórmulas neutralizadas, XLSX con conteos numéricos y diccionario en español; nuevo `GET /api/research/exports/{id}` sólo para el solicitante (otro → `404`). `listar_vacunas`/`GET /api/vaccines` pasan a lectura para Reportes (escritura sigue sólo Administración). Política de vinculación: `MONTHLY-V1` (ver `docs/politica-seudonimos-investigacion.md`). Pruebas MVC/PostgreSQL y OpenAPI actualizadas.
 
 - **Actor:** Reportes / usuario autorizado para investigación.
@@ -627,6 +691,8 @@ Una historia agrupa su caso de uso principal; los escenarios alternativos, error
 ## Épica B9 — Paridad, migración y aceptación integral (P0)
 
 ### BE-CORTE · H-CORTE — Backend listo para integrar
+
+**Estado de cierre (27/10/2026, C-01): integración local aceptada; corte institucional pendiente.** V96, 312 pruebas actuales aprobadas, sin omisiones. Recorrido real Next/Spring/PostgreSQL de ocho grupos por seis roles reejecutado en C-03. Mantiene pendientes el mapeador/ensayo de migración histórica, la estrategia de cuentas aprobada, el volumen/hardware institucional y la validación con usuarios/SUS. El paso de consentimiento obligatorio y F-03…F-10 no se consideran terminados por estas pruebas. [Dictamen de corte](operations/be-corte-acceptance.md); [evidencia actual C-03](../../salud-u/docs/evidencia-cierre-c03.md).
 
 - **Actor:** Desarrollador / QA / operador institucional.
 - **Historia:** Como equipo técnico, quiero demostrar el flujo completo por API y ensayar la migración, para entregar un backend comprobado al frontend.

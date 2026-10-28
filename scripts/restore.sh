@@ -20,6 +20,23 @@ if [[ ! -f "$saludu_env_file" ]]; then
   exit 2
 fi
 
+# Verificar el descifrado y formato antes de detener el servicio o borrar la base.
+saludu_encrypted=false
+if [[ "$saludu_backup_file" == *.gpg ]]; then
+  saludu_encrypted=true
+  command -v gpg >/dev/null || { printf 'Falta gpg.\n' >&2; exit 2; }
+  [[ -n "${SALUDU_BACKUP_KEY_FILE:-}" && -s "${SALUDU_BACKUP_KEY_FILE:-}" ]] || { printf 'Define SALUDU_BACKUP_KEY_FILE con la clave externa.\n' >&2; exit 2; }
+fi
+saludu_stream() {
+  if "$saludu_encrypted"; then
+    gpg --batch --pinentry-mode loopback --passphrase-file "$SALUDU_BACKUP_KEY_FILE" --decrypt "$saludu_backup_file"
+  else
+    cat -- "$saludu_backup_file"
+  fi
+}
+saludu_stream | docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
+  sh -ceu 'pg_restore --list >/dev/null'
+
 docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" stop backend || true
 docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
   sh -ceu '
@@ -30,9 +47,8 @@ docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" ex
     psql --set=ON_ERROR_STOP=1 --username="$POSTGRES_USER" --dbname=postgres \
       -c "CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$POSTGRES_USER\""
   '
-docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
-  sh -ceu 'pg_restore --exit-on-error --no-owner --no-privileges --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' \
-  < "$saludu_backup_file"
+saludu_stream | docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" exec -T postgres \
+  sh -ceu 'pg_restore --exit-on-error --no-owner --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"'
 docker compose --env-file "$saludu_env_file" --project-name "$saludu_project" up -d backend
 
 printf 'Restauración completada desde %s\n' "$saludu_backup_file"

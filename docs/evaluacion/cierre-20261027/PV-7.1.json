@@ -1,0 +1,22 @@
+{
+  "id": "PV-7.1",
+  "resultado": "APROBADA",
+  "alcance": "Escenario documental ejecutado con fixtures sintéticas.",
+  "casos": [
+    {
+      "id": "NotificacionIntegrationTest#asignacionCreaUnSoloAvisoInclusoConReintentosConcurrentesYRespetaRls",
+      "resultado": "APROBADA",
+      "segundos": 0.176
+    },
+    {
+      "id": "NotificacionIntegrationTest#cancelacionYAusenciaGeneranAvisosSinFiltrarMotivosYLaLlegadaNoDuplica",
+      "resultado": "APROBADA",
+      "segundos": 0.143
+    },
+    {
+      "id": "NotificacionIntegrationTest#falloPosteriorAlInsertDeCitaRevierteAvisoCitaSolicitudYCupo",
+      "resultado": "APROBADA",
+      "segundos": 0.085
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "PA-20",
+  "resultado": "APROBADA_ALCANCE_BANDEJA",
+  "alcance": "SMTP original NO APLICA por decisión vigente. PV-7.2 adaptada: recordatorio de mañana/reintento atómico sin duplicados; PA-20: eventos en bandeja y aislamiento propio. No se certifica correo.",
+  "casos": [
+    {
+      "id": "NotificationApiIntegrationTest#ownListAndForeignReadAreIsolatedEvenForAdministrationAndWithoutIdentityFilters",
+      "resultado": "APROBADA",
+      "segundos": 0.127
+    },
+    {
+      "id": "NotificationApiIntegrationTest#reprogrammingReusesItsReadNoticeAndMakesItUnreadAndNewestAgain",
+      "resultado": "APROBADA",
+      "segundos": 0.078
+    },
+    {
+      "id": "NotificacionIntegrationTest#reprogramacionesSinCambiarEstadoActualizanElMismoAvisoYReabrenSuLectura",
+      "resultado": "APROBADA",
+      "segundos": 0.141
+    },
+    {
+      "id": "NotificacionIntegrationTest#cancelacionYAusenciaGeneranAvisosSinFiltrarMotivosYLaLlegadaNoDuplica",
+      "resultado": "APROBADA",
+      "segundos": 0.143
+    }
+  ]
+}

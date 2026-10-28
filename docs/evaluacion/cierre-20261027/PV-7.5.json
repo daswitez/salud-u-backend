@@ -1,0 +1,12 @@
+{
+  "id": "PV-7.5",
+  "resultado": "APROBADA",
+  "alcance": "Escenario documental ejecutado con fixtures sintéticas.",
+  "casos": [
+    {
+      "id": "DecisionSugerenciaIntegrationTest#pa21UndecidedSuggestionsExpireAndCanNoLongerBeDecided",
+      "resultado": "APROBADA",
+      "segundos": 0.142
+    }
+  ]
+}

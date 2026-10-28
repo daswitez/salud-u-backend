@@ -1,0 +1,1911 @@
+{
+  "fecha": "2026-10-27T10:38:42-04:00",
+  "documento": {
+    "nombre": "MSD-Documento proyecto de grado Ver.1.10 u.docx",
+    "sha256": "61102af2eec9259c3f2a8a7f1d8cff1ad94cb21a7824157bdd6ab795482ae8df"
+  },
+  "backend": {
+    "sha256": "314cc879d9ddf0b685a10a8f201cbb532484f343db688d3fa0999c1e9360bdf7",
+    "archivos": [
+      {
+        "ruta": "pom.xml",
+        "sha256": "099b2be5d513a8701ecc4d3e332820291628812dae1c2ab8fee8cf3d8e9c3658"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/SaludUApplication.java",
+        "sha256": "11d4ffe9cd9b139938641236f740d62197393e5e03a405e0f3e1549265ea6d70"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/AppointmentAssignmentController.java",
+        "sha256": "99091c0b825096e16d04eec275edbaa7745c4c037a3743cb7077c16d715952ed"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/AppointmentAttendanceController.java",
+        "sha256": "4eb733e49721f5dc353e2d94b9073509efbda7506edaf5ad5639b512b2fe4d0f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/AppointmentMutationResponse.java",
+        "sha256": "548ae344d444ba75aedb0a39ab699bdf49ab78f0240676c47c133f6a366e5faa"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/AppointmentRequestController.java",
+        "sha256": "eb62a34ef5a1294514fe85f82f6ebb44da3b68497609a5eae6349d1787f8dabc"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/AvailabilityController.java",
+        "sha256": "f9261f92cc61e41f00e40d1175123db4cc0439a4c1b31e1352a1c7d479bdba0e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/ClinicalBackgroundController.java",
+        "sha256": "f752e18d3717a08fe2ef998d916bbd8aa9ec3f80f844b76cb9cd27791cb0fe4c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/ClinicalReportController.java",
+        "sha256": "748030784b5c41a2caaf4cad806bd2629171d40c6b7fa6eac31512fc8c9b8dfa"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/ClinicalReportExportController.java",
+        "sha256": "b762e1cfe59539515903ac642f194e525c043f861fb553b02165b1bbcd774372"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/ClinicalWordExportController.java",
+        "sha256": "33e94aeb926e717b838773423b24ef3b78e57143ec987bfe8e3c926c02103333"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/EncounterAmendmentController.java",
+        "sha256": "abae74f58a3cd3ce63ee38f14bb284364b07187c15518111d8a72f783b830c03"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/LegacyAvailabilityResponse.java",
+        "sha256": "e8d1cdf991d9b9d5af3ed0442c154ab83c1cedf58a7cd9d3e498e1658dfc4a1a"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/MedicalAppointmentController.java",
+        "sha256": "3547d1c8a8f6352010aa5df9d29257bd58f31bf052f21f15bd20ea5498fc8707"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/MedicalEncounterController.java",
+        "sha256": "dfaf263c86f3826088ed0b8d8d180b81629c9f494b1106b3b176fe01f894eadb"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/MedicalHistorySearchController.java",
+        "sha256": "53a220d55d055339a2e5f47e5b324da130101e791cbef303a1a00e0e0e7c3634"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/MedicalPatientHistoryController.java",
+        "sha256": "a02dc8efbd40d4133b9f0ca3f262e37c0ae96dbc04893970b2a0e58f77b4f1bd"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/api/package-info.java",
+        "sha256": "2c7d684eca0fabeeee8a1019fd355ebdf422dec0bee98e06f7621bfa77854e4d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/AvailabilityException.java",
+        "sha256": "6b6b87beba5d139d30dc34b4987d419089d56e0acd0c5365929bff012d2bb422"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/AvailabilityService.java",
+        "sha256": "833aae9b684c91cd2f3796761434c4d0aab1303ea8e6f7a1b3c7e0ef455037c8"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalBackgroundData.java",
+        "sha256": "bdc38cb59fa9e12e3c4d8eb6f95feb20a53a83f8af430b4a7235d5b92cfcad2d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalHistoryData.java",
+        "sha256": "58df1becae68f269b9ef8241265b16785d01e3a5b2964e0f0c92804c9b3e3572"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalJson.java",
+        "sha256": "58d2d0fbd9b26b5e6caf2f6d43d373ae046be26534796aac610332b443b830ff"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportExportHistory.java",
+        "sha256": "349e52f16af5a819d0ab459d9b297937a08258a8b8fe853b765985e6806cc069"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportExportRequest.java",
+        "sha256": "5149a44845896a98f5edcaf0c1e6188162a9272e9ea61264b9315eb970818808"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportExportService.java",
+        "sha256": "947a6e1c8b98b88cc4d56c5a61aaf53565aebf8115145d2b358e04f345bc40ed"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportFiles.java",
+        "sha256": "14243c40308e5a69f3449545b827c3c50d14f1c28399044ef6b2b3582ac38cb3"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportGenerationFailure.java",
+        "sha256": "79f2bb7623e7d45662386aa6861c0bcacf837dd791c231a6547fbeca354bdddc"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportQuery.java",
+        "sha256": "0b9a7d4870284bbc4b772009c6182d9ccb6b86fadec58dd6b3a33ec08390045f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportRows.java",
+        "sha256": "e3531f9f82ef0cb2499f4740918f7a67c840ea91d0a1d3bf6da86781a1ee8b1e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/ClinicalWordDocument.java",
+        "sha256": "8479f3a28c97b860fc78f7e1ad13a5de1577228fa1ae27ca8484d03c34d86cc1"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/application/package-info.java",
+        "sha256": "a9576fed5300bb0462425853f294a61478bef238cd4722c6f00067df7c4c0a91"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/domain/package-info.java",
+        "sha256": "bd4326f1e5c019973ed949752a8f100e12e7410b00234e69e2d4bd2738106bd4"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/agenda/infrastructure/package-info.java",
+        "sha256": "30f9e41c7d41c26d9dccb381f54e2fb1bc5abeaac8d3fde9cf7af022afbe1ddf"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/AdministrationController.java",
+        "sha256": "b4963d8dbd34b93b3952a5b0a4585c018dad8a8e64e959d8954c5e66de1900e9"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/CatalogController.java",
+        "sha256": "0d2e2fce41639b709b4b9f6a9f697e43810576f91d2e548d11cd0819d43e154e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/CatalogSaveRequest.java",
+        "sha256": "a5fb7992724a57a056a1dc1b48cff35a90359d6733adb5808187eb73fa0dd2e7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/LegacyCatalogResponse.java",
+        "sha256": "400253002173f635a8e4ea9743dac78938445f11e0ff6a514aece6b35083375f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/PrincipalActiveRequest.java",
+        "sha256": "b1a0d5a57363d46394e774d5074931bbaafb7ff915dee9fa9e7d502aa4bbe639"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/PrincipalCreateRequest.java",
+        "sha256": "f94fe4aba7a246c2a65e46a0ee3f6c032206a2474520ca2620cc7486d22c7393"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/PrincipalRoleRequest.java",
+        "sha256": "e4b4ff60db1dfa7631eafe914d5e9b926328426ee5a2ff940c364198133943a6"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/StaffRequest.java",
+        "sha256": "cb36282506b294511e25a41f3d60f59844f5ad4febdd70831a3a5f53c0eccdd8"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/api/StaffSpecialtyRequest.java",
+        "sha256": "3c1fb8e1376df7d49b20dab8d9ed569a4441e308d540d3abf2ac3871edeee0d7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/application/AdministrativePrincipal.java",
+        "sha256": "d1c9c8b680985b7a7bffee4aac276049cb4dbf70f78044db0a31c8b82c386a81"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/application/CatalogItem.java",
+        "sha256": "b20b6b1871d149f6a16e9016c06d2eed7105ead4b540319d60af61a944eca3e4"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/application/CatalogKind.java",
+        "sha256": "27a382e9fabf9076f7d2c0db42cdd2b1d7d3dc90d4eedc17b38fbb8a2c400f50"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/application/CatalogService.java",
+        "sha256": "7c39acad557dc41caf5d1887d17a9f22271730ea173543d3beebda0d95722308"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/catalogs/application/StaffMember.java",
+        "sha256": "42c1a9a4c95f716b40096e85dc0fc2a882eb0f00a60b10ba79bf37ba8f356731"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/documents/api/ClinicalDocumentController.java",
+        "sha256": "218be9cb09691237fdba22692b028cf564d6df52fcd4b9205a4f65e26f913f36"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/documents/api/package-info.java",
+        "sha256": "1466fdc5690dbebe2720100a2dc71778355768fa607afef4a5d3fc848e8c155a"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/documents/application/ClinicalDocumentService.java",
+        "sha256": "2e75ca9a4e1e3da721ad6f65788f5bfd4893afab88cbf29a5b9e425e04db9997"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/documents/application/package-info.java",
+        "sha256": "7a4222b88bccb31d8dad83b297afaa2e81c3ad279f028f7b79fc6820fed2a270"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/documents/domain/package-info.java",
+        "sha256": "3a271731396a490ae87421ff92fdf5d710dc9d47a106462498c599fdfdd4987b"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/documents/infrastructure/package-info.java",
+        "sha256": "8c3426b491b325e915ebc4ea11b8a459b4be280c46a83e4c3dfc05c31860c30d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/api/AuditEventController.java",
+        "sha256": "60185d9cf02952d19a8c6b1938050d45a485a9b63cc7d47025dfce4f2b072458"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/api/package-info.java",
+        "sha256": "68b121837bd3d6db0372fa06aa69639d086dfdd1b2585ca763dda2aec22fc1a7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/application/AuditWriter.java",
+        "sha256": "3aa340843ec9a0654600dded18281093cc5653f2f07e04766319273803e05547"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/application/package-info.java",
+        "sha256": "ef71883413dd0277ec43a1adc87f8b76d2e77e8ae2ac04288e75ad75efba1a2c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/domain/AuditOutcome.java",
+        "sha256": "b15bd47e286939c620282f230a79758248594fe9d6dd9850f2527c185c61aa0c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/domain/package-info.java",
+        "sha256": "7994d3fb4b88a7f8e8dffe0f8f363dca940087844b4d336ea2e966a999b3ce35"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/governance/infrastructure/package-info.java",
+        "sha256": "f5340e4cc9a8d714cbce02171701e9848a91b2312d3250c2f73cd24d863abca4"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/AuthController.java",
+        "sha256": "e21326d6f1e0faaa15af55986a99969bef3cd682e553974245b5df0ba581f396"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/LegacyMeController.java",
+        "sha256": "b40eb3b43f11a48ebf59bb49420bc9a8c3187a2ec3460c7e9bbfbb53c981d66c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/LegacyMeResponse.java",
+        "sha256": "6a6114d26c2fb38710f36965b634c70a0da3a0093e6998bce4e9a52a853ba24b"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/LoginRequest.java",
+        "sha256": "74621f4f1ee4b4697cbadc764b282761ac0e6271a1bacc5bdc2b65393a59a418"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/LoginResponse.java",
+        "sha256": "5e7f1c70dbef77ff9254866be4ca17c3a62726abcb186521e4ad6378a5f6e3a0"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/PasswordChangeRequest.java",
+        "sha256": "50599b7a2b936f90791242d5c3b6e5c22ab32f9a49d5e8462b70c0917b6e1ecd"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/ProfileController.java",
+        "sha256": "b2ea4e54b6e5493b1922473cf0ce853da488473cf567ec75ac9b0043e754d176"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/ProfileUpdateRequest.java",
+        "sha256": "cf4ea69dc9543d02ad0eda2a1229b10ddb2385686db80a7f45f46b4a776a3720"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/SessionUserResponse.java",
+        "sha256": "9a1d38074d988b79b774e8997b0224b83ffa44ebf0ab1a2737d310b5c6f5641f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/api/package-info.java",
+        "sha256": "6e17cc287221742747cf19eb7e9548d83e9b4724c92b54b6891d8254053c23b8"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/AuthProperties.java",
+        "sha256": "2e95c567d5b2d0365f4be2adeab83098002571c235bf71e91918ff8d141fdc6e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/AuthenticatedSession.java",
+        "sha256": "01a70d42b6d68c839dd267910270ca100b1862b4de0d38e78ce7266622dd4146"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/AuthenticationService.java",
+        "sha256": "f1f2eeab962e3dbaca4938db75e312a8da51c74d962ddc7bdfdf9ebf6d43380e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/EmailAlreadyUsedException.java",
+        "sha256": "b4d0398b3cbc2d5c66267286bc7d245f056d11e72a6cbb255efda1b24413616c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/InvalidCredentialsException.java",
+        "sha256": "6013a1679ffd0b4ec8d6d35fa925a676b7ab07ae4104be87ec6a2c50ca1cd55f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/ProfileService.java",
+        "sha256": "5f8eb34a3dbeacc21d99e910625beb36938fca3d373fcb201124f7a08cc2be97"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/application/package-info.java",
+        "sha256": "682afcb2cced30f6b8b2117fe94b598e4145d91abe21b12140fdabb632cdc103"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/domain/package-info.java",
+        "sha256": "894078593bba6127ee834effa3c290de562bdaace87f59362dc0c3f8bbb53b57"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/infrastructure/PersistentSessionLogoutHandler.java",
+        "sha256": "56f62edb7ff18343f346fceff13659546bb268c19dedc1ee5b7aebb2c1b5427e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/infrastructure/SessionAuthenticationFilter.java",
+        "sha256": "99ce3999db85ec3b6953140d77bbc44e53deca63867eae680648f8eb6877d844"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/infrastructure/SessionCookieService.java",
+        "sha256": "ab503e2a64bda071ebbf11e6ab880c919c8a0a1c3775555631f86f2d3d50cf7c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/infrastructure/SessionPrincipal.java",
+        "sha256": "e45f845c9a4a93df36b241c92935cf87e701662b5b3d234fc56684f13a057553"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/identity/infrastructure/package-info.java",
+        "sha256": "5db27942ecd2113719d2e5c21320c69d695e575fa6cc0d380a9bd570a26cb7c3"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/api/NotificationController.java",
+        "sha256": "c3a68df9f4831e00e10dad86fd53cc611cbd8233b4406084e97b3f39df13336a"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/application/Notification.java",
+        "sha256": "2b9d5141b9b9b6a1a72634a12280883e89db142cf7178f9f61f514122751555e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/application/NotificationPage.java",
+        "sha256": "bc0b3d71923435272f830025f408085a3760825a18e17366c7f460f17310ad18"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/application/NotificationPreferences.java",
+        "sha256": "df894fc4ed84959ab056f231a2a8eaeea7f460e80bb25470850d9402ebd04860"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/application/NotificationReminderJob.java",
+        "sha256": "5f7fa8794a79f87cdc72fa8c55ef0e3234857a0bb4be2be7955f5605c4302128"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/application/NotificationReminderService.java",
+        "sha256": "4b3710f445a4670c9d09b7ac2881edcd7c7453f4d1a9af479bdf1bd45e7439d8"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/notifications/application/NotificationService.java",
+        "sha256": "91903d81168fec1d3657bf1a45490c19c8f5b49d2ad7a885c3dc9d1af272269a"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/api/ConsentController.java",
+        "sha256": "3e6e8be4c3f39e466c0d7c83244f1e1002d59e5eb33a44136aa0e41c256d5eb7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/api/LegacyPatientResponse.java",
+        "sha256": "93486e5e9a4b0e754eb31385a5433f33fa12818118a5f147a874d0e024f0f4c0"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/api/MyEmergencyContactController.java",
+        "sha256": "89e6f7427b88b77118e69e4802509fd2961402e0270321213ce5797d1a16c6b5"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/api/PatientController.java",
+        "sha256": "400f794d3d76b89759de949d44851859c7b52d3edd8b5d3bb1640149910150bf"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/api/PatientRequest.java",
+        "sha256": "0c782703537e5516bbcad51e84ad230c594b76ed7dd1746f2ca28c783b5c0a0b"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/api/package-info.java",
+        "sha256": "4de6a17a0a77238cf6c3ec80ed93ea4dbb9f62feba4f102467d0025434a398a2"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/ConsentAnswer.java",
+        "sha256": "459d34b249841ab1cd30b8ffea16d5e29c1c1e9d93cc4895596974376ae7e2ff"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/ConsentPendingException.java",
+        "sha256": "8fcda004b3de047f513edf7c645f535d05e5f613f80c6648ebdeed15134f940e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/ConsentService.java",
+        "sha256": "6b4e909fda33adfa156014a785ad7451b3aa5a38f23e7f6094549079507fa6e2"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/DuplicatePatientIdentifierException.java",
+        "sha256": "1279837dd4bb6b20a3ed22256485e7e7c97c78d7014de0e8bbfd0a9873dced3b"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/EmergencyContact.java",
+        "sha256": "ff5d567c05765256ea61ba6231cc90b11b5e8199edb0c9795e930df344a3f4c9"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/InvalidPatientException.java",
+        "sha256": "68eb9c52f4e57900993f15305077a3a896bcff84b7a000ef0da8111b63449858"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/PatientDetail.java",
+        "sha256": "0fef114364f3234cf805e630f08520281c8b10b4b1a4f931b5ba80b955653435"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/PatientNotFoundException.java",
+        "sha256": "59c76856cab4c6fcc31d063b9eec62b39a40c6a45d502df6132b9010739c60c0"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/PatientService.java",
+        "sha256": "71fe2da39c78ee994b71dbe987acc42f9cabee342534ee65fbc68e530cbef6fb"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/PatientSummary.java",
+        "sha256": "5a30c50b00667d2b471a3c27d7890467d38a59a65a305d8a52b976ec1308b5d1"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/application/package-info.java",
+        "sha256": "9ae431f77cb419ee82e2f8d7e5a0e3be0d90bffd9ab859d9ac4ba539457163cf"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/domain/package-info.java",
+        "sha256": "22e0f239ccc8deadecfdfa9956fd1848ae29c666d068795234c3cccef8e11b1e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/patients/infrastructure/package-info.java",
+        "sha256": "b0909c37c43801894cc562e0900b46971a074ccd9954ad927223a2bc806ffab9"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/api/AssignedReferralController.java",
+        "sha256": "990168452a5747d35adc2ede621fe941f12c06cbfe7c6d0df0b98936451899a7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/api/EmittedReferralController.java",
+        "sha256": "c9fafb618bfce47410cde85a69ef23f7f7fa88ef9c13e6ece4eb804f10c9a4bb"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/api/ReferralController.java",
+        "sha256": "4b91ce71e647300ab70f118615ca2c406f1a31c4e759046355788ec48f42f703"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/api/package-info.java",
+        "sha256": "21c9a4f8505a6519037dce99c88d7fb4ca0b27df98e6b40299b5ac0acf074d63"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/application/package-info.java",
+        "sha256": "bffa391897d89f45da7d8a9ebb06fd8578f1f7c9826b22b59bae824951dd417a"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/domain/package-info.java",
+        "sha256": "3e47af8db2ef34c2805fd1a1cecb473b44dee55e87b47c0c274b2afb06c07754"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/referrals/infrastructure/package-info.java",
+        "sha256": "4cbbf99ef5700e756ce0ea74560f881dfed5de83c8cfe28dfffd98c5263772e8"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/reports/api/InstitutionalComplianceController.java",
+        "sha256": "f7b54b7ae8f35978bcc277d885c64eb2a780df64c090945e2d954250db779f23"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/reports/api/ResearchExportController.java",
+        "sha256": "499570e88dfbfd9c23c52a766f5ba3b5490c329d4a9de08a718b5ca0f0cd34a1"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/review/api/package-info.java",
+        "sha256": "56e08b0feb136e3edf0347a79a38ec6aef4f8e68b1f79a0e78c57df87a9c8d26"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/review/application/package-info.java",
+        "sha256": "a7fab85b68296795850874194860e0f2a55b48aed988a00b4e819a4729ff81d5"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/review/domain/package-info.java",
+        "sha256": "7df9c5944d32d65876ca66d2931bd9e8871bffd7ff1ad9af3e87786a5e3b2341"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/review/infrastructure/package-info.java",
+        "sha256": "93f2266445b027c9918e5a0f105134d395ab6e3758daa6284f3f8f1ab8d06a47"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/api/BlockProposalController.java",
+        "sha256": "25253aa9b3d84d22207debb21e2d53ba06cb8decc6e64a0234328c23a804f310"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/api/SchedulingMetricsController.java",
+        "sha256": "31e8890120b06892fad07e59733ac9588b8394b37e56e130eb5a048840660c05"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/api/SchedulingSetupController.java",
+        "sha256": "a7aa29a7ef336d384731bca5b626b6ab7f443337511ba75b2805824960a8e883"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/api/SchedulingSuggestionController.java",
+        "sha256": "8def77279525d6a7c3986f37ecba8c3487e8dc57207207ac2478dc8534676ba7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/api/SlotSuggestionController.java",
+        "sha256": "59ce161939f1d07ccc85c3645f54db400293899985b56a66454bf2fb0dae6c27"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/AcademicPeriod.java",
+        "sha256": "97e5b49114bb52da4bf61889089e89f7d37918b62aba263474940c906562178d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/BlockProposal.java",
+        "sha256": "0bd87a91de13da5be584115e15b9bcb792d37eabf14e968bbdf99b5cd35116ca"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/BlockProposalService.java",
+        "sha256": "aa07b3bef1231dd73420b6c2c66a0f6c61b2d61296e8455932fa7d30985556b6"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/DayCloseJob.java",
+        "sha256": "e751532d40f810aa8c64f3743409954020807c7644248b2643a5808a5a9415a3"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/DayCloseService.java",
+        "sha256": "a2e1c4c9210d892de4b0b878a40bb67c55b750380d1277d08eb58ad4035bc31e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/EstimadorAgenda.java",
+        "sha256": "e08e2b6c8353917a36f89ea7f8605b22c9a07cf49b4ccf53511f4b91d956cbc4"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/EvaluadorAgenda.java",
+        "sha256": "179456be04a36d2a0e9d4d862d773acb23e5e08cb66508feecb5665a01711e11"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/InitialSchedulingValue.java",
+        "sha256": "85dedc5a8200053da673b91309a9c110ce8f47e46d08b1f7427974804106b838"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/ScheduleEstimationService.java",
+        "sha256": "8d6b6655029149239a3d2a1e1adad90a64eacaa203ef6ed2bb503533742170f4"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/ScheduleSuggestion.java",
+        "sha256": "0fae98a564596f53bcab3b0e58e55d57e7a5909aae35cb33879a03bfb4b632b9"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/ScheduleSuggestionService.java",
+        "sha256": "6eea04c8cdded238bbee3ab38e57b09907669d248b93b46abc16b07d1dc0d915"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SchedulingMetrics.java",
+        "sha256": "731ae9df9122fed7eb9fb1cdcc9b3a144b3065b80ce5e8f9035163a683b7748c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SchedulingMetricsService.java",
+        "sha256": "e1d53da0409bf4dbbd5cac3eac4bb1a46e6f01098005774b6a2f3a2e00cb59ac"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SchedulingSetupService.java",
+        "sha256": "04e9ce8e17e7169bf06da20c8090fe973abb510e0549d497b799085af2f5d204"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SlotSuggestionService.java",
+        "sha256": "06a10e633fb25cb0661305eff53844026f05d199a7f709f8357b08a42bd28f54"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SugeridorAgenda.java",
+        "sha256": "494d97b1f726de0989c350fae45e8cb84f37c36d5154f7c0b5b3cfb869ef558d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SugeridorCupoSolicitud.java",
+        "sha256": "e7f3ac15e8f3050fe5d227715151cb95c46aeb2190a692487c96c05a9a2d827e"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/scheduling/application/SuggestedSlots.java",
+        "sha256": "cb2a98239a1c78a06522593b7c5bd9a6f15fd7f00ff46daf5380d22c4db8a22b"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/ApiEnvelope.java",
+        "sha256": "7b487711dde1a3e5a94612b3b00b301281597970ff5df2c7210504817a083cd8"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/ApiError.java",
+        "sha256": "d5566ce844109eff5f4d259fb79cfd1f179fcff07240f32621e2487e85921611"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/ApiExceptionHandler.java",
+        "sha256": "ed2a0e2d29436aa0ecb6fb27f1ee37d435d5c18d9489433a07ab2b033000006a"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/ApiSecurityErrorWriter.java",
+        "sha256": "9b2502cb70ad1698249b5298c5733a5af41586160a7a01179bc45941909aafe7"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/ApiSessionController.java",
+        "sha256": "81074313dd45a6d80bd478d87d9e01ce14529a924fd8063e67329b62107539d4"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/BackendHealthController.java",
+        "sha256": "c5bea4d329afd78b396e8c474cff9f17fcd92a172653c61c8c98bba676074364"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/CsrfTokenResponse.java",
+        "sha256": "d0d49c33d1074dff6bcb2436ae12daebc75a76ad0d30455af5c114b19c3b6291"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/RequestIdFilter.java",
+        "sha256": "688a54400528e991adab3c05a47a182c1ab8f5f5cab2f3bfa72003156034001f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/api/SessionProbeResponse.java",
+        "sha256": "9444cd389e82611d65a1682a587ed0d832f1eabcdb81b24a6c572a5dbbb36d83"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/persistence/DatabaseActor.java",
+        "sha256": "23e38f90532e8b3baa1741558ed6fcf90eeaa854bec010be7ccfc923c456c331"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/persistence/DatabaseActorContext.java",
+        "sha256": "127eb59b5f045fccfae9ea7a4a36dd4c142602c05feb450613d299d4b31442fb"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/scheduling/SchedulingConfiguration.java",
+        "sha256": "113644e080ff4ed3b5bed8146e178af4a66a41f7274f1d3b1288e9ed83d7182d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/shared/security/SecurityConfig.java",
+        "sha256": "0df0ae5c2d1b032f35af0960ae054495421bb61cfdab4729511195974c08efbf"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/specialties/api/package-info.java",
+        "sha256": "2660f9cbe2137781db3a5ab203c33b90b9e7aafbf687a1ca3bd576bf35000b65"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/specialties/application/package-info.java",
+        "sha256": "818a15700f76288ef72c9eca3b205eb924082e32899bdf242c2dfb13a521f41f"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/specialties/domain/package-info.java",
+        "sha256": "7679472c090563b8c35d1fd92086f8b62d837caea25385113d78b0f2ce779e3c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/specialties/infrastructure/package-info.java",
+        "sha256": "fd4cb6b777219f0c4d65ef858dc3360c6fb08d05637db3646bf2ad4dcf8daa1c"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/vaccination/api/VaccinationController.java",
+        "sha256": "4fee7e7b9cc4c4c0f4a131810e7e82de6cb6e3755d459e8a0ddca7867a56aed3"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/vaccination/api/VaccinationQueryController.java",
+        "sha256": "83ead72b65bd1b6cd91465223b34e09695634a6a62241282bbab8229f470fb9d"
+      },
+      {
+        "ruta": "src/main/java/bo/edu/uagrm/saludu/vaccination/api/VaccineController.java",
+        "sha256": "1c6dae5b9b0bd24084cf407b17073cce20ccd4d73715c38c5ed32216779b46d3"
+      },
+      {
+        "ruta": "src/main/resources/application.yml",
+        "sha256": "dc40719879dda932f48980b2b5db584d68b14a3ff9b2083570bc579edcbbefb5"
+      },
+      {
+        "ruta": "src/main/resources/branding/centro-especialidades-emblem.png",
+        "sha256": "e2f0460811ec0d276e33c59652e9b4e45cd001b1bc8865953bba9cde7fd8a467"
+      },
+      {
+        "ruta": "src/main/resources/branding/fcsh-uagrm-emblem.png",
+        "sha256": "38ad74937e2ae44f58c96b28ac38aacbd001262ef6cf91fcff53929766e9bab3"
+      },
+      {
+        "ruta": "src/main/resources/clinical-json-dictionary.json",
+        "sha256": "0cec8688a005d10a69db7a0a66bf57c24c2ae20930f37cdb7fcd6b4bd5b5b45a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V10__assign_appointment_request_to_slot.sql",
+        "sha256": "86413c814f4435a3da78d24c64481665d6a0ce297e0b65909136205def616bc4"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V11__checkin_no_show_and_request_cancellation_rules.sql",
+        "sha256": "b3a1b12eec2458eef3350784308df4b98bf03c3a3b75371f7650a5b1f195e0f6"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V12__encuentros_borrador_por_cita.sql",
+        "sha256": "fd322096f436f45e9a6f4dfb5b58aee6c1c3e3166672778e5ae93b2dc6201fd5"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V13__antecedentes_clinicos_versionados.sql",
+        "sha256": "eaac39cb16b2cc20d1bbb321a9f68ce8c22aa8c638ab8db9b53a1f7666efa6f2"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V14__finalizacion_encuentro_revision.sql",
+        "sha256": "3165c59f2030ff40632e31e2d609d7e6d6f61aa44d93195edc1730db61822a19"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V15__move_pgcrypto_to_application_schema.sql",
+        "sha256": "21f1ecb248f3b95172280818e4b89cab4548ea4d4f1f39f9b2b65127591d62af"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V16__resolve_plpgsql_output_column_conflicts.sql",
+        "sha256": "9a279cd9a3593220cf80dcb00b82c374fd0f617e044f8a6a1ef45955781ec305"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V17__documentos_clinicos_privados.sql",
+        "sha256": "b7375a0f7d5fb8e96c6decf666db39be9e92b7804d51f233c68c6cfb492fe10b"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V18__lectura_autorizada_documentos.sql",
+        "sha256": "366ee39acdaf5e0f9265ee862747e1faea1765dc499b5904892fdba2ad7338d7"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V19__cierre_revision_atomico_contrato_rpc.sql",
+        "sha256": "8f2c4df5003dbd183b7879415b4bd1c4fbeee7a0e323390bd02cdb4441b67ca4"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V1__create_application_schema.sql",
+        "sha256": "39f842b2e2b7e02ed5eb830bd5a5e6536047e9501b14a1b8dc8c6c6130ffa977"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V20__derivaciones_desde_revision.sql",
+        "sha256": "a1358ccafb54b6c85c82279653b71ef2237cb101199e7de5b7de0acbc6bafa70"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V21__programacion_derivaciones.sql",
+        "sha256": "ec6439c20f214180a9cea4405902fb5c858668816afdccfeed24a6f679ef175b"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V22__contrato_y_asignacion_de_derivaciones.sql",
+        "sha256": "200b7c34bb1aec51668738976c4d13f199c873d5c3999e3074cdddd879fb1bb7"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V23__solicitud_derivacion_registra_actor.sql",
+        "sha256": "b4bfc4fab84ee6ee9dd237f21cd2b3b78592e795a896f36fa96cae033a5445af"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V24__tipo_solicitud_derivacion_valido.sql",
+        "sha256": "1f1f502717eb23b4f4eb95e165b580c0a3f5898e0f3c885d5280fb6ac026539d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V25__ficha_especialidad_versionada.sql",
+        "sha256": "71160164b139cf9354d577a10b81fdf09bacb970499d43542c34809507c98a9d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V26__resolucion_y_devolucion_derivaciones.sql",
+        "sha256": "e500f5a825ed38dbbfbd8caa990fd98ece3a21b3a75e36baff3a9a40a0e4b255"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V27__historia_longitudinal_por_area.sql",
+        "sha256": "670fd003eb4e14f8ef832c241280bb2ac16be4fca07b73d5de52fee04300edca"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V28__busqueda_historia_autorizada.sql",
+        "sha256": "ec84efb2e2f7b5ab933ab45252fee46a42991b8fe10a7ef0a8c9312c8e84e38a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V29__adendas_a_encuentros_cerrados.sql",
+        "sha256": "4dc828031f244e581b8dac074258c2d47c681e675f630fa2997ba4dc413bbc34"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V2__security_context_and_append_only_audit.sql",
+        "sha256": "b3c260c4ce987224f824540456d7bf79180a2042e05454376fcb2d54844a9d43"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V30__exportacion_ficha_individual.sql",
+        "sha256": "757c4bfdc1604066900a6b79e4626d3de43168904581d796585b22cc6c45fe89"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V31__reporte_clinico_por_periodo.sql",
+        "sha256": "973bb8917114df73654d749577df9bcf1a5c19ebac5d4a1a152223b48f903dd1"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V32__cumplimiento_institucional.sql",
+        "sha256": "d1163055fe58149c924c3a2f3da7ecd324bfc210ed3dc795bfdcb65937359b1d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V33__reporte_cumplimiento_institucional.sql",
+        "sha256": "effcab91dfd52e996d231e2ad8358cf7ad6b3102d727e81c81470d340321d5a7"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V34__consulta_segura_eventos_auditoria.sql",
+        "sha256": "22137e655f63d0df22cf3540c1ed67dc5bcb1f80cdf36631a74df181279da734"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V35__catalogo_vacunas_versionado.sql",
+        "sha256": "560f233ec85b55c4ee065e69e627512664e1af4bb25a03d17b3618fce4a64faa"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V36__registro_dosis_vacuna.sql",
+        "sha256": "d236bfb4d05f6ff92975d8ca58c8bdc2fbca33b032e5f075fe6f26964293c4ce"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V37__consulta_carnet_y_cobertura_vacunacion.sql",
+        "sha256": "c0575f9050dd5dba6b939f58c69b7cad54b0502b61e7a4f6fb21118dc1dc136f"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V38__exportacion_investigacion_seudonimizada.sql",
+        "sha256": "37e07f24d669c512647a32917a5ee63c7977bb594b26335f5808fa45c8024140"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V39__catalog_administration_status.sql",
+        "sha256": "fe8223e4f2dbe9dfcd75ad25aaaabe618d6cd1234300c8d8586c2aa2b9c0738c"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V3__local_identity_and_opaque_sessions.sql",
+        "sha256": "77e56f4827d1110a34f4012b47c8c3f1790d21545f7f023f3dfbb0ae0100a91a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V40__contrato_lista_solicitudes_cita.sql",
+        "sha256": "dce9b2abedca778b78f27de4d26165d4caad44e33ae70f2fb9e410d5cb71b8a0"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V41__especialidad_en_lista_solicitudes.sql",
+        "sha256": "a0c8f250b7edc297af65642a9bd950b3120daa9ed449d40f007ca1114934989c"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V42__paridad_llegada_ausencia_y_cancelacion.sql",
+        "sha256": "60870cc0085054a5e7ec207a7174403180506d3a60c73a792f94d7a499f3b1c0"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V43__contrato_agenda_medica_y_borradores.sql",
+        "sha256": "f12230db5b24ced8eb88132fdcefa454aa9c93ef604a0dd801b0ddb2b4e22bf5"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V44__listado_cuentas_sin_roles.sql",
+        "sha256": "8e5a42df32312de935b8c91fd997295b2d95c717e3f87382433dab1154931f33"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V45__contrato_y_validacion_antecedentes_globales.sql",
+        "sha256": "3bc7620b24b4310a9198aee65dd5948f171ff6c747004160f4bcc43889e43e24"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V46__contexto_y_paridad_ficha_revision.sql",
+        "sha256": "32d42eeb57b09ac86604a6cacca71513ccb709643abbb5e38ad81e8eaee0b402"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V47__json_clinico_en_espanol.sql",
+        "sha256": "6c189fb91b4fbec128f406b9bdd7353dda312e84ddabecfcf02491117afd574a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V48__esquemas_clinicos_con_palabras_json_schema.sql",
+        "sha256": "151fb9edae0473a37ea068343d530dbafe27adff7b2e41c188bffd58fec89cd0"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V49__listado_documentos_encuentro_propio.sql",
+        "sha256": "6f25bfd4c07b0addfec3074bf002785ed1f85a0f0e022945b9c2f1f96a2ac8c9"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V4__catalogs_staff_and_administration.sql",
+        "sha256": "adcaaa8d9ed7e26d8a128b20315f7af9834cfec6067828c6c9fdb1d6c2c07acf"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V50__derivacion_emitida_contexto_y_evidencia.sql",
+        "sha256": "7bfd55b8ddffe972d3b04a8b0f0ca845dfe06a7dcbb0af785eb7466cd56a8d62"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V51__programacion_derivaciones_paridad_y_conflictos.sql",
+        "sha256": "aedf185761f16133036d21b50164c438dfb50c6efe3768b4d8743ea50f7d97d1"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V52__ficha_especialidad_completa_y_contexto.sql",
+        "sha256": "25268e529fcd9e0e18a94f06700114cdf6c3e0d9caba65d9d28fcc84ab113ae6"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V53__inicio_especialidad_derivada_sin_ambiguedad.sql",
+        "sha256": "4f399fe53586d0877302aa2068d9e33dcee324ed1bfa8bcd4fa67fee6c43b787"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V54__consulta_y_resolucion_derivaciones_asignadas.sql",
+        "sha256": "ac7409f0152ddb04152b930710a401722263834511431a41fdcc1f8d0f9a2b3d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V55__historia_longitudinal_relacion_versiones_y_archivos.sql",
+        "sha256": "bf55fd97c8b13dbef0d5d5b3511a71c941a688bb074c9eee827c1840999810dd"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V56__documento_ajeno_conserva_resultado_vacio.sql",
+        "sha256": "eb96d2972ee9fbfa8c876e41597f834f84968b08f097d7623c6642aedac813fa"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V57__campos_heredados_historia_longitudinal.sql",
+        "sha256": "46b4fb854e824406ca7eb2bf911680a3b138ed415c4da39c70715ba40c82ef51"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V58__busqueda_historia_normalizada_por_fecha_y_contenido.sql",
+        "sha256": "9d3a1dfe1c4be7bbd8b50f4fe6849a45338f2cbb868945f89156c6874606ceea"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V59__indices_y_texto_compuesto_busqueda_historia.sql",
+        "sha256": "157e7efcb3a9042dec1658353c77fdc3ee608aceabc3c96db3a53013273af24a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V5__profile_and_password_management.sql",
+        "sha256": "7b2e1675f71ee941fbc157029be87ac98d748c4d96668506f2eadc746a3c2c91"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V60__adendas_autorizadas_inmutables_y_reintento.sql",
+        "sha256": "5dd4bf3bf750438899b64bdbf1e45c7b15b9c6dd2e5a4cb2eb26500178f9f30d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V61__ficha_word_completa_autorizada.sql",
+        "sha256": "e2f70182d2a3c58932f2ff66bd87fe3a5c754c91a7f1bedc94e33bb8de90b03a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V62__reporte_clinico_multicriterio_y_paridad.sql",
+        "sha256": "4ef3721291b1e0ef7eda5e2e78916a5e83be53cd009cd8e0e0a3dac65eaf4683"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V63__procedencia_exportaciones_clinicas_privadas.sql",
+        "sha256": "fd2448db6149fd42d316e2afc0715ec278f37feb17bab013cb2de4935aae2d8c"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V64__cumplimiento_y_panorama_en_hora_bolivia.sql",
+        "sha256": "1287985d93c7fbcf7e1762f414ebc7004cd9d057b25337433de8ccc6bb9c5283"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V65__consulta_auditoria_paginada_privada.sql",
+        "sha256": "139319e819bb1b7b29b953934dc02124adc0efbdb382758e342c39b4584da521"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V66__vacuna_version_esperada_y_errores_distinguibles.sql",
+        "sha256": "0d36d5d675dfd25d838b36637275369f70f4acd523cb349b9fe773a34d9518cd"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V67__registro_dosis_contexto_y_acceso_medico.sql",
+        "sha256": "0e4405d36dab6d49dff5974470caee0a1f4ebca14c8058b7419fbc70b9e6362d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V68__carnet_y_cobertura_vacunacion_bolivia_auditados.sql",
+        "sha256": "0f5330384b2381ea7632f2ae4047d1b8641595babb9b7675fdb8446ab0f1ccef"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V69__exportacion_investigacion_bolivia_y_procedencia.sql",
+        "sha256": "fe6540bcdadeb7554b63c9b9c1ea954ab37fc30dee2f6d6421b372adda44b04a"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V6__patient_registration_and_longitudinal_history.sql",
+        "sha256": "6b20c455f27a7ea8e52d84468ab6af0342ffb0fdc9306aa586e52ff1b4dde927"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V70__agenda_medica_activa_y_cita_por_id.sql",
+        "sha256": "e5d08c41d31f28da6b500f9a2dc655975e154f9c20b47f1f32705bce1f0174a9"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V71__cupos_publicados_sin_limite.sql",
+        "sha256": "2727917879647cc12583b7537e9f757ec97bfd291a813bba84f38276e9b3c681"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V72__diccionario_codigos_api_y_retiro_funciones_sin_uso.sql",
+        "sha256": "4c5c92c44299e1cd809d43d0ff59cf31769c5dd3e0e3957ddde788bfcc2b0b8d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V73__roles_en_espanol.sql",
+        "sha256": "cdc43809c08c41b28c13c090a86a46a71652cff48f086e09b31778e18a6367b6"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V74__agenda_en_espanol.sql",
+        "sha256": "345f84c0e475e82af7d42aa525f0bf34e72dfdbfe2527d97fcab84b3c7935125"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V75__atencion_clinica_en_espanol.sql",
+        "sha256": "3f2dccb416a8579ddb772a0776142419205eea439634e34f67ec4237b67714a5"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V76__derivaciones_en_espanol.sql",
+        "sha256": "a024686cdbed93cb2a778c0eeb16b8598fcc48f6c69b83796d77d906ec6e674d"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V77__documentos_en_espanol.sql",
+        "sha256": "d4909c559ba586fb65f35a6734e498665094e32409c38e82e367e6745aa8e0da"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V78__pacientes_en_espanol.sql",
+        "sha256": "0460a284868613bfe8d7f61c7ea85c314a47babdad12b99e4ad89f3dd0129461"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V79__exportaciones_y_auditoria_en_espanol.sql",
+        "sha256": "7743ddd44f65aa6ed9300ec6bc51bab644c4505d9842e5b48543b125d1f2aa56"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V7__availability_schedules_blocks_and_slots.sql",
+        "sha256": "bcd65623d5a1a41bb4396a83e5fb9cf84d19566cfaa331f3a138e576c5373dfc"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V80__nombres_sql_en_espanol.sql",
+        "sha256": "fc1073d3071fdaa1aacc4c798ad9ed3f7675554728984aacbca84febc1579031"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V81__cierre_traduccion_y_roles_tipados.sql",
+        "sha256": "25319a8ec51540ff569bf5ee2d16f7441893b03b23a3fe192a95b0afdef5c454"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V82__avisos_de_cita_en_bandeja.sql",
+        "sha256": "7cb4f843cf4c2692b2582564c272647c123f3537885aca83ac1514a7af077f88"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V83__bandeja_y_preferencias_propias.sql",
+        "sha256": "7d41abf4e9b0d338c8d9de5966b55b8d0aeab2442a02b95c3da7fb34c7c7fa03"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V84__recordatorios_de_citas_programadas.sql",
+        "sha256": "b96e09032c8bb1e6958b4ab0228ff34591cec4eb18ec8887c6bb36a0f5d25dc7"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V85__permisos_rls_y_contrato_notificaciones.sql",
+        "sha256": "d66f1f9ab8f92074b0f08c48575e5a785ed80b25616720c9b57b632a9c298622"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V86__calendario_academico_y_valores_iniciales.sql",
+        "sha256": "7be2512f439f268401d6291b2435f6a23576c89a1138ee137ae4c68cd9063cfe"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V87__observacion_jornada_y_cierre_nocturno.sql",
+        "sha256": "ac08c127f453e5fa18f2150738f31685048cc0436a79e8dcff2dae222c17bda6"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V88__estimaciones_agenda_y_recordatorio_reforzado.sql",
+        "sha256": "29a877140dbce19a7283f685b3f644a9060ede0558b1370cc0b440d2a35b1610"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V89__sugerencias_agenda_y_alertas_capacidad.sql",
+        "sha256": "1a6f134a7f4c466aa77133fe225473b2f4551fee2c6d746ff74206cd1002ec63"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V8__appointment_requests_initial_flow.sql",
+        "sha256": "33bb68230b3499448b1e135b99b14201474fe565c73da36a92bd82b2d099765e"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V90__cupos_sugeridos_para_solicitud.sql",
+        "sha256": "8ffc6ffbf971cd6f1b2795313ab326e4f8e874ac00009f7a49799f42767a02fd"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V91__decision_de_sugerencias.sql",
+        "sha256": "d7aef39bb5f4603686924030943ad8dbd3b16f3c319ca7a121674b9e1ef94362"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V92__reprogramacion_ante_bloqueo.sql",
+        "sha256": "f6cbaf9856bd6b2e43770d1ac404b3798a48dc447d3cd076605ab586393a4c01"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V93__metricas_componente_agenda.sql",
+        "sha256": "3b5d2ca856b4678e7907facb8909b1ea8a951a6b4c70fac10ebbf02aca92ab49"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V94__sexo_del_paciente.sql",
+        "sha256": "e39ef4eaa27ff43cd65dd4b3adf45b88ca219cb9d2692024098d8dc4d3a68322"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V95__contacto_de_emergencia.sql",
+        "sha256": "b04207c7633e5332c319f9f823ca8dfc95ccc3764e431797499e54a36c72d30c"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V96__consentimiento_investigacion.sql",
+        "sha256": "4917ab0d3506f0b49c8977e26ef2886676b2d4f5154a6e5b4529015930df9659"
+      },
+      {
+        "ruta": "src/main/resources/db/migration/V9__direct_specialty_requests.sql",
+        "sha256": "be79b59d7723c180568d03a5b28ef998137263fa3c802d1b3b0444658f9aeb83"
+      },
+      {
+        "ruta": "src/main/resources/fonts/DejaVu-LICENSE.txt",
+        "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9"
+      },
+      {
+        "ruta": "src/main/resources/fonts/DejaVuSans-Bold.ttf",
+        "sha256": "e1d733afbbfce842a1b43dced0c9885a76a4e67290dc7e690c4e9b76ebfc7d23"
+      },
+      {
+        "ruta": "src/main/resources/fonts/DejaVuSans.ttf",
+        "sha256": "b4c632e3cdf9acc7f28758fb5a323c8524d7fc6660d46904d9b6cbe2809c419c"
+      },
+      {
+        "ruta": "src/main/resources/static/openapi/salud-u-v1.yaml",
+        "sha256": "11498ad91572f583c0816498d3d8b79305939d2fd0458c948b668fb4225ab2ab"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/AppointmentAttendanceMvcTest.java",
+        "sha256": "0950c647dcd36504b044cb4f5e5f4c505ddf38fc2a836b5b11cc27fbfea7d736"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/AvailabilityControllerMvcTest.java",
+        "sha256": "5f6f2f9577d489269ff168a1d64af73baa7767c40df118087002ffe408bfdbef"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/ClinicalBackgroundControllerMvcTest.java",
+        "sha256": "996aba7a6d8827367fdaac0341982dc3efddd721caedf809feee00bb83a95c37"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/ClinicalReportControllerMvcTest.java",
+        "sha256": "d470735b44ce8c54fb9ce1543da1374022bdea640cc7cd159d52ba22e5604029"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/ClinicalReportExportControllerMvcTest.java",
+        "sha256": "349b32c8a33c55586e5255bac9cf256bc2cd5a17a954e0e492381b64fdb98f0e"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/ClinicalWordExportControllerMvcTest.java",
+        "sha256": "49292a8e4da8d471279a8c85d93391a50bbdc6bbd65a26fbdc974f772b84e72a"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/EncounterAmendmentControllerMvcTest.java",
+        "sha256": "3edd712dc796704ab0d07ede6ea0fd897874385a7a98735399592a2cd6214868"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/MedicalAppointmentControllerMvcTest.java",
+        "sha256": "d9227b053533864b733a142c7dd077d9e71016544f081629c321779939363e92"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/MedicalEncounterControllerMvcTest.java",
+        "sha256": "42347deeed8b53114721ee85d69f9c230ab71af83ba8d2a07a90c92f0f1071c8"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/MedicalHistorySearchControllerMvcTest.java",
+        "sha256": "f99c5924907154f53e1b8c78591c7d0b003a0b631771a461b5cc2e2620013770"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/api/MedicalPatientHistoryControllerMvcTest.java",
+        "sha256": "8bb9be9792dfb45c614df70333fad394667b34258a80909b83c363481649ffcc"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/AvailabilityServiceTest.java",
+        "sha256": "7d3794669fa809d99c821c66b1ef5b1268ffd597f759b9f3dc7906eda00a6c64"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalBackgroundDataTest.java",
+        "sha256": "c569f4543ec2a4c1a99fb57c259911f89fb5e7d442c0547c84d6e078e8765dc0"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalHistoryDataTest.java",
+        "sha256": "199ef583b078cf743b108802633de4d0ca694dabbc1585f00143164e8e9ad173"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalJsonTest.java",
+        "sha256": "97432bf3878dd5a96bf843b0c8280f28a67b4782f2bbcbfdd68617ab4fda905a"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportExportServiceTest.java",
+        "sha256": "58fa431177080dcfcf9e83e9f594fb96e901c787f87c6d1afb12d80c116c4e7f"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportFilesTest.java",
+        "sha256": "0fc8375ea8ada1b52ec2358535009f038c7b4e5d65e17ab1a50c252080312de3"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalReportQueryTest.java",
+        "sha256": "59e7c38a2fa65a65f751d89fa868782c469f010e78a3eda47defd6a5120e943c"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/agenda/application/ClinicalWordDocumentTest.java",
+        "sha256": "37a65d9a930b8281dff8765d9fc154e240bc34b5db4179093e4bc0f615dc5310"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/catalogs/api/CatalogControllerMvcTest.java",
+        "sha256": "8c222592281a9881892fdc593ba1db67f786c8e6c62a406ea917c29736e0caef"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/documents/api/ClinicalDocumentControllerMvcTest.java",
+        "sha256": "3c63e31677e8f483c5c98c20a0a49ab42e7f424512326305aa150573f7b08fec"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/governance/api/AuditEventControllerMvcTest.java",
+        "sha256": "39d15e4e725217a70cfba8b390e0f1ab8719dbf1b7256c4e3b2092d54e3eff36"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/identity/api/IdentityMvcTest.java",
+        "sha256": "bc442ce71c53871861ab289b40ecd8e4baf293f0a8de15831af97accc408e48a"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/identity/api/ProfileControllerMvcTest.java",
+        "sha256": "d671d94764f550a8699541c2540bfa70c866bb5c6a4a43043212724e0a02e150"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/notifications/api/NotificationControllerMvcTest.java",
+        "sha256": "66387ba8017da04633990bdb6ac4694432c288a0dce6685a6947f7781f389fc6"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/notifications/application/NotificationReminderSchedulingTest.java",
+        "sha256": "4aa5aaac8acfb88f3b99b0934502037000fb238987682f390415c37ae7c84907"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/patients/api/PatientControllerMvcTest.java",
+        "sha256": "8bd395bb8b3855f78fd4251edf5d3dfc77d286814e44ba47e467b0afd54ca119"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/referrals/api/AdministrativeReferralControllerMvcTest.java",
+        "sha256": "413e311cc9660a8f4eb5aa23a29c899c321393db5e99ab6231e5b54d4bb7f1f8"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/referrals/api/AssignedReferralControllerMvcTest.java",
+        "sha256": "2c629b9da5bc268dba0c12e53a30f925b67ada2fb7eb848c664b3294543b7a1c"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/referrals/api/EmittedReferralControllerMvcTest.java",
+        "sha256": "be3b5ec94414dcbf3a36f85c0d91bba90538c6ce974c1191f012b438d0129241"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/referrals/api/ReferralSchedulingRequestMvcTest.java",
+        "sha256": "eb01d847f9d0f99b6dae25cac6cd5c610a9e34f253dd9a0509572946d57227a0"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/reports/api/InstitutionalComplianceControllerMvcTest.java",
+        "sha256": "013e252c0b5d7a7fcc8dde424b491cb82b29b79ca4e2d12635243356b27259f7"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/reports/api/ResearchExportControllerMvcTest.java",
+        "sha256": "52d0943bfc57ebc64ed5edf09e9a7ce919241d42c5958e3ecd8028a36e59b9e6"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/application/DayCloseSchedulingTest.java",
+        "sha256": "129d14a22121cc01f67c79da19e3eb58aaf62a73b6621b9c5a3b0b8098a83a72"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/application/EstimadorAgendaTest.java",
+        "sha256": "2911c0130c61e4a8afa37e92cf6b91d9acbf8e1f629185b42c95c3f7d43bdf29"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/application/EvaluadorAgendaTest.java",
+        "sha256": "9b62e023261d824ec4f5c9ad0ce36ed68becb90697d96740bfb4cac4634716e6"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/application/SugeridorAgendaTest.java",
+        "sha256": "d5f4bee12dd765aee1c03705e7315381b61fdf6bd904d67929b511663da221bd"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/application/SugeridorCupoSolicitudTest.java",
+        "sha256": "7b2bb8c0405e35d403930f64fc89a5dd00df5b0e7322f8529549d0a044539764"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/simulacion/InformeSimulacion.java",
+        "sha256": "bdf656aa6b83874b9ea704fbb494ae1530755dde95341c940acd096ed459500a"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/simulacion/InformeSimulacionTest.java",
+        "sha256": "d7d2fb82a56561f62b54fbfc2de9f8d2c6d6e95f4c0f7f52a010f01046e43edc"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/simulacion/SimuladorAgenda.java",
+        "sha256": "b5379554c576e7ed9a89015cf5cf67c24c438b97b62b9b5fea1a76aeb3a28107"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/scheduling/simulacion/SimuladorAgendaTest.java",
+        "sha256": "6aac020e10f4e73e357a81c1bb318644d941245a0582a749fd7b93d5d643373d"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/api/ApiSessionControllerMvcTest.java",
+        "sha256": "dfe2689636f506b6df41fd8e771644b37d66c72f1c080fc773c806012e5a033c"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/CaracterizacionFlujosIntegrationTest.java",
+        "sha256": "8f8fa0f130080cfed56c88f8c6872e2e615c48ec9712d150f33fe5c69d7b7299"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/CoberturaFuncionesSql.java",
+        "sha256": "385f068723d88537fadf7350bc52b3d195bbe34a467c7d0e54ebce49226d68c9"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/ConsentimientoIntegrationTest.java",
+        "sha256": "946b0ff257330ac9bd9fb3b641d98e4eb769323eb721dd59c557f7588dce3129"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/ContactoEmergenciaIntegrationTest.java",
+        "sha256": "ab47dbdfa47531427266426e9d944e39d9580ec0cb34a823096156b255deeec3"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/CuposSugeridosIntegrationTest.java",
+        "sha256": "b0410f55c624e3605249b1fb24c1aae15fff643440b76ec136f4126fb2c24417"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/DatabaseActorContextIntegrationTest.java",
+        "sha256": "5f635c44fab2fd17b78151f819ed5c9d05f05255e86b62d1105949c1324d1390"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/DecisionSugerenciaIntegrationTest.java",
+        "sha256": "78393a21d01083362958f046b76ffd6abdd78ea5f8ff4462b068daa5772a73e9"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/EsquemaEspanolIntegrationTest.java",
+        "sha256": "1b665eb494dbdf67e1885e015417f9e42220e49cd9b89d0d42d51c7e9c7b36eb"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/EstimacionAgendaIntegrationTest.java",
+        "sha256": "ae996a214f047d894d93ffc1e6447209ba083c54de3cab3ee69814faa33a142a"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/MetricasAgendaIntegrationTest.java",
+        "sha256": "a8a27e93f0ca74c6a3ca46e28e7cc69bd6c55cdf595657df911af887f3ee4d3c"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/NotificacionIntegrationTest.java",
+        "sha256": "58dc79e2c82464f4c2ac143e67f165c908f4690e68c46af523bc20bf77446545"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/NotificationApiIntegrationTest.java",
+        "sha256": "4393a2aaa368eceabc0b40dfd6edca2f6f78db7eb4c2b31d0c114e5a0723c688"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/ObservacionJornadaIntegrationTest.java",
+        "sha256": "688f05085650267329ad8add71e3b20d2137be6a4757025123b8806c8db6d222"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/RecordatorioCitaIntegrationTest.java",
+        "sha256": "2585b5b8c3bd0583a94951213e2be80fbe7b059360d884587697742f27745180"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/ReprogramacionBloqueoIntegrationTest.java",
+        "sha256": "858bb583336a4aeb0c10627c918853741e38e3c260aeb3a6971761abcd702adc"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/SchedulingSetupApiIntegrationTest.java",
+        "sha256": "5583ca588f6765455b90afbe6df063a455569815d1dbb846da0caea2874ff0a0"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/persistence/SugerenciasAgendaIntegrationTest.java",
+        "sha256": "e433e7280b8dd7324e41022388a7ca01dee706186c5604863297685b832edae7"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/shared/security/SecurityConfigTest.java",
+        "sha256": "fda8581088e0b6ea2e545669e40a50fb3ab500061c4603c969291a339480a52d"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/vaccination/api/VaccinationControllerMvcTest.java",
+        "sha256": "a3ec809bed4de4c013fe94914ddcdb3b4bc29d83ed8d54216d3d1e16e89dc731"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/vaccination/api/VaccinationQueryControllerMvcTest.java",
+        "sha256": "5cb01a87b1997c0f731748784c35e8752688979b34a617ef0ea8d80f0e040bde"
+      },
+      {
+        "ruta": "src/test/java/bo/edu/uagrm/saludu/vaccination/api/VaccineControllerMvcTest.java",
+        "sha256": "2bedfc40d579885e2a46a4b6e6e209396733be2ea875c28fe5d2d70506dcc07e"
+      },
+      {
+        "ruta": "src/test/resources/inventario/inventario-ingles.sql",
+        "sha256": "0443abbfa82b3eb2ca5e5ea6dc9f80be1f224c0163024d693f2ea878d0c58600"
+      },
+      {
+        "ruta": "src/test/resources/inventario/linea-base-ingles.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "ruta": "src/test/resources/inventario/plpgsql-check.sql",
+        "sha256": "a4d5476bc45a77b9488db9dd3e1aeeae174a031a6a8b8c1ab8536037358c5e3c"
+      },
+      {
+        "ruta": "src/test/resources/notificaciones/crear-rol-runtime.sql",
+        "sha256": "a59548fdd554e742cbee465abb8efcca65bc76d680d61418873aefc441746eab"
+      },
+      {
+        "ruta": "src/test/resources/simulacion/escenarios.csv",
+        "sha256": "e07e1382b9de7b9feb09958f49e784baea134e833c03842d109536f16712bf88"
+      }
+    ]
+  },
+  "frontend": {
+    "sha256": "26350084a3f46bc256dba53e34dd65cf5c0316cf30a9f51c71bb63cb65dffff9",
+    "archivos": [
+      {
+        "ruta": "next.config.ts",
+        "sha256": "9e7c16e387d2f1ae815e204ef431416e38fa4627653e8ca61f7dafeb7632be59"
+      },
+      {
+        "ruta": "package.json",
+        "sha256": "cb0c51735fade06d7ab08c9f8dabcbebf19d6501b5b5c5c2f278b82b3814b80a"
+      },
+      {
+        "ruta": "pnpm-lock.yaml",
+        "sha256": "0c598f31a26768490cde94dc48ab5c40674d442988068b745ee2caa0bc49edb8"
+      },
+      {
+        "ruta": "src/app/administrativo/auditoria/auditoria-client.tsx",
+        "sha256": "10b87eff9e96162e00f82db25b64b277f175f1cb58c3a26e7e20fc9096a13ecb"
+      },
+      {
+        "ruta": "src/app/administrativo/auditoria/page.tsx",
+        "sha256": "e8a529b6ac45b90658094f21ab4ef435539661d9420cf3d909e0a879064db423"
+      },
+      {
+        "ruta": "src/app/administrativo/avisos/page.tsx",
+        "sha256": "c87a7daca87033db3e640c432049fb9c8a29f32101c39da9fdeac45198b59207"
+      },
+      {
+        "ruta": "src/app/administrativo/capacidad/page.tsx",
+        "sha256": "f1f6f5062e473c4844c707a02edcee7ba0361f0acddae2da731ca38dbf63ce9c"
+      },
+      {
+        "ruta": "src/app/administrativo/check-in/page.tsx",
+        "sha256": "9e72404b7c3954355db76f51e13a7ff03b4f098a7d8e0545c51059b7075b0ffa"
+      },
+      {
+        "ruta": "src/app/administrativo/derivaciones/page.tsx",
+        "sha256": "03f673b863bafc3aad4344ddb8615639b5fe48d0d1e8508d2b5420a7253b7d79"
+      },
+      {
+        "ruta": "src/app/administrativo/estudiantes/[patientId]/carnet-vacunacion/page.tsx",
+        "sha256": "4311e5d0281dec7e08ab05d78b538c4f4fa322ba6de0061078258f3d5d28e681"
+      },
+      {
+        "ruta": "src/app/administrativo/estudiantes/[patientId]/historia-inicial/page.tsx",
+        "sha256": "276b84dba1bda7dd53d14a8e3f2e8d6248dd877b5cde8de70ddf8c1fe23f031a"
+      },
+      {
+        "ruta": "src/app/administrativo/estudiantes/[patientId]/page.tsx",
+        "sha256": "00662962eddc36292909bb7631e6fb095719541862730fd5578b19dd10a98cd7"
+      },
+      {
+        "ruta": "src/app/administrativo/estudiantes/nuevo/page.tsx",
+        "sha256": "666799109cdda411e660cb19ffa1bb36214ffd08fbf3b4066c400fcc6cdb1da1"
+      },
+      {
+        "ruta": "src/app/administrativo/estudiantes/page.tsx",
+        "sha256": "3ca156257247c702c5a2411df77d3a32ec7104da24ef2c19beacfc4ecbffc62b"
+      },
+      {
+        "ruta": "src/app/administrativo/incidencias/page.tsx",
+        "sha256": "ee8e23cd25ba0f6807439a03a3ecdd6bb32b09173b4ae7d82dcd3675728babd6"
+      },
+      {
+        "ruta": "src/app/administrativo/layout.tsx",
+        "sha256": "0d78832a3977602eb62d8b823089caedb3ebd25a2f01a128b7ce25c1ac606cde"
+      },
+      {
+        "ruta": "src/app/administrativo/lista-espera/page.tsx",
+        "sha256": "51878eed59cfe6292e19815c80677026030836121ca31dcfeb7ff20a8ee7d202"
+      },
+      {
+        "ruta": "src/app/administrativo/page.tsx",
+        "sha256": "14a9d0f1a1cb9939810f4ab87b3034346b24dec4cc2daece85a691a20f42fef0"
+      },
+      {
+        "ruta": "src/app/administrativo/personal-medico/page.tsx",
+        "sha256": "ce9329103bedf89f4222a663eb971a410a920be6abbba1564740cbf260702e1b"
+      },
+      {
+        "ruta": "src/app/administrativo/planificacion/page.tsx",
+        "sha256": "4045f8b7992c9dc9791115f251a63be3317064be5416a535471765a9dee35155"
+      },
+      {
+        "ruta": "src/app/administrativo/reportes/clinicos/page.tsx",
+        "sha256": "37415b9a6f5912b5715793959fa4d8f340fd0aa2d64184fa2d80453f276e43cc"
+      },
+      {
+        "ruta": "src/app/administrativo/reportes/cumplimiento/page.tsx",
+        "sha256": "1bea1e95a2e10363c9c12ccffba22315d821f26509f9ed159323e1d043eeb56e"
+      },
+      {
+        "ruta": "src/app/administrativo/reportes/investigacion/page.tsx",
+        "sha256": "79f878a7dec81291e3c7200c4f02671b68417c073a345fdbf32047c8216c94f2"
+      },
+      {
+        "ruta": "src/app/administrativo/reportes/page.tsx",
+        "sha256": "0787e0394be4abcda3ce0b834969754b0329a4a741bc3af833b970dec166b2c1"
+      },
+      {
+        "ruta": "src/app/administrativo/reportes/vacunacion/page.tsx",
+        "sha256": "cf7e778495b3cd20e537b15d5813aa305e80a32838823179b030ff0ac84b011d"
+      },
+      {
+        "ruta": "src/app/administrativo/solicitudes/page.tsx",
+        "sha256": "98de910201ebd54d364f2051bd2339ada0fc415f339ca3932136dee346f7e70f"
+      },
+      {
+        "ruta": "src/app/administrativo/vacunas/page.tsx",
+        "sha256": "3141e87c735d51c7d5e15aa1d413d8012d041616494b00f556e5a928f9f7492d"
+      },
+      {
+        "ruta": "src/app/administrativo/vacunas/vacunas-client.tsx",
+        "sha256": "db75283edef0f73e966d9e4ae7a43411bbfa39f50d273d69b821a18d41249bd4"
+      },
+      {
+        "ruta": "src/app/error.tsx",
+        "sha256": "f443fde01c386005bd158ccaaf6794c21d7157c9a7e4f8300c93cad16f2cc3eb"
+      },
+      {
+        "ruta": "src/app/estudiante/avisos/page.tsx",
+        "sha256": "84296634e98e2e02fb3c55135e59ae26414912bbef1fd75ba4c4b8c871fbf9ea"
+      },
+      {
+        "ruta": "src/app/estudiante/buscar/page.tsx",
+        "sha256": "e87991030315d6607d614e120ff985571862278fa8803092555d2c7be2c5148d"
+      },
+      {
+        "ruta": "src/app/estudiante/chequeo/page.tsx",
+        "sha256": "f93fe7eca4b9a0d76c3ff1343da3216f96eb360fc6b13acf026d5d40da582383"
+      },
+      {
+        "ruta": "src/app/estudiante/citas/[id]/page.tsx",
+        "sha256": "7b778b2f7948f3127fb54a15329669cd929a7234c5bdd3d621498289238e8bf1"
+      },
+      {
+        "ruta": "src/app/estudiante/citas/page.tsx",
+        "sha256": "a17991a310773337177bf00f6438f1c831c37256de2cba8e3c2e290bb88f22a1"
+      },
+      {
+        "ruta": "src/app/estudiante/citas/proxima/page.tsx",
+        "sha256": "5d0b34429d2e74c5ecb449d4a4910bc59dbb21c7ecddc33bedb642e97b38fc15"
+      },
+      {
+        "ruta": "src/app/estudiante/cola/page.tsx",
+        "sha256": "f1e2ef83c7bfcfddf5901741a20d10ac8196b1a83f7cc810c5c05ced261e4627"
+      },
+      {
+        "ruta": "src/app/estudiante/layout.tsx",
+        "sha256": "86c7ee97b7f1cc9debfd9b36b865b47980a72da062bcb24b7c16c89195ea7813"
+      },
+      {
+        "ruta": "src/app/estudiante/lista-espera/page.tsx",
+        "sha256": "5eebd64db9af610e1ca05193c948fdfd46e4d76502d8a544379c2e96e4e5b681"
+      },
+      {
+        "ruta": "src/app/estudiante/page.tsx",
+        "sha256": "078b27838bfd938b5beb0eb47b5f7ef1b405cb271b629eddcb4a15eaab58c433"
+      },
+      {
+        "ruta": "src/app/estudiante/reservar/page.tsx",
+        "sha256": "46206aa726ef1cd1b76ad01ceb9c37ff3d3a03194008579fb4d319cce11dc6b1"
+      },
+      {
+        "ruta": "src/app/estudiante/teleconsulta/[id]/page.tsx",
+        "sha256": "3faa4aebe232d9627b711d57b5ff815f1a719860588cb89f950134dec8727a4d"
+      },
+      {
+        "ruta": "src/app/estudiante/vacunas/page.tsx",
+        "sha256": "b0d6bbbc3e7def6183a1e583a3234ebeddafd3363e6a33f0f24b689992bbf372"
+      },
+      {
+        "ruta": "src/app/globals.css",
+        "sha256": "ba6ce6aaa56ad70008eb21147df87c09657cd4d2817d9001d98c22dd54824a69"
+      },
+      {
+        "ruta": "src/app/iniciar-sesion/page.tsx",
+        "sha256": "7a8819a1f2fcf62de5e6ea8e1370c3181c13148c9fde2f5dd2483c8571e38103"
+      },
+      {
+        "ruta": "src/app/layout.tsx",
+        "sha256": "e81d6667550ca33b8f01fd371484d718d33063ad1bd05aee1b15e699c78818e7"
+      },
+      {
+        "ruta": "src/app/medico/agenda/[id]/page.tsx",
+        "sha256": "2e37adea7f283783a1b17dd0046e4f153be6c2e094d823985b06eee5266765f8"
+      },
+      {
+        "ruta": "src/app/medico/agenda/page.tsx",
+        "sha256": "5092aa5476f8d8b4ed2e41beeec519d1e144986324e124438e55083df3964e8d"
+      },
+      {
+        "ruta": "src/app/medico/atencion/[id]/page.tsx",
+        "sha256": "df10bdbd7a639781f34664c1736f5ff4f8313feec4346ba869d0f60ac42f7520"
+      },
+      {
+        "ruta": "src/app/medico/avisos/page.tsx",
+        "sha256": "f47c6742a446cb7498b72d849918a83065c38e5c157b37270d08b231e63e6b4b"
+      },
+      {
+        "ruta": "src/app/medico/check-in/page.tsx",
+        "sha256": "a8a6298ec1bfea1b2aafe1c17402c7ea69d3927fbb903787cdc28dabea99c209"
+      },
+      {
+        "ruta": "src/app/medico/citas/[appointmentId]/documentos/page.tsx",
+        "sha256": "5d2a8e22f7d97edbdba9afc9e0755eb930b7d9c3f6cbf883fd6dd05f87702e83"
+      },
+      {
+        "ruta": "src/app/medico/citas/[appointmentId]/page.tsx",
+        "sha256": "548ea9b6e397e7a424d20b2d1f6f43aceff9f3d7c8465fc409c870221d249771"
+      },
+      {
+        "ruta": "src/app/medico/cola/page.tsx",
+        "sha256": "f447dd93bb005cc047ca76bac89f09985d99009dd94f831bf113ec522e1c9578"
+      },
+      {
+        "ruta": "src/app/medico/derivaciones/[referralId]/page.tsx",
+        "sha256": "cefee4b392d147433175c1a969fee15fe6cf5df5ec1ed7ce291ef5d4a1534bd3"
+      },
+      {
+        "ruta": "src/app/medico/derivaciones/page.tsx",
+        "sha256": "1f348ed8b295afbb7e2fad68fc95b8961e687156a4dbc91e488862bc3fcf527b"
+      },
+      {
+        "ruta": "src/app/medico/encuentro/[id]/page.tsx",
+        "sha256": "853a4bbe5fe9bf8f3d53f946e9e6b0f7049b9e6dee4f22ddb8aeb11b7dbd7b21"
+      },
+      {
+        "ruta": "src/app/medico/horarios/page.tsx",
+        "sha256": "291fefc37016bb0081f908e49eeca618f5860d5431e9971ffb144eaeb31b50ad"
+      },
+      {
+        "ruta": "src/app/medico/layout.tsx",
+        "sha256": "1dbc4ef481362a2d0896fc912d957f6e4277cc6ff3b5c6b63bb4519870e78ca9"
+      },
+      {
+        "ruta": "src/app/medico/pacientes/[patientId]/antecedentes/page.tsx",
+        "sha256": "b1c80ba45249e974b8ec815d761787334400dffcbdea55dbd8c11828d7bc77b6"
+      },
+      {
+        "ruta": "src/app/medico/pacientes/[patientId]/atenciones/nueva/page.tsx",
+        "sha256": "433457b78fe0cd0f02dacf872d5f3d24a48ae64af66167775892c34e040532b8"
+      },
+      {
+        "ruta": "src/app/medico/pacientes/[patientId]/historia-inicial/page.tsx",
+        "sha256": "b41d64063a49e790b23d79d7a22ea9d957d35b8f4aac868895935ccc149fdff8"
+      },
+      {
+        "ruta": "src/app/medico/pacientes/[patientId]/page.tsx",
+        "sha256": "31e2db4f1374c2c2bf680628887f7844dc6209b2fad5c9ff94bd0cb1665e2c52"
+      },
+      {
+        "ruta": "src/app/medico/pacientes/page.tsx",
+        "sha256": "b60ac85271dc54b56dcadc5ca40cff11522fbf1806dba393b618a2072bb18c7c"
+      },
+      {
+        "ruta": "src/app/medico/page.tsx",
+        "sha256": "c34c005434f251b7c9e95d24fe549d780f4df64fa966e7bb8c12e5b262c895c9"
+      },
+      {
+        "ruta": "src/app/medico/reportes/clinicos/page.tsx",
+        "sha256": "7709986795d66fd537cb3b8fb7082984518cc2a5281d7c052f823ede28ad0880"
+      },
+      {
+        "ruta": "src/app/medico/reportes/page.tsx",
+        "sha256": "97670916a50252b398d2336450d783c522b991e6e5ad91252a9ec9b1b5f93014"
+      },
+      {
+        "ruta": "src/app/medico/solicitudes/page.tsx",
+        "sha256": "79063fb311eb24a28b128142fd4b429d0628d760ee0f771807cf0593a49ad062"
+      },
+      {
+        "ruta": "src/app/medico/teleconsulta/page.tsx",
+        "sha256": "8fdb02706ca8f02429eeb78755c4a78644e20ee97edcffdc545ff2ba12dd42ff"
+      },
+      {
+        "ruta": "src/app/page.tsx",
+        "sha256": "353e880371deb7f5c1848b25cfb97a21e02e9e6b9ec26d3214eaad6d5498d633"
+      },
+      {
+        "ruta": "src/app/perfil/page.tsx",
+        "sha256": "75ead6d84568958c456d26e6499b3ebdfa13a03cc6d841cc9dd67820201e1f90"
+      },
+      {
+        "ruta": "src/components/administrative-overview.tsx",
+        "sha256": "a1170179cad036f5714d723cb6bad0ebd15e6b89d9d5c685c7d263e70e5356d4"
+      },
+      {
+        "ruta": "src/components/administrative-referral-inbox.tsx",
+        "sha256": "0aac95fdb0b975152c959e841a43bf25a7f613a0f13f3d9eb9392ea26f04db54"
+      },
+      {
+        "ruta": "src/components/app-header.tsx",
+        "sha256": "f583d47ba2329b9b56c661df5d26ab8ba3f5a90a37207668e8f536d7efed654e"
+      },
+      {
+        "ruta": "src/components/app-sidebar.tsx",
+        "sha256": "0df0dbd3c77e0367f8269bcda12532a50f957a42549324d645b57992a06731b3"
+      },
+      {
+        "ruta": "src/components/assigned-referrals.tsx",
+        "sha256": "a8a99462a5616cd684ac9468c3adb5e334f3448b9621cc8059f7f7885d7f0168"
+      },
+      {
+        "ruta": "src/components/clinical-background-panel.tsx",
+        "sha256": "fddb1b71d85e40d770ec17164e8cfd305619f6875c83f05f794a3c3b15ced7ac"
+      },
+      {
+        "ruta": "src/components/clinical-background.tsx",
+        "sha256": "0db5d931d4212d5e2e528f6e04dce9a59cc9cc6eada966a1417fe36622bacf5f"
+      },
+      {
+        "ruta": "src/components/clinical-history-dialog.tsx",
+        "sha256": "61cd00857850c5043489f5b0bb7db178a339bdc666e5366b945b9065b7a95aa0"
+      },
+      {
+        "ruta": "src/components/clinical-report-builder.tsx",
+        "sha256": "927569d3e1bafb1b4150050b9909e8423a0e21957bdcaf0988c6bc0845c9e834"
+      },
+      {
+        "ruta": "src/components/clinical-word-download.tsx",
+        "sha256": "ef8dceb226b3714b421877c55ea48b8bc74f55ae0a60a78047b66d68308cdcd4"
+      },
+      {
+        "ruta": "src/components/copy-demo-password.tsx",
+        "sha256": "9dbf43a89047ed1a1828c8be64ab4420e2d1cf707afcace8f498a1fab23a0e51"
+      },
+      {
+        "ruta": "src/components/emitted-referrals.tsx",
+        "sha256": "c5297f6b26d9732a7bf73c40f6632df2562ee64e8a2da61bf2ea3eb4077ee849"
+      },
+      {
+        "ruta": "src/components/encounter-amendments.tsx",
+        "sha256": "da5ab216858eabe42ad7b8c0e6c07edd2e78fae6b13c62a11cb8780c419f364b"
+      },
+      {
+        "ruta": "src/components/encounter-documents-page.tsx",
+        "sha256": "a241c3ebba89dd00e8caf090de075415ef6e353f1f932b99e158e0536ae74a3d"
+      },
+      {
+        "ruta": "src/components/institutional-compliance.tsx",
+        "sha256": "a4d1af04041fb8a6ddb031387350de4e709fc39dbe6e0d8b46806fbf870160ff"
+      },
+      {
+        "ruta": "src/components/medical-agenda.tsx",
+        "sha256": "2493fa95931584a2e5923ca004ab93ce132a5658e8d27aa3a0934089f23ceed5"
+      },
+      {
+        "ruta": "src/components/medical-appointments.tsx",
+        "sha256": "a53b064d0b649ab4fc93a82a3d327a1b0b4c4ddcb317c94aff0680f2f9bf2c60"
+      },
+      {
+        "ruta": "src/components/medical-dashboard.tsx",
+        "sha256": "a18944ceea20e504b2dceaa10a19bd1f2186b820aac78016e9974d98bed1fd2e"
+      },
+      {
+        "ruta": "src/components/medical-document-uploader.tsx",
+        "sha256": "52c9074d0fbd3a2756b96fa5e9c90a1940769c679c3e8cbb8c02f23eeb7db19a"
+      },
+      {
+        "ruta": "src/components/medical-documents.tsx",
+        "sha256": "6a932e1be7b9e32f3033b2d874cf922c27e482af2a0000dbd3317767461180f3"
+      },
+      {
+        "ruta": "src/components/medical-encounter-entry.tsx",
+        "sha256": "1e2fa84bf7e6528424975a6772840c8738f65c16bd8c451df310e3a55b555926"
+      },
+      {
+        "ruta": "src/components/medical-patient-list.tsx",
+        "sha256": "b2c8893fd76738c7307b20de8762fcbe039bb6770a96fc49774d6cf5004e9565"
+      },
+      {
+        "ruta": "src/components/medical-patient-record.tsx",
+        "sha256": "8048560139ef5bee3e3af05ea0a341bc141a9cbb2977a5c52592caae5add6dd2"
+      },
+      {
+        "ruta": "src/components/medical-schedule-manager.tsx",
+        "sha256": "8ff121fcd3c45a353529dcde4ac80e85a506aa07b2425ce59ef43c536f8b16dc"
+      },
+      {
+        "ruta": "src/components/notification-inbox.tsx",
+        "sha256": "1417610bba2f2ee78e0e7649d208246d09902e14f069b483cd7a6a4def0d660d"
+      },
+      {
+        "ruta": "src/components/notification-preferences.tsx",
+        "sha256": "e50a78f2220d2e0a5e0c4962db9195c550c66daf8ba18e68f49294298c8c3f82"
+      },
+      {
+        "ruta": "src/components/notification-provider.tsx",
+        "sha256": "fad017d3768d9e16a6fc3ea16c381d68de3f836eded45108d6a74383e6d8adf3"
+      },
+      {
+        "ruta": "src/components/notifications-page.tsx",
+        "sha256": "cd387bc054c2f406d015f1d8a60a798e2ae6670244a6412c2e554460be377b98"
+      },
+      {
+        "ruta": "src/components/operational-reports.tsx",
+        "sha256": "333e00db7eb9d42f13be726b44edae151688bbd1722d947e74c8ae0d542124a9"
+      },
+      {
+        "ruta": "src/components/profile-forms.tsx",
+        "sha256": "34117944b0eaf28d1ec7a4cb4f9b80c712415b6b25ff60c6e92f0b8f83b505b5"
+      },
+      {
+        "ruta": "src/components/research-export.tsx",
+        "sha256": "dcb5cac27b0b711812a9b93766ece139b994775f8bcf58e57af710f76d6d4606"
+      },
+      {
+        "ruta": "src/components/review-encounter-form.tsx",
+        "sha256": "661e7df808db97d5d33bd0882ec85a60aa89357c7a0fc6cb75fbe00e22612006"
+      },
+      {
+        "ruta": "src/components/review-history-form.tsx",
+        "sha256": "b3047e5cc44cc61e7c548cfb13b42cb950eee355650e4fa58fb59929ee996197"
+      },
+      {
+        "ruta": "src/components/session-name.tsx",
+        "sha256": "975201c4d2ea3339ab9b22f9eb68ffc75c36a37ad8eeea59eb55095e83cab52c"
+      },
+      {
+        "ruta": "src/components/sign-in-form.tsx",
+        "sha256": "a30d901510bc23ca9c799c8b49cd551a63f9f36e0ec25b69b8bae2825334a16a"
+      },
+      {
+        "ruta": "src/components/sign-out-button.tsx",
+        "sha256": "66ec08851e4a51a406d3d90e4ff6abbaa936f3db3c2a0e6abef2fb81819b0854"
+      },
+      {
+        "ruta": "src/components/specialty-encounter-form.tsx",
+        "sha256": "de6511f2ab071354dbe9ad9e3adb346f02756ceaf980e562a2914701962674ca"
+      },
+      {
+        "ruta": "src/components/specialty-history-form.tsx",
+        "sha256": "9b89bd8381e0bf3441ebab4885b674391d3dfebd0694cd851181446843e14dfd"
+      },
+      {
+        "ruta": "src/components/student-overview.tsx",
+        "sha256": "2e5d35cb1d41a4baaffadeb47d01dce3a1ccf0e0919e47a79903aa81c4ff628a"
+      },
+      {
+        "ruta": "src/components/student-shell.tsx",
+        "sha256": "7c0d6fbab94b6fcdcea203c05135c2e48071afbf99af0fa85d187cc1cc57da0d"
+      },
+      {
+        "ruta": "src/components/ux-primitives.tsx",
+        "sha256": "fb3591d6315ec97a2abd33ec2ad56e08d0cf08e9fc1a266583acb6df3f53a18e"
+      },
+      {
+        "ruta": "src/components/vaccination-card.tsx",
+        "sha256": "87225a57b6b0f1049cf3395ca98bb3342bd93959db290b75a86f8296ee44b472"
+      },
+      {
+        "ruta": "src/components/vaccination-coverage.tsx",
+        "sha256": "be900b95b4b18c8dc9885faacf914286c6e19ff50781e84f44d60119e5c5f270"
+      },
+      {
+        "ruta": "src/components/vaccination-doses.tsx",
+        "sha256": "10f8dd5cc4c11ede6e6ad952b3eae967ce90ac0775d6baebd50a56137e88593f"
+      },
+      {
+        "ruta": "src/lib/api/client.ts",
+        "sha256": "40267965060a42ff8c6058ac8025621d58a7cb31d702325e8321da80274d2ee7"
+      },
+      {
+        "ruta": "src/lib/api/server.ts",
+        "sha256": "92395d67b691bfef39f0659ed681e8b47a59300fabfb733f8362420250f90c58"
+      },
+      {
+        "ruta": "src/lib/clinical-background.ts",
+        "sha256": "7b14d5f08abca201c180c4d310cb26c61a0de60ff57437cce4d926495dc65bf5"
+      },
+      {
+        "ruta": "src/lib/clinical-json-dictionary.json",
+        "sha256": "0cec8688a005d10a69db7a0a66bf57c24c2ae20930f37cdb7fcd6b4bd5b5b45a"
+      },
+      {
+        "ruta": "src/lib/clinical-json.ts",
+        "sha256": "fca0cf389c8b9cccef6debab2dc316e219b8fc180aab1f84513ca525c8b62382"
+      },
+      {
+        "ruta": "src/lib/clinical-report-export.ts",
+        "sha256": "3b89ef865cdb6e5a6e2b3989aab9c11c4a5ad4aa099497fb3c3bc8f4904e194c"
+      },
+      {
+        "ruta": "src/lib/clinical-reports.ts",
+        "sha256": "b75875da29cba20e411678b61fe33b3dcc02818c3448400b05b4ca788552dd4a"
+      },
+      {
+        "ruta": "src/lib/clinical-word-export.ts",
+        "sha256": "f2873a97942a832d7d5b9ae6aeca379f26d61e30ea110dd2fcdf950273286a57"
+      },
+      {
+        "ruta": "src/lib/notifications.ts",
+        "sha256": "4c6f7abdb00ad66b4fa03b0bc6af7cac70c987fb4de03b56c9db713631edef49"
+      },
+      {
+        "ruta": "src/lib/referrals.ts",
+        "sha256": "ad52fca0e2e75bf7b78874dfd0f0fec5d746207ded37a2f19edd687c84d6b6be"
+      },
+      {
+        "ruta": "src/lib/research-export.ts",
+        "sha256": "ad265a614858b4755184026b6a554441841561f063335d7698f7fa444fe3b0c1"
+      },
+      {
+        "ruta": "src/lib/review-history.ts",
+        "sha256": "b4a9efe4b31b0f0f6e2f887a4ed5293fbd0e4934efdfa5da86229ba00c9192c9"
+      },
+      {
+        "ruta": "src/lib/session.ts",
+        "sha256": "75a968f706c69dc80dd75f95a7f1c0f38bdbfc69fee9f1969ee753185b65173e"
+      },
+      {
+        "ruta": "src/lib/ui-contracts.ts",
+        "sha256": "8c21670de4320044f3c314219c2cba0decb577fe758f51f886f144349845f544"
+      },
+      {
+        "ruta": "src/lib/url-state.ts",
+        "sha256": "0441830fcd15d3b3ee85634d089a69ebe48de143b86bed6168159f951ca24bb0"
+      },
+      {
+        "ruta": "src/proxy.ts",
+        "sha256": "8b53b09375ee4d0bd0e59aaca75c48535a644c47cda5120e3b4b18cbe3514abe"
+      }
+    ]
+  },
+  "git_frontend": {
+    "rama": "backend",
+    "head": "fa849fc287b25bca3c844ec1508e30e2c3a3ab1c",
+    "cambios_sin_commit": true
+  },
+  "entorno": {
+    "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+    "cpu": "x86_64",
+    "procesadores": 4,
+    "memoria_kib": 7320620,
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18",
+    "maven": "\u001b[1mApache Maven 3.9.12\u001b[m",
+    "node": "v22.23.3",
+    "docker": "Docker version 29.1.3, build 29.1.3-0ubuntu4.1",
+    "next": "16.3.4",
+    "postgres": "PostgreSQL 17.11 (Debian 17.11-1.pgdg12+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+    "flyway": "96"
+  }
+}

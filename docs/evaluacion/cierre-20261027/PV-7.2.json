@@ -1,0 +1,27 @@
+{
+  "id": "PV-7.2",
+  "resultado": "APROBADA_ALCANCE_BANDEJA",
+  "alcance": "SMTP original NO APLICA por decisión vigente. PV-7.2 adaptada: recordatorio de mañana/reintento atómico sin duplicados; PA-20: eventos en bandeja y aislamiento propio. No se certifica correo.",
+  "casos": [
+    {
+      "id": "RecordatorioCitaIntegrationTest#tomorrowUsesBoliviaMidnightAndAHalfOpenRangeRegardlessOfSessionTimezone",
+      "resultado": "APROBADA",
+      "segundos": 0.388
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#preferencesDefaultToEnabledAndReinforcedOptOutDoesNotDisableOrdinaryReminders",
+      "resultado": "APROBADA",
+      "segundos": 0.178
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#concurrentWorkersDoNotCreateDuplicates",
+      "resultado": "APROBADA",
+      "segundos": 0.424
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#batchFailureRollsBackAllRemindersAndTheNextAttemptCanRecover",
+      "resultado": "APROBADA",
+      "segundos": 0.157
+    }
+  ]
+}

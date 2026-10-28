@@ -1,0 +1,17 @@
+{
+  "id": "PA-22",
+  "resultado": "APROBADA",
+  "alcance": "Escenario documental ejecutado con fixtures sintéticas.",
+  "casos": [
+    {
+      "id": "DecisionSugerenciaIntegrationTest#pa22AcceptingTheOverbookingRaisesTheLatestSlotOnceAndFreezesTheDay",
+      "resultado": "APROBADA",
+      "segundos": 1.513
+    },
+    {
+      "id": "DecisionSugerenciaIntegrationTest#aModifiedOverbookingIsValidatedAgainstTheLimitTheDayAndItsCurrentCapacity",
+      "resultado": "APROBADA",
+      "segundos": 0.758
+    }
+  ]
+}

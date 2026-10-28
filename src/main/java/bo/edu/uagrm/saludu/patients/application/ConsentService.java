@@ -49,6 +49,11 @@ public class ConsentService {
     }
 
     @Transactional(readOnly = true)
+    public Object currentTexts(SessionPrincipal principal) {
+        return query(principal, "select salud_u.obtener_textos_consentimiento()::text");
+    }
+
+    @Transactional(readOnly = true)
     public Object forPatient(SessionPrincipal principal, UUID patientId) {
         return query(principal, "select salud_u.obtener_consentimientos_paciente(?)::text", patientId);
     }

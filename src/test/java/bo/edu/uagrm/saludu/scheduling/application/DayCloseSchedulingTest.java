@@ -72,6 +72,21 @@ class DayCloseSchedulingTest {
         verify(suggestions, times(2)).generate(any());
     }
 
+    @Test
+    void durationLogReportsCaughtFailuresWithoutStoppingLaterStages() {
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(DayCloseJob.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start(); logger.addAppender(appender);
+        try {
+            var service = mock(DayCloseService.class);
+            when(service.closeRecentDays()).thenThrow(new DataAccessResourceFailureException("FALLO_CONTROLADO"));
+            new DayCloseJob(service, estimations, suggestions).close();
+            assertTrue(appender.list.stream().anyMatch(e -> e.getFormattedMessage().equals("Actualización diaria: inicio.")));
+            assertTrue(appender.list.stream().anyMatch(e -> e.getFormattedMessage().matches("Actualización diaria: fin; duración_ms=\\d+; errores=1")));
+            verify(estimations).recompute(); verify(suggestions).expire(); verify(suggestions).generate(any());
+        } finally { logger.detachAppender(appender); appender.stop(); }
+    }
+
     private static String cron(org.springframework.context.ApplicationContext ctx) {
         var tasks = ctx.getBean(ScheduledAnnotationBeanPostProcessor.class).getScheduledTasks();
         assertEquals(1, tasks.size());

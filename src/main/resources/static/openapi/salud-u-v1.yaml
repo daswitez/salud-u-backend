@@ -64,6 +64,14 @@ paths:
               schema: {$ref: '#/components/schemas/NotificationError'}
               example: {ok: false, error: Notificación no encontrada.}
         '500': {$ref: '#/components/responses/NotificationFailure'}
+  /api/consent-texts:
+    get:
+      summary: Textos vigentes para el alta administrativa antes de crear el paciente
+      security: [{sessionCookie: []}]
+      responses:
+        '200': {description: Versiones y textos vigentes; Cache-Control no-store y private.}
+        '401': {description: Sesión ausente.}
+        '403': {description: Requiere rol ADMINISTRATIVE.}
   /api/me/consents:
     get:
       summary: Estado de los términos de uso y del consentimiento para investigación (A-03)

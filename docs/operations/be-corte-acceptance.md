@@ -1,10 +1,16 @@
 # BE-CORTE — informe de aceptación integral
 
-Actualización: 2026-10-26 (corte inicial 2026-10-17). Sólo código, contenedores y datos sintéticos locales. No se conectó ni modificó una instancia institucional, Supabase ni archivos clínicos reales.
+Actualización de estado: 2026-10-27 (corte inicial 2026-10-17; ensayos de plataforma/carga del 26 conservados como evidencia histórica). Sólo código, contenedores y datos sintéticos locales. No se conectó ni modificó una instancia institucional, Supabase ni archivos clínicos reales.
 
 ## Dictamen
 
 **Integración local aceptada; corte productivo todavía no.** Las condiciones técnicas 1–3 se cumplieron localmente con datos sintéticos, y el frontend completó FE-CORTE contra este backend ([evidencia](../../../salud-u/docs/evidencia-fecorte.md)). Siguen abiertas tres cosas que no se pueden cerrar sólo con código: el ensayo de migración de datos desde Supabase (condición 4), la estrategia de cuentas aprobada con el responsable institucional (condición 5) y la medición sobre el hardware de despliegue con un volumen acordado.
+
+## Reejecución C-01/C-03 (27/10/2026)
+
+Backend local V96: **312 pruebas, 0 fallos, 0 errores, 0 omitidas**, con registro reproducible y huellas en [A.6](../evaluacion/cierre-20261027/registro-a6.md). Recorrido mixto Next/Spring/PostgreSQL de ocho grupos por seis roles aprobado, con 47 respuestas Spring. [Evidencia C-03](../../../salud-u/docs/evidencia-cierre-c03.md). No se repitió la medición de carga/plataforma del 26 ni se presenta como ejecutada el 27.
+
+C-03 permanece parcial: falta F-04/Figura 3.61 y la evaluación humana/SUS (sin respuestas reales, por confirmación del usuario). PA-23 tiene una observación de frontera operativa en O-05; [dictamen C-02](cierre-c01-c02.md). Estos hechos no cambian las condiciones pendientes del corte institucional indicadas abajo.
 
 ## Estado de las condiciones (2026-10-26)
 

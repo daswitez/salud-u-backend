@@ -87,3 +87,11 @@ Trazabilidad: exportación para investigación (sección 3.3), RN-22, RN-23; tab
 - **F-10 (frontend):** la pantalla de bloqueo en `estudiante/layout.tsx`, el cambio de respuesta en el perfil, el bloque obligatorio en el registro y el diálogo en `check-in` y `solicitudes`. Los proxies `/api/me/consents` y `/api/patients/:patientId/consents` ya están en `next.config.ts`.
 - **Sin pantalla de administración de textos:** una versión nueva se publica con una migración.
 - **`autorizacion_excepcion` y `autorizacion_acceso_documento`:** quedan fuera, como dice la historia. Los menores de edad los registra Administración con la firma del tutor; la subida del formulario firmado no está hecha.
+
+## 8. F-10 y paso 3 en la pila local
+
+F-10 integra el bloqueo del portal, el alta y el diálogo de recepción, y el cambio de respuesta en perfil y ficha administrativa. La migración V97 incorpora `obtener_textos_consentimiento()` y `GET /api/consent-texts` para mostrar los textos vigentes antes de crear el paciente; se limita a Administración. El cliente conserva el código superior del error 422.
+
+Antes: el backend local no tenía la variable y `application.yml` tomaba `false`. Después: `compose.yaml` establece `SALUD_U_CONSENTS_REQUIRED=true` por defecto y el contenedor local se recreó con esa variable; V97 aplicada y readiness 200. En pila sintética, antes una solicitud sin respuesta produjo 201; con la obligación activa produjo 422 y el diálogo permitió reenviarla con No. El recorrido se repitió tras activar la pila local. No se usaron pacientes reales en las pruebas. El respaldo previo a V97 está identificado en `ENTREGAS_CODEX/F-10/crudo/backup-ruta.txt`.
+
+Los textos de versión 1 siguen siendo borradores: el centro debe revisarlos. `/administrativo/solicitudes` es una redirección y no crea solicitudes; el flujo administrativo activo es `/administrativo/check-in`. La evidencia y las limitaciones están en `ENTREGAS_CODEX/F-10/` y `codigo/salud-u/docs/evidencia-fe10.md`.

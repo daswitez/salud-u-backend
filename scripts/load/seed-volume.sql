@@ -11,7 +11,7 @@ INSERT INTO cuenta VALUES
 INSERT INTO cuenta SELECT gen_random_uuid(),'carga.revision'||n||'@example.invalid','Médico revisión '||n,'REVIEW_DOCTOR' FROM generate_series(1,4) n;
 INSERT INTO cuenta SELECT gen_random_uuid(),'carga.especialista'||n||'@example.invalid','Especialista '||n,'SPECIALIST' FROM generate_series(1,3) n;
 INSERT INTO salud_u.principal(id,correo,nombre_mostrado) SELECT id,email,nombre FROM cuenta;
-INSERT INTO salud_u.rol_principal(id_principal,codigo_rol) SELECT id,rol::salud_u.codigo_rol_aplicacion FROM cuenta;
+INSERT INTO salud_u.rol_principal(id_principal,codigo_rol) SELECT id,salud_u.desde_codigo_api('rol',rol)::salud_u.codigo_rol_aplicacion FROM cuenta;
 INSERT INTO salud_u.credencial_principal(id_principal,hash_contrasena) SELECT id,salud_u.crypt(:'clave',salud_u.gen_salt('bf',10)) FROM cuenta;
 INSERT INTO salud_u.personal(id_principal,codigo_personal) SELECT id,upper(split_part(email,'@',1)) FROM cuenta;
 INSERT INTO salud_u.especialidad(codigo,nombre) SELECT 'CARGA_'||n,'Especialidad carga '||n FROM generate_series(1,3) n;
@@ -44,11 +44,11 @@ UPDATE atencion a SET id_personal=s.id, id_principal=s.id_principal, id_especial
   FROM cuenta c JOIN salud_u.personal p ON p.id_principal=c.id LEFT JOIN salud_u.especialidad_personal ep ON ep.id_personal=p.id WHERE c.rol IN ('REVIEW_DOCTOR','SPECIALIST')) s
  WHERE s.rol=CASE WHEN a.tipo='INITIAL' THEN 'REVIEW_DOCTOR' ELSE 'SPECIALIST' END AND s.i=(a.n*7+a.k)%s.total;
 INSERT INTO salud_u.cupo_disponibilidad(id,id_personal,id_especialidad,inicia_a,termina_a,capacidad,cantidad_reservada,estado,publicado_en,creado_por)
- SELECT id_cupo,id_personal,CASE WHEN tipo='SPECIALTY' THEN id_especialidad END,ocurrido,ocurrido+interval '30 minutes',1,1,'CLOSED',ocurrido-interval '7 days',(SELECT id FROM cuenta WHERE rol='ADMINISTRATIVE') FROM atencion;
+ SELECT id_cupo,id_personal,CASE WHEN tipo='SPECIALTY' THEN id_especialidad END,ocurrido,ocurrido+interval '30 minutes',1,1,'CERRADO',ocurrido-interval '7 days',(SELECT id FROM cuenta WHERE rol='ADMINISTRATIVE') FROM atencion;
 INSERT INTO salud_u.cita(id,id_paciente,id_cupo,tipo_cita,estado,id_personal_asignado,programada_para,ingreso_registrado_en)
- SELECT id_cita,id_paciente,id_cupo,tipo,'ATTENDED',id_personal,ocurrido,ocurrido-interval '10 minutes' FROM atencion;
+ SELECT id_cita,id_paciente,id_cupo,salud_u.desde_codigo_api('tipo_cita',tipo),'ATENDIDA',id_personal,ocurrido,ocurrido-interval '10 minutes' FROM atencion;
 INSERT INTO salud_u.encuentro_clinico(id,id_cita,id_paciente,id_personal,tipo_encuentro,id_especialidad,estado,ocurrido_en,motivo_consulta,evaluacion,indicaciones,cerrado_en,cerrado_por)
- SELECT id_encuentro,id_cita,id_paciente,id_personal,tipo,CASE WHEN tipo='SPECIALTY' THEN id_especialidad END,'CLOSED',ocurrido,
+ SELECT id_encuentro,id_cita,id_paciente,id_personal,salud_u.desde_codigo_api('tipo_encuentro',tipo),CASE WHEN tipo='SPECIALTY' THEN id_especialidad END,'CERRADA',ocurrido,
    (ARRAY['Control anual','Cefalea recurrente','Dolor lumbar','Revisión de ingreso','Control de presión'])[1+(n+k)%5]||' carga',
    'Evaluación sintética '||n||'-'||k,'Indicaciones sintéticas',ocurrido+interval '25 minutes',id_principal FROM atencion;
 INSERT INTO salud_u.diagnostico_encuentro(id_encuentro,texto_libre,es_principal,creado_por)
@@ -61,6 +61,6 @@ INSERT INTO salud_u.dosis_vacuna_aplicada(id_paciente,id_vacuna,id_esquema_vacun
  WHERE p.carnet LIKE 'CG%' AND (substring(p.carnet from 3)::int % 10) < CASE WHEN d=1 THEN 7 ELSE 4 END;
 COMMIT;
 ANALYZE;
-SELECT json_build_object('pacientes',(SELECT count(*) FROM salud_u.paciente),'atencionesCerradas',(SELECT count(*) FROM salud_u.encuentro_clinico WHERE estado='CLOSED'),
-  'atencionesMesActual',(SELECT count(*) FROM salud_u.encuentro_clinico WHERE estado='CLOSED' AND ocurrido_en>=date_trunc('month',now())),
+SELECT json_build_object('pacientes',(SELECT count(*) FROM salud_u.paciente),'atencionesCerradas',(SELECT count(*) FROM salud_u.encuentro_clinico WHERE estado='CERRADA'),
+  'atencionesMesActual',(SELECT count(*) FROM salud_u.encuentro_clinico WHERE estado='CERRADA' AND ocurrido_en>=date_trunc('month',now())),
   'diagnosticos',(SELECT count(*) FROM salud_u.diagnostico_encuentro),'dosis',(SELECT count(*) FROM salud_u.dosis_vacuna_aplicada),'inscripciones',(SELECT count(*) FROM salud_u.inscripcion_academica));

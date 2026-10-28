@@ -44,7 +44,7 @@ class SimuladorAgendaTest {
             assertTrue(f.sugerenciasEmitidas() > 0, "Igual se emiten y se registran");
             assertEquals(fija, new Fila(f.replica(), f.especialidad(), f.tipoPeriodo(), f.temporada(), f.desde(), f.hasta(),
                 SimuladorAgenda.AGENDA_FIJA, f.solicitudes(), f.jornadas(), f.lugaresPublicados(), f.lugaresOciosos(), f.tasaOciosos(),
-                f.solicitudesAsignadas(), f.esperaPromedio(), f.esperaMediana(), f.esperaP90(), f.jornadasSobrecargadas(), f.tasaSobrecarga(),
+                f.diasSaturados(), f.solicitudesAsignadas(), f.esperaPromedio(), f.esperaMediana(), f.esperaP90(), f.jornadasSobrecargadas(), f.tasaSobrecarga(),
                 f.sobrecupoMaximo(), f.citasEvaluadas(), f.brier(), f.brierBase(), f.diasDemanda(), f.errorDemanda(), f.errorDemandaBase(),
                 0, 0, 0, 0, f.pendientesAlFinal()));
         }
@@ -97,27 +97,60 @@ class SimuladorAgendaTest {
         assertNull(SimuladorAgenda.percentil(List.of(), 0.5));
         assertEquals(2.093, InformeSimulacion.cuantilT(19));
         assertEquals(1.96, InformeSimulacion.cuantilT(40));
+        assertTrue(Double.parseDouble(InformeSimulacion.texto(-0.00000000001)) < 0, "El IC no debe redondear diferencias negativas a cero");
     }
 
     @Test
     void theCsvFilesSayItIsASimulationAndCarryEverythingNeededToRepeatIt(@TempDir Path carpeta) throws Exception {
         var tramos = InformeSimulacion.leerEscenarios(getClass().getResourceAsStream("/simulacion/escenarios.csv"));
-        assertEquals(8, tramos.size());
-        assertEquals(new Tramo("Psicología", 1, 10, "EXAMS", "ALTA", 3, 13, 0.85, 10, 0.80), tramos.get(6));
+        assertEquals(30, tramos.size());
+        assertEquals("Revisión médica", tramos.getFirst().especialidad());
         List<Fila> filas = simulador.simular(tramos, parametros(9, 2, 1.0));
-        assertEquals(2 * 8 * 2, filas.size());
+        assertEquals(2 * 30 * 2, filas.size());
+        var altaJunio = filas.stream().filter(f -> f.replica() == 1 && f.especialidad().equals("Revisión médica") && f.tipoPeriodo().equals("CLASSES") && f.temporada().equals("ALTA")).findFirst().orElseThrow();
+        var altaJulio = filas.stream().filter(f -> f.replica() == 1 && f.especialidad().equals("Revisión médica") && f.tipoPeriodo().equals("EXAMS")).findFirst().orElseThrow();
+        assertEquals(LocalDate.parse("2027-05-31"), altaJunio.desde());
+        assertEquals(LocalDate.parse("2027-07-02"), altaJunio.hasta());
+        assertEquals(LocalDate.parse("2027-07-05"), altaJulio.desde());
+        assertEquals(LocalDate.parse("2027-07-30"), altaJulio.hasta());
         var archivos = InformeSimulacion.escribir(filas, parametros(9, 2, 1.0), OffsetDateTime.parse("2026-10-27T10:00:00-04:00"), carpeta);
         assertEquals("simulacion-o09-detalle-20261027T1000.csv", archivos.detalle().getFileName().toString());
         List<String> detalle = Files.readAllLines(archivos.detalle()), resumen = Files.readAllLines(archivos.resumen());
         assertTrue(detalle.getFirst().startsWith("origen,fecha_ejecucion,version_simulador,version_estimador,version_sugeridor,semilla,replicas,parametros,replica,"));
         assertEquals(1 + filas.size(), detalle.size());
-        assertEquals(1 + 8 * 2, resumen.size());
+        assertEquals(1 + 30 * 2, resumen.size());
+        assertEquals(1 + 30 * 2 * 6, Files.readAllLines(archivos.indicadores()).size());
         for (String linea : new ArrayList<>(detalle.subList(1, detalle.size()))) {
-            assertTrue(linea.startsWith("SIMULACION,2026-10-27T10:00-04:00,o09-v1,o03-v1,o04-v1,9,2,\"aceptacion=1.00;horizonte_dias_habiles=10;"), linea);
+            assertTrue(linea.startsWith("SIMULACION,2026-10-27T10:00-04:00,o09-v2,o03-v1,o04-v1,9,2,\"aceptacion=1.00;horizonte_dias_habiles=10;"), linea);
         }
         assertTrue(resumen.stream().anyMatch(l -> l.contains("Temporada alta: espera menor")));
         int columnas = resumen.getFirst().split(",").length;
-        assertTrue(resumen.stream().skip(1).allMatch(l -> l.contains("SIMULACION")) && columnas == 34, "columnas " + columnas);
+        assertTrue(resumen.stream().skip(1).allMatch(l -> l.contains("SIMULACION")) && columnas == 35, "columnas " + columnas);
+    }
+
+    @Test
+    void weeklyProfilePreservesLegacyDefaultAndPairedRequestsAndChangesDemand() throws Exception {
+        var original = new Tramo("Perfil", 2, 8, "CLASSES", "NORMAL", 8, 12, 0.8, 10, 0.8);
+        var explicito = new Tramo("Perfil", 2, 8, "CLASSES", "NORMAL", 8, 12, 0.8, 10, 0.8, List.of(1.0, 1.0, 1.0, 1.0, 1.0));
+        var perfil = new Tramo("Perfil", 2, 8, "CLASSES", "NORMAL", 8, 12, 0.8, 10, 0.8, List.of(3.0, 0.0, 0.0, 0.0, 0.0));
+        assertEquals(36.0, perfil.demandaEn(java.time.DayOfWeek.MONDAY));
+        assertEquals(0.0, perfil.demandaEn(java.time.DayOfWeek.FRIDAY));
+        assertEquals(simulador.simular(List.of(original), parametros(13, 3, 1)), simulador.simular(List.of(explicito), parametros(13, 3, 1)));
+        var filas = simulador.simular(List.of(perfil), parametros(13, 3, 1));
+        assertNotEquals(simulador.simular(List.of(original), parametros(13, 3, 1)), filas);
+        for (int n = 1; n <= 3; n++) {
+            int replica = n;
+            var pareja = filas.stream().filter(f -> f.replica() == replica).toList();
+            assertEquals(pareja.get(0).solicitudes(), pareja.get(1).solicitudes());
+            assertTrue(pareja.get(0).diasSaturados() > 0);
+            assertTrue(pareja.stream().allMatch(f -> f.diasSaturados() <= 8), "Solo el lunes recibe solicitudes");
+        }
+        assertThrows(IllegalArgumentException.class, () -> new Tramo("Perfil", 1, 8, "CLASSES", "NORMAL", 1, 3, .8, 10, .8, List.of(1.0, -1.0)));
+        String old = "especialidad,medicos,capacidad_jornada,tipo_periodo,temporada,semanas,demanda_diaria,asistencia_esperada,peso_citas,asistencia_real\nPerfil,2,8,CLASSES,NORMAL,8,12,0.8,10,0.8\n";
+        var parsed = InformeSimulacion.leerEscenarios(new java.io.ByteArrayInputStream(old.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        assertEquals(original, parsed.getFirst());
+        var sinLlegadas = new Tramo("Vacío", 1, 5, "CLASSES", "NORMAL", 2, 3, .8, 10, .8, List.of(0.0, 0.0, 0.0, 0.0, 0.0));
+        assertDoesNotThrow(() -> InformeSimulacion.resumir(simulador.simular(List.of(sinLlegadas), parametros(13, 2, 1))));
     }
 
     private static Tramo tramo(String tipo, String temporada, int semanas, double demanda, double esperada, double real) {

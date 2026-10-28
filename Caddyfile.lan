@@ -1,0 +1,33 @@
+{
+    admin off
+    auto_https disable_redirects
+    skip_install_trust
+}
+
+http://{$SALUDU_LAN_HOST}:{$SALUDU_HTTP_PORT} {
+    bind {$SALUDU_LAN_BIND}
+    redir https://{$SALUDU_LAN_HOST}:{$SALUDU_HTTPS_PORT}{uri} permanent
+}
+
+https://{$SALUDU_LAN_HOST}:{$SALUDU_HTTPS_PORT} {
+    bind {$SALUDU_LAN_BIND}
+    tls internal {
+        protocols tls1.2 tls1.3
+    }
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        -Server
+    }
+    @readiness path /actuator/health /actuator/health/readiness
+    handle @readiness {
+        reverse_proxy {$SALUDU_BACKEND_ORIGIN}
+    }
+    handle {
+        reverse_proxy {$SALUDU_FRONTEND_ORIGIN}
+    }
+}

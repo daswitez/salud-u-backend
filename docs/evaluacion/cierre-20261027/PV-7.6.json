@@ -1,0 +1,12 @@
+{
+  "id": "PV-7.6",
+  "resultado": "APROBADA",
+  "alcance": "Escenario documental ejecutado con fixtures sintéticas.",
+  "casos": [
+    {
+      "id": "ReprogramacionBloqueoIntegrationTest#pv76BlockingADayWithThreeAppointmentsReschedulesEachOneAndThenBlocks",
+      "resultado": "APROBADA",
+      "segundos": 0.414
+    }
+  ]
+}

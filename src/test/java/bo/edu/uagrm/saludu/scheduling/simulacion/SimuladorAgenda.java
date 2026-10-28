@@ -43,13 +43,24 @@ import java.util.UUID;
  * Las métricas siguen las definiciones de O-08 y la calibración usa {@link EvaluadorAgenda}. Los avisos no se simulan.
  */
 public final class SimuladorAgenda {
-    public static final String VERSION = "o09-v1";
+    public static final String VERSION = "o09-v2";
     public static final String AGENDA_FIJA = "AGENDA_FIJA", CON_SUGERENCIAS = "CON_SUGERENCIAS";
     private static final ZoneOffset BOLIVIA = ZoneOffset.ofHours(-4);
 
     /** Semanas seguidas de una especialidad con un tipo de período (código de API, como en valor_inicial_agenda). */
     public record Tramo(String especialidad, int medicos, int capacidadJornada, String tipoPeriodo, String temporada, int semanas,
-        double demandaDiaria, double asistenciaEsperada, int pesoCitas, double asistenciaReal) {}
+        double demandaDiaria, double asistenciaEsperada, int pesoCitas, double asistenciaReal, List<Double> perfilSemana) {
+        public Tramo {
+            perfilSemana = perfilSemana == null ? List.of(1.0, 1.0, 1.0, 1.0, 1.0) : List.copyOf(perfilSemana);
+            if (perfilSemana.size() != 5 || perfilSemana.stream().anyMatch(v -> !Double.isFinite(v) || v < 0))
+                throw new IllegalArgumentException("perfil_semana requiere cinco multiplicadores finitos no negativos");
+        }
+        public Tramo(String especialidad, int medicos, int capacidadJornada, String tipoPeriodo, String temporada, int semanas,
+            double demandaDiaria, double asistenciaEsperada, int pesoCitas, double asistenciaReal) {
+            this(especialidad, medicos, capacidadJornada, tipoPeriodo, temporada, semanas, demandaDiaria, asistenciaEsperada, pesoCitas, asistenciaReal, null);
+        }
+        public double demandaEn(DayOfWeek dia) { return demandaDiaria * perfilSemana.get(dia.getValue() - 1); }
+    }
 
     public record Parametros(long semilla, int replicas, double aceptacion, int horizonte, int semanasCalentamiento,
         int jornadasAdicionalesSemanales, LocalDate inicio) {
@@ -64,7 +75,7 @@ public final class SimuladorAgenda {
     /** Resultado de una política en un tramo de una réplica. Un indicador sin datos es null, como en O-08. */
     public record Fila(int replica, String especialidad, String tipoPeriodo, String temporada, LocalDate desde, LocalDate hasta,
         String politica, int solicitudes, int jornadas, int lugaresPublicados, int lugaresOciosos, Double tasaOciosos,
-        int solicitudesAsignadas, Double esperaPromedio, Double esperaMediana, Double esperaP90, int jornadasSobrecargadas,
+        int diasSaturados, int solicitudesAsignadas, Double esperaPromedio, Double esperaMediana, Double esperaP90, int jornadasSobrecargadas,
         Double tasaSobrecarga, double sobrecupoMaximo, int citasEvaluadas, Double brier, Double brierBase, int diasDemanda,
         Double errorDemanda, Double errorDemandaBase, int sugerenciasEmitidas, int sugerenciasAceptadas, int jornadasAdicionales,
         int jornadasLiberadas, int pendientesAlFinal) {}
@@ -84,7 +95,7 @@ public final class SimuladorAgenda {
 
     /** Acumulado de un tramo (los días de calentamiento y enfriamiento tienen índice -1 y no se miden). */
     private static final class Medida {
-        int solicitudes, jornadas, publicados, ociosos, sobrecargadas, emitidas, aceptadas, adicionales, liberadas, pendientes;
+        int solicitudes, jornadas, publicados, ociosos, saturados, sobrecargadas, emitidas, aceptadas, adicionales, liberadas, pendientes;
         double sobrecupoMaximo;
         final List<Double> esperas = new ArrayList<>();
     }
@@ -105,13 +116,13 @@ public final class SimuladorAgenda {
 
     List<Fila> replica(List<Tramo> tramos, Parametros p, int replica) {
         String nombre = tramos.getFirst().especialidad();
-        UUID especialidad = UUID.nameUUIDFromBytes(nombre.getBytes(StandardCharsets.UTF_8));
+        UUID especialidad = "Revisión médica".equals(nombre) ? null : UUID.nameUUIDFromBytes(nombre.getBytes(StandardCharsets.UTF_8));
         List<Dia> dias = calendario(tramos, p);
         Random azar = new Random(Objects.hash(p.semilla(), replica, nombre));
         List<List<Solicitud>> llegadas = new ArrayList<>();
         for (int t = 0; t < dias.size(); t++) {
             List<Solicitud> delDia = new ArrayList<>();
-            for (int i = poisson(azar, dias.get(t).tramo().demandaDiaria()); i > 0; i--) delDia.add(new Solicitud(t, azar.nextDouble()));
+            for (int i = poisson(azar, dias.get(t).tramo().demandaEn(dias.get(t).fecha().getDayOfWeek())); i > 0; i--) delDia.add(new Solicitud(t, azar.nextDouble()));
             llegadas.add(delDia);
         }
         List<EstimadorAgenda.ValorInicial> iniciales = new ArrayList<>();
@@ -157,7 +168,12 @@ public final class SimuladorAgenda {
                     alerta(agenda, dias, t, ultimo, especialidad, pendientes.size(), vigentes, p, decisiones, medida(medidas, hoy));
             }
             Medida medidaHoy = medida(medidas, hoy);
-            if (medidaHoy != null) medidaHoy.solicitudes += llegadas.get(t).size();
+            if (medidaHoy != null) {
+                medidaHoy.solicitudes += llegadas.get(t).size();
+                int capacidadDisponible = 0;
+                for (Jornada jornada : agenda[t]) capacidadDisponible += jornada.capacidad;
+                if (llegadas.get(t).size() > capacidadDisponible) medidaHoy.saturados++;
+            }
             pendientes.addAll(llegadas.get(t));
             asignar(pendientes, agenda, dias, t, ultimo, medidaHoy);
 
@@ -197,7 +213,7 @@ public final class SimuladorAgenda {
             List<Double> esperas = new ArrayList<>(m.esperas);
             Collections.sort(esperas);
             filas.add(new Fila(replica, tramo.especialidad(), tramo.tipoPeriodo(), tramo.temporada(), desde, hasta, politica,
-                m.solicitudes, m.jornadas, m.publicados, m.ociosos, razon(m.ociosos, m.publicados), esperas.size(),
+                m.solicitudes, m.jornadas, m.publicados, m.ociosos, razon(m.ociosos, m.publicados), m.saturados, esperas.size(),
                 esperas.isEmpty() ? null : esperas.stream().mapToDouble(Double::doubleValue).average().orElseThrow(),
                 percentil(esperas, 0.5), percentil(esperas, 0.9), m.sobrecargadas, razon(m.sobrecargadas, m.jornadas), m.sobrecupoMaximo,
                 evaluacion.calibracion().citas(), evaluacion.calibracion().brier(), evaluacion.calibracion().brierBase(),

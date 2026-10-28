@@ -1,0 +1,22 @@
+{
+  "id": "PA-23",
+  "resultado": "OBSERVADA",
+  "alcance": "El núcleo de cierre/estimación/generación solo usa agenda/calendario. O-05 consulta derivacion (especialidad, prioridad, estado y paciente); no contenido clínico. PA-23 exige ninguna tabla clínica: discrepancia pendiente de resolución, no se aprueba de forma global.",
+  "casos": [
+    {
+      "id": "ObservacionJornadaIntegrationTest#theCloseOnlyDependsOnAgendaAndCalendarColumnsAndNeverMentionsClinicalTables",
+      "resultado": "APROBADA",
+      "segundos": 0.023
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#estimationFunctionsOnlyReadAgendaAndCalendarTables",
+      "resultado": "APROBADA",
+      "segundos": 0.02
+    },
+    {
+      "id": "SugerenciasAgendaIntegrationTest#generatorInputsOnlyReadAgendaCalendarAndEstimates",
+      "resultado": "APROBADA",
+      "segundos": 0.048
+    }
+  ]
+}

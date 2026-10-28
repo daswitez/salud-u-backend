@@ -1,0 +1,1568 @@
+{
+  "total": 312,
+  "fallos": 0,
+  "errores": 0,
+  "omitidas": 0,
+  "casos": [
+    {
+      "id": "AppointmentAttendanceMvcTest#successfulAttendanceRetainsNullDataContract",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "AppointmentAttendanceMvcTest#staleAttendanceReturnsTextConflictRatherThanAuthenticationError",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "AppointmentAttendanceMvcTest#invalidReasonDoesNotWrite",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AppointmentAttendanceMvcTest#studentCannotChangeAttendanceAndCsrfIsRequired",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "AppointmentAttendanceMvcTest#foreignCancellationIsHiddenAndStaleCancellationIsRecoverable",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "AvailabilityControllerMvcTest#clinicianCanReplaceScheduleAndReceiveGeneratedSlots",
+      "resultado": "APROBADA",
+      "segundos": 0.011
+    },
+    {
+      "id": "AvailabilityControllerMvcTest#administrativeActorCannotManageClinicianCalendar",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "AvailabilityControllerMvcTest#scheduleReplacementRequiresCsrf",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AvailabilityControllerMvcTest#managementKeepsExpectedCollectionsAndDateRange",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "ClinicalBackgroundControllerMvcTest#changeReasonIsRequiredBeforeAnyPersistence",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ClinicalBackgroundControllerMvcTest#emptyReadRetainsCurrentAndEncounterNull",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "ClinicalBackgroundControllerMvcTest#foreignPatientIsHidden",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ClinicalBackgroundControllerMvcTest#rejectsFractionalVersionBeforeWriting",
+      "resultado": "APROBADA",
+      "segundos": 0.003
+    },
+    {
+      "id": "ClinicalReportControllerMvcTest#invalidPeriodListsColumnsAndGroupsHaveText400",
+      "resultado": "APROBADA",
+      "segundos": 0.022
+    },
+    {
+      "id": "ClinicalReportControllerMvcTest#legacyExportLogValidatesBoundsAndReturnsPersistedAuditId",
+      "resultado": "APROBADA",
+      "segundos": 0.015
+    },
+    {
+      "id": "ClinicalReportControllerMvcTest#reportPreservesEnvelopeCanonicalListsEmptyAndPresentation",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ClinicalReportControllerMvcTest#permissionsAndBackendFailureAreNotEmptySuccess",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "ClinicalReportControllerMvcTest#legacyGetDoesNotRequirePresentation",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ClinicalReportExportControllerMvcTest#formatsHaveCompleteBinaryAndProvenanceHeaders",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "ClinicalReportExportControllerMvcTest#privateReceiptContractAndNonExposingDenial",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ClinicalReportExportControllerMvcTest#generationFailureIsRecordedAfterServiceRollbackWithoutAttachment",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ClinicalReportExportControllerMvcTest#errorsNeverPublishAttachmentsAndCsrfProtectsMutation",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "ClinicalReportExportControllerMvcTest#invalidOrClientProvidedRowsCannotReachExportService",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "ClinicalWordExportControllerMvcTest#wordHasBinaryContractAndAuditAfterCompleteGeneration",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ClinicalWordExportControllerMvcTest#clinicalDenialIsNonExposing404AndFailureIsRecoverable500",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "ClinicalWordExportControllerMvcTest#auditFailureDoesNotPublishWord",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "ClinicalWordExportControllerMvcTest#otherRolesAndAnonymousCannotExport",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ClinicalWordExportControllerMvcTest#invalidPurposeNeverReadsClinicalData",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "EncounterAmendmentControllerMvcTest#listHasCapabilityAndOrderedItemsContract",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "EncounterAmendmentControllerMvcTest#otherRolesAndAnonymousCannotReadOrWrite",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "EncounterAmendmentControllerMvcTest#invalidAndForbiddenOrConflictAreTextErrors",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "EncounterAmendmentControllerMvcTest#creationKeeps200AndFourFields",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "MedicalAppointmentControllerMvcTest#rejectsNonMedicalActorAndMissingCsrf",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "MedicalAppointmentControllerMvcTest#listPreservesIdentityNullableFieldsAndEmptyResult",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "MedicalAppointmentControllerMvcTest#refusesForeignAndNonStartableAppointmentsWithoutAuditingSuccess",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "MedicalAppointmentControllerMvcTest#getsOneOwnAppointmentByIdOrNotFound",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "MedicalAppointmentControllerMvcTest#recoversExistingDraftWith200",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "MedicalAppointmentControllerMvcTest#createsDraftEncounterWith201",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#closedReviewReturnsConflictWithoutSuccess",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#directSourceIsNullAndSpecialtyRecordIsRequired",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#ownContextIsReturnedAndForeignContextIsHidden",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#onlyClinicalDoctorsCanFinalizeAnEncounter",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#reviewCompletionRequiresStructuredRecordAndClinicalSummary",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#referralRequiresReasonAndSummary",
+      "resultado": "APROBADA",
+      "segundos": 0.023
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#characterizedT01PayloadWithOmittedHistoryUsesNormalizedEmptyRecord",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#reviewCompletionReturnsCharacterizedRpcContract",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "MedicalEncounterControllerMvcTest#specialtyClosureKeepsRpcContractAndChecksTemplate",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "MedicalHistorySearchControllerMvcTest#invalidDatesAndLongTextReturn400",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "MedicalHistorySearchControllerMvcTest#nullsAndEmptyAreReturnedWithoutMapOfFailure",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "MedicalHistorySearchControllerMvcTest#foreignAndRolesCannotSearch",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "MedicalPatientHistoryControllerMvcTest#databaseFailureIsRecoverableWithoutDetails",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "MedicalPatientHistoryControllerMvcTest#authorizedEmptyHistoryKeepsContractNullAndNoStore",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "MedicalPatientHistoryControllerMvcTest#foreignIsReference404AndOtherRolesCannotRead",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "AvailabilityServiceTest#persistedSpanishScheduleIsReturnedInTheLegacyManagementContract",
+      "resultado": "APROBADA",
+      "segundos": 0.067
+    },
+    {
+      "id": "ClinicalBackgroundDataTest#limitsFiftyItemsAndFiveHundredCharacters",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalBackgroundDataTest#preservesReferenceListsLegacyDetailsChoicesAndNullNormalization",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalHistoryDataTest#limitsTextAndRejectsOutOfRangeMeasurements",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalHistoryDataTest#specialtyKeepsOrderedDistinctListsOnTheSharedFinalizeRoute",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalHistoryDataTest#reviewMatchesLegacyTextNumberNullAndBooleanNormalization",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "ClinicalJsonTest#textNullNumbersListsAndSpecialtyCatalogCodesRemainIntact",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "ClinicalJsonTest#conflictingAliasesAreRejectedInsteadOfDiscardingClinicalContent",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalJsonTest#spanishAndLegacyRequestsProduceTheSameCanonicalClinicalContent",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalReportExportServiceTest#generationFailureRecordsFailedAndNeverCompleted",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "ClinicalReportExportServiceTest#moreThan10000IsRejectedBeforeRenderingOrPublishing",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "ClinicalReportExportServiceTest#zeroAnd10000UseOnlyRecalculatedCountAndPublishAfterRendering",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ClinicalReportExportServiceTest#auditFailurePreventsReturningGeneratedBytes",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ClinicalReportFilesTest#longValuesAreContinuedWithoutTruncationAndPdfRepeatsHeadersAcrossPages",
+      "resultado": "APROBADA",
+      "segundos": 3.641
+    },
+    {
+      "id": "ClinicalReportFilesTest#csvXlsxAndPdfContainSameSelectedGroupedHistoricalContent",
+      "resultado": "APROBADA",
+      "segundos": 0.829
+    },
+    {
+      "id": "ClinicalReportFilesTest#emptyAndFormulaLikeValuesAreSafeAndExplicit",
+      "resultado": "APROBADA",
+      "segundos": 1.219
+    },
+    {
+      "id": "ClinicalReportQueryTest#listsAreTypedTrimmedAndCanonical",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalReportQueryTest#groupsUseBoliviaDatesNullAndStableRowOrder",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "ClinicalWordDocumentTest#completeDocumentReopensWithHistoricalFieldsAndSeparateOrderedAdendas",
+      "resultado": "APROBADA",
+      "segundos": 0.276
+    },
+    {
+      "id": "ClinicalWordDocumentTest#emptyOptionalSectionsAreExplicitAndNoDataIsInvented",
+      "resultado": "APROBADA",
+      "segundos": 0.148
+    },
+    {
+      "id": "CatalogControllerMvcTest#studentCannotReadSpecialtiesAndReceivesLegacyForbiddenShape",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "CatalogControllerMvcTest#specialistOnlyReceivesCurrentSpecialties",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "CatalogControllerMvcTest#administrativeAccountsRetainRoleListsAndDenyOtherActors",
+      "resultado": "APROBADA",
+      "segundos": 0.025
+    },
+    {
+      "id": "CatalogControllerMvcTest#careersRemainPublicAndKeepLegacyOrderingShape",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "CatalogControllerMvcTest#onlyAdministrativeRoleCanWriteCatalogsAndCsrfIsRequired",
+      "resultado": "APROBADA",
+      "segundos": 0.035
+    },
+    {
+      "id": "CatalogControllerMvcTest#persistenceFailureIs500WithoutSqlDetailsAndDoesNotChangeIdentity",
+      "resultado": "APROBADA",
+      "segundos": 0.012
+    },
+    {
+      "id": "ClinicalDocumentControllerMvcTest#listKeepsNullMetadataAndForeignEncounterIsHidden",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "ClinicalDocumentControllerMvcTest#downloadUsesRelativePrivateLinkAndBadStudyDateIs400",
+      "resultado": "APROBADA",
+      "segundos": 0.015
+    },
+    {
+      "id": "ClinicalDocumentControllerMvcTest#studentCannotListAndExpiredContentKeepsTextErrorContract",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "ClinicalDocumentControllerMvcTest#anonymousUploadIsRejected",
+      "resultado": "APROBADA",
+      "segundos": 0.003
+    },
+    {
+      "id": "ClinicalDocumentControllerMvcTest#authorizedDoctorUploadsWithLegacy201Contract",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AuditEventControllerMvcTest#allNonAuditorsAndAnonymousAreRejected",
+      "resultado": "APROBADA",
+      "segundos": 0.011
+    },
+    {
+      "id": "AuditEventControllerMvcTest#invalidDateRangeIsRejectedWithoutDatabaseAccess",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AuditEventControllerMvcTest#auditorCanReadTheAuditEnvelope",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AuditEventControllerMvcTest#paginationPreservesTimestampCursorAndErrorsNeverBecomeEmptySuccess",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "AuditEventControllerMvcTest#evidenceHasNoRuntimeMutationEndpoint",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "AuditEventControllerMvcTest#nonAuditorCannotReadAuditEvents",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AuditEventControllerMvcTest#invalidCursorOutcomeAndLimitAreRejected",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "IdentityMvcTest#loginSetsHttpOnlySecureSessionCookieAndReturnsVersionedContract",
+      "resultado": "APROBADA",
+      "segundos": 0.053
+    },
+    {
+      "id": "IdentityMvcTest#legacyMeKeepsItsFiveUserFields",
+      "resultado": "APROBADA",
+      "segundos": 0.003
+    },
+    {
+      "id": "IdentityMvcTest#invalidCredentialsDoNotRevealWhetherAnAccountExists",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "IdentityMvcTest#anonymousLegacyMeKeepsReferenceUnauthorizedShape",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "IdentityMvcTest#loginRequiresCsrfBeforeCredentialsAreRead",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "ProfileControllerMvcTest#profileUpdateRequiresCsrf",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "ProfileControllerMvcTest#wrongCurrentPasswordIsRejected",
+      "resultado": "APROBADA",
+      "segundos": 0.028
+    },
+    {
+      "id": "ProfileControllerMvcTest#profileUpdateRevokesCookieWithoutReturningCredentials",
+      "resultado": "APROBADA",
+      "segundos": 0.021
+    },
+    {
+      "id": "ProfileControllerMvcTest#existingEmailIsRejectedWithoutCookieMutation",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "ProfileControllerMvcTest#passwordChangeRevokesCookie",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "NotificationControllerMvcTest#markReadReturnsOwnNotificationAndIsCsrfProtected",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "NotificationControllerMvcTest#cursorRetainsMicrosecondsAndNotificationId",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "NotificationControllerMvcTest#preferencesGetAndPutOnlyUseTheAuthenticatedPrincipal",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "NotificationControllerMvcTest#preferencesRequireTwoStrictBooleansAndNoForeignIdentityOrMailFields",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "NotificationControllerMvcTest#everyEndpointRequiresAnAuthenticatedSession",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "NotificationControllerMvcTest#allAuthenticatedRolesCanReadTheirOwnPageAndCounter",
+      "resultado": "APROBADA",
+      "segundos": 0.011
+    },
+    {
+      "id": "NotificationControllerMvcTest#databaseErrorsAreSanitizedInsteadOfReturningAnEmptyInbox",
+      "resultado": "APROBADA",
+      "segundos": 0.003
+    },
+    {
+      "id": "NotificationControllerMvcTest#foreignAndMissingNotificationsHaveTheSame404Body",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "NotificationControllerMvcTest#invalidPaginationAndUuidDoNotReachService",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "NotificationReminderSchedulingTest#aFailedExecutionDoesNotPreventTheNextAttempt",
+      "resultado": "APROBADA",
+      "segundos": 0.07
+    },
+    {
+      "id": "NotificationReminderSchedulingTest#enabledSchedulingUsesTheConfiguredCron",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "NotificationReminderSchedulingTest#scheduledExecutionActuallyCallsTheReminderService",
+      "resultado": "APROBADA",
+      "segundos": 0.623
+    },
+    {
+      "id": "NotificationReminderSchedulingTest#noBackgroundTaskExistsUnlessThePropertyIsTrue",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "PatientControllerMvcTest#nonAdministrativeActorCannotWrite",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "PatientControllerMvcTest#duplicateNormalizedIdentifierReturns409",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "PatientControllerMvcTest#emergencyContactIsOptionalAbsentMeansUntouchedAndNullDeletesIt",
+      "resultado": "APROBADA",
+      "segundos": 0.026
+    },
+    {
+      "id": "PatientControllerMvcTest#sexIsOptionalValidatedAndKeptWhenAnUpdateOmitsIt",
+      "resultado": "APROBADA",
+      "segundos": 0.015
+    },
+    {
+      "id": "PatientControllerMvcTest#creationRequiresCsrfBeforePersistence",
+      "resultado": "APROBADA",
+      "segundos": 0.003
+    },
+    {
+      "id": "PatientControllerMvcTest#administrativeListPreservesLegacyPatientFieldsAndOrder",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "PatientControllerMvcTest#administrativeCreationReturns201AndPatientId",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "PatientControllerMvcTest#consentsAreOptionalDuringTheRolloutAndRegisteredOnlyWhenSent",
+      "resultado": "APROBADA",
+      "segundos": 0.012
+    },
+    {
+      "id": "AdministrativeReferralControllerMvcTest#patientOptionsAndEmptyInboxKeepListContract",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "AdministrativeReferralControllerMvcTest#inboxKeepsPendingNullsAndAssignedHistory",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "AdministrativeReferralControllerMvcTest#clinicalStudentRolesAndAnonymousCannotReadAdministration",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "AssignedReferralControllerMvcTest#foreignAndRolesAreRejected",
+      "resultado": "APROBADA",
+      "segundos": 0.01
+    },
+    {
+      "id": "AssignedReferralControllerMvcTest#patchKeepsExactContractAndRejectedTransition",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "AssignedReferralControllerMvcTest#returnValidatesReasonAndFollowUpType",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "AssignedReferralControllerMvcTest#ownListKeepsNullAndEmptyState",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "EmittedReferralControllerMvcTest#foreignReferralIsHiddenAndNonReviewRolesAreDenied",
+      "resultado": "APROBADA",
+      "segundos": 0.017
+    },
+    {
+      "id": "EmittedReferralControllerMvcTest#detailKeepsPrioritySharedArraysAndNull",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "EmittedReferralControllerMvcTest#ownEmptyListUsesOkDataContract",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ReferralSchedulingRequestMvcTest#referralRequestKeeps201IdContract",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "ReferralSchedulingRequestMvcTest#patientIsRequiredAndStudentCannotScheduleReferral",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "ReferralSchedulingRequestMvcTest#duplicateOrUnavailableReferralIsRecoverable409",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "InstitutionalComplianceControllerMvcTest#rejectsInvalidActivityRangeBeforeQueryingDatabase",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "InstitutionalComplianceControllerMvcTest#errorsAreRecoverableAndSummaryIsAdministrativeOnly",
+      "resultado": "APROBADA",
+      "segundos": 0.015
+    },
+    {
+      "id": "InstitutionalComplianceControllerMvcTest#summaryHasOnlyOperationalCountsAndNoStore",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "InstitutionalComplianceControllerMvcTest#clinicianCannotReadInstitutionalCompliance",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "InstitutionalComplianceControllerMvcTest#administrativeActorReceivesTheLegacyComplianceEnvelope",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ResearchExportControllerMvcTest#invalidFiltersAndMissingPurposeAreRejectedWithoutRegistering",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "ResearchExportControllerMvcTest#unrelatedRoleCannotExportResearch",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "ResearchExportControllerMvcTest#provenanceIsOnlyForOwnExports",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "ResearchExportControllerMvcTest#reportingOfficerDownloadsDataAndDictionary",
+      "resultado": "APROBADA",
+      "segundos": 0.009
+    },
+    {
+      "id": "DayCloseSchedulingTest#scheduledExecutionClosesTheDaysThenEstimatesThenSuggests",
+      "resultado": "APROBADA",
+      "segundos": 0.206
+    },
+    {
+      "id": "DayCloseSchedulingTest#enabledSchedulingRunsNightlyByDefaultAndAcceptsAConfiguredCron",
+      "resultado": "APROBADA",
+      "segundos": 0.01
+    },
+    {
+      "id": "DayCloseSchedulingTest#aFailedStepDoesNotPreventTheNextStepsNorTheNextAttempt",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "DayCloseSchedulingTest#noBackgroundTaskExistsUnlessThePropertyIsTrue",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "EstimadorAgendaTest#pv73OneDayWithEightArrivalsAndTwoNoShowsAppliesTheForgettingFactorToTheDv10Prior",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "EstimadorAgendaTest#aDoctorWithTwentyObservedUsesTheirOwnEstimate",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "EstimadorAgendaTest#demandIsSmoothedOnlyOnSpecialtyRowsStartingFromTheInitialValueOrTheCapacity",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "EstimadorAgendaTest#noObservationsMeansNoEstimates",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "EstimadorAgendaTest#withFewerThanTwentyObservedTheEstimateFallsBackToTheSpecialtyThenTheArea",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "EstimadorAgendaTest#dayOfWeekAndPeriodTypeAreSeparateEstimates",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "EstimadorAgendaTest#eachDayDecaysTheWholeHistoryInDateOrderRegardlessOfInputOrder",
+      "resultado": "APROBADA",
+      "segundos": 0.003
+    },
+    {
+      "id": "EstimadorAgendaTest#initialValuesComeFromTheSpecialtyThenTheAreaThenDv10Defaults",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "EvaluadorAgendaTest#withoutHistoryTheForecastIsTheInitialValueAndTheBrierScoreMatchesTheBaseline",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "EvaluadorAgendaTest#withoutDataEveryIndicatorIsNull",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "EvaluadorAgendaTest#demandErrorUsesTheSmoothedForecastAndComparesWithTheSameWeekdayOfThePreviousWeek",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "EvaluadorAgendaTest#eachDayIsForecastOnlyWithEarlierDaysSoTheModelLearnsFromAbsences",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "SugeridorAgendaTest#saturationRiskIsTheBetaBinomialTail",
+      "resultado": "APROBADA",
+      "segundos": 0.0
+    },
+    {
+      "id": "SugeridorAgendaTest#suggestedAppointmentsRespectTheTenPercentLimitAndTheMaximumRisk",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "SugeridorAgendaTest#capacityAlertsFireAboveOneHundredAndBelowFiftyPercent",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "SugeridorAgendaTest#withoutOverbookingTheDaySuggestionSaysWhy",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "SugeridorAgendaTest#overbookingRaisesTheLatestSlotsAndExplainsTheRule",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "SugeridorCupoSolicitudTest#returnsTheBestThreeWithTiesBrokenByTheEarliestStart",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "SugeridorCupoSolicitudTest#waitAndOccupancyAreCappedAndTheExplanationGivesTheNumbers",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "SugeridorCupoSolicitudTest#routineFavoursTheEmptierDayWhileUrgentFavoursTheSoonestOne",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "SugeridorCupoSolicitudTest#weightsDependOnPriorityAndNonReferralsCountAsRoutine",
+      "resultado": "APROBADA",
+      "segundos": 0.001
+    },
+    {
+      "id": "InformeSimulacionTest#writesTheSimulationReport",
+      "resultado": "APROBADA",
+      "segundos": 0.873
+    },
+    {
+      "id": "SimuladorAgendaTest#theSameSeedRepeatsTheRunAndBothPoliciesReceiveTheSameRequests",
+      "resultado": "APROBADA",
+      "segundos": 0.031
+    },
+    {
+      "id": "SimuladorAgendaTest#overbookingNeverExceedsRn35AndTheModelLearnsWhenTheReportedAttendanceIsWrong",
+      "resultado": "APROBADA",
+      "segundos": 0.039
+    },
+    {
+      "id": "SimuladorAgendaTest#inHighSeasonExtraDaysShortenTheWaitAndInLowSeasonReleasedDaysReduceIdlePlaces",
+      "resultado": "APROBADA",
+      "segundos": 0.062
+    },
+    {
+      "id": "SimuladorAgendaTest#poissonAndPercentilesFollowTheirDefinitions",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "SimuladorAgendaTest#theCsvFilesSayItIsASimulationAndCarryEverythingNeededToRepeatIt(Path)",
+      "resultado": "APROBADA",
+      "segundos": 0.069
+    },
+    {
+      "id": "SimuladorAgendaTest#rejectingEverySuggestionReproducesTheFixedAgendaExactly",
+      "resultado": "APROBADA",
+      "segundos": 0.024
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#csrfTokenCreatesReusableSessionAndAllowsLogout",
+      "resultado": "APROBADA",
+      "segundos": 0.053
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#databaseOutageWhileResolvingSessionIsUnavailableNotUnauthenticated",
+      "resultado": "APROBADA",
+      "segundos": 0.026
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#sessionProbeRejectsAnonymousRequestsWithStandardError",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#genericErrorsUseTextOnlyForCompatibilityRoutes",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#logoutWithoutCsrfReturnsStandardError",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#legacyClinicalRoutesKeepStringAuthenticationErrors",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#backendHealthReportsUnavailableDependencyWithoutInternalDetails",
+      "resultado": "APROBADA",
+      "segundos": 0.01
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#backendHealthIsPublicAndDoesNotExposeSupabase",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "ApiSessionControllerMvcTest#sessionProbeReturnsAuthenticatedRoleWithoutCreatingDemoUser",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "CaracterizacionFlujosIntegrationTest#losSeisRolesInicianSesionConLasMismasAutoridadesYElMismoApiMe",
+      "resultado": "APROBADA",
+      "segundos": 0.843
+    },
+    {
+      "id": "CaracterizacionFlujosIntegrationTest#solicitudDeEspecialidadDirectaSeListaConSusCodigosSoloParaQuienCorresponde",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "CaracterizacionFlujosIntegrationTest#derivacionCompletaLlegaAlEspecialistaConContextoYLaAdendaEsInmutable",
+      "resultado": "APROBADA",
+      "segundos": 0.052
+    },
+    {
+      "id": "CaracterizacionFlujosIntegrationTest#bloqueoPropioApareceEnLaDisponibilidadYSePuedeEliminar",
+      "resultado": "APROBADA",
+      "segundos": 0.012
+    },
+    {
+      "id": "CaracterizacionFlujosIntegrationTest#cuentasRolesPersonalYSesionConservanSusCodigosDeApi",
+      "resultado": "APROBADA",
+      "segundos": 0.231
+    },
+    {
+      "id": "ConsentimientoIntegrationTest#answeringNoStillLetsThePatientRequestAppointmentsByEitherChannel",
+      "resultado": "APROBADA",
+      "segundos": 0.158
+    },
+    {
+      "id": "ConsentimientoIntegrationTest#theExportOnlyIncludesCurrentAcceptancesCountsTheRestAndNeverCarriesIdentifiers",
+      "resultado": "APROBADA",
+      "segundos": 0.299
+    },
+    {
+      "id": "ConsentimientoIntegrationTest#aStudentCannotAnswerForSomeoneElseAndOnlyAdministrationSeesOtherPatients",
+      "resultado": "APROBADA",
+      "segundos": 0.174
+    },
+    {
+      "id": "ConsentimientoIntegrationTest#withoutAcceptingTheTermsAndChoosingYesOrNoNothingAdvancesInThePortalOrInAdministration",
+      "resultado": "APROBADA",
+      "segundos": 0.144
+    },
+    {
+      "id": "ContactoEmergenciaIntegrationTest#administrationCreatesEditsAndDeletesTheContactAtomicallyWithThePatientAndAuditsWithoutPersonalData",
+      "resultado": "APROBADA",
+      "segundos": 0.326
+    },
+    {
+      "id": "ContactoEmergenciaIntegrationTest#doctorsReadItInThePatientRecordOnlyWithAClinicalRelationshipAndReportsNeverSeeIt",
+      "resultado": "APROBADA",
+      "segundos": 0.212
+    },
+    {
+      "id": "ContactoEmergenciaIntegrationTest#aStudentSeesAndEditsOnlyTheContactOfTheirOwnRecord",
+      "resultado": "APROBADA",
+      "segundos": 0.196
+    },
+    {
+      "id": "CuposSugeridosIntegrationTest#urgentReferralGetsTheSoonestCompatibleSlotsAndRoutineTheEmptierDay",
+      "resultado": "APROBADA",
+      "segundos": 0.435
+    },
+    {
+      "id": "CuposSugeridosIntegrationTest#initialRequestsOnlySeeAreaSlotsAndAnEmptyListIsValid",
+      "resultado": "APROBADA",
+      "segundos": 0.114
+    },
+    {
+      "id": "CuposSugeridosIntegrationTest#onlyAdministrationAndOnlyPendingProgrammableRequests",
+      "resultado": "APROBADA",
+      "segundos": 0.14
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#runtimeRoleCannotBypassRlsOrReceiveDirectAuditMutationPrivileges",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#vaccinationDosePreservesResponsiblePeopleAndRejectsInvalidOrConcurrentDuplicates",
+      "resultado": "APROBADA",
+      "segundos": 0.036
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#concurrentAuditWritesRemainCompleteAndVisibleToAuditor",
+      "resultado": "APROBADA",
+      "segundos": 0.012
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#spanishClinicalJsonIsReversibleAndRuntimeCannotRewriteEvidence",
+      "resultado": "APROBADA",
+      "segundos": 0.011
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#concurrentFailedAttemptsAreSerializedAndStillLockTheCredential",
+      "resultado": "APROBADA",
+      "segundos": 0.273
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#reviewDoctorFinalizesStructuredRecordPersistsClinicalDataAndCannotCloseItTwice",
+      "resultado": "APROBADA",
+      "segundos": 0.035
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#administrativeActorVersionsAndDeactivatesVaccineSchedulesWithoutDeletingThem",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#vaccinationCardIsPrivateToStudentAndCoverageCountsEachEnrolledStudentOnce",
+      "resultado": "APROBADA",
+      "segundos": 0.022
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#actorSettingsAreTransactionLocalWhenConnectionReturnsToPool",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#reviewDoctorRegistersDosesOnlyForOwnPatientsAndContextShowsResponsiblePeople",
+      "resultado": "APROBADA",
+      "segundos": 0.021
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#clinicalTemplateKeepsJsonSchemaKeywordsAndTranslatesFieldNamesAndOptions",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#profileAndPasswordChangesVerifyCurrentPasswordAndRevokeEverySession",
+      "resultado": "APROBADA",
+      "segundos": 0.432
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#institutionalComplianceCountsOnlyClosedEncountersInsideAcademicEnrollment",
+      "resultado": "APROBADA",
+      "segundos": 0.018
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#administrativeCatalogFunctionsRequireActorAndDeactivateWithoutDeletion",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#attendanceAndStudentCancellationPreserveEventsReservationsAndOwnership",
+      "resultado": "APROBADA",
+      "segundos": 0.022
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#auditorCanFilterAppendOnlyEventsWithoutReceivingSensitiveDetails",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#fiveFailedAttemptsLockTheCredentialWithoutCreatingASession",
+      "resultado": "APROBADA",
+      "segundos": 0.265
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#globalBackgroundVersionsAreNormalizedConcurrentAuthorizedAndClosedSnapshotsStayIntact",
+      "resultado": "APROBADA",
+      "segundos": 0.039
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#administrativeAccountListingMapsActualSqlColumnsAndEmptyRevokedOrMultipleRoles",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#availabilityGeneratesBoliviaSlotsBlocksThemAndPreservesBookedSlotsOnReplacement",
+      "resultado": "APROBADA",
+      "segundos": 0.123
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#spanishPatientDomainsKeepApiCodesAndEmailWhilePreservingEnrollmentRules",
+      "resultado": "APROBADA",
+      "segundos": 0.027
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#specialistClosesOwnDirectEncounterWithImmutableVersionedTemplate",
+      "resultado": "APROBADA",
+      "segundos": 1.698
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#actorContextStoresRolesInSpanishAndRejectsUnknownApiCodes",
+      "resultado": "APROBADA",
+      "segundos": 0.002
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#validCredentialsCreateOpaqueSessionAndRevokedRoleInvalidatesIt",
+      "resultado": "APROBADA",
+      "segundos": 0.055
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#researchDatasetIsPseudonymizedAuditedAndRestricted",
+      "resultado": "APROBADA",
+      "segundos": 0.104
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#failedReportExportStoresSpanishStateAndOutcomeWhileReceiptKeepsApiCode",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#reviewReferralIsAtomicSharesOnlyItsOriginAndCanBeReadOnlyByIssuer",
+      "resultado": "APROBADA",
+      "segundos": 0.039
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#patientRegistrationNormalizesIdentifiersAndKeepsOneLongitudinalHistory",
+      "resultado": "APROBADA",
+      "segundos": 0.012
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#authorizedDoctorUploadsPrivateDocumentWithChecksumAndOneTimeOwnerBoundLink",
+      "resultado": "APROBADA",
+      "segundos": 0.184
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#documentTypeCatalogStoresKnownApiCodesInSpanishAndKeepsCustomCodes",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#clinicalReportCombinesListsHistoricalSnapshotsAndBoliviaDatesWithRoleScope",
+      "resultado": "APROBADA",
+      "segundos": 0.052
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#medicalDraftOpeningIsConcurrentIdempotentAndOwnedWithCompleteAgendaContract",
+      "resultado": "APROBADA",
+      "segundos": 0.013
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#spanishAuditCodesNormalizeHistoricalReadsAndFiltersWithoutChangingStoredEvidence",
+      "resultado": "APROBADA",
+      "segundos": 0.018
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#staleVaccineFormCannotReplaceNewerScheduleAndDuplicateCodeIsDistinguished",
+      "resultado": "APROBADA",
+      "segundos": 0.008
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#medicalAgendaKeepsActiveAppointmentsBeyondTwoHundredAndGetsOneById",
+      "resultado": "APROBADA",
+      "segundos": 0.024
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#administrativeReferralSchedulingIsAtomicSpecialtyBoundAndCannotBeAssignedTwice",
+      "resultado": "APROBADA",
+      "segundos": 0.038
+    },
+    {
+      "id": "DatabaseActorContextIntegrationTest#runtimeCannotWriteAuditTableDirectlyAndAuditIsVisibleOnlyToAuditor",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "DecisionSugerenciaIntegrationTest#pa22AcceptingTheOverbookingRaisesTheLatestSlotOnceAndFreezesTheDay",
+      "resultado": "APROBADA",
+      "segundos": 1.513
+    },
+    {
+      "id": "DecisionSugerenciaIntegrationTest#aModifiedOverbookingIsValidatedAgainstTheLimitTheDayAndItsCurrentCapacity",
+      "resultado": "APROBADA",
+      "segundos": 0.758
+    },
+    {
+      "id": "DecisionSugerenciaIntegrationTest#pa21UndecidedSuggestionsExpireAndCanNoLongerBeDecided",
+      "resultado": "APROBADA",
+      "segundos": 0.142
+    },
+    {
+      "id": "DecisionSugerenciaIntegrationTest#rejectionsAndReviewOnlySuggestionsLeaveTheAgendaUntouched",
+      "resultado": "APROBADA",
+      "segundos": 0.778
+    },
+    {
+      "id": "DecisionSugerenciaIntegrationTest#onlyAdministrationDecidesWithCsrfAndAValidBody",
+      "resultado": "APROBADA",
+      "segundos": 0.797
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#diccionarioCubreTodosLosValoresPermitidosPorLaBase",
+      "resultado": "APROBADA",
+      "segundos": 0.71
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#diccionarioEsReversibleEnCadaDominioParaElRolDeLaAplicacion",
+      "resultado": "APROBADA",
+      "segundos": 1.439
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#ningunaFuncionQuedaAbiertaAPublicYTodasLasTablasTienenRlsForzada",
+      "resultado": "APROBADA",
+      "segundos": 0.026
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#ningunaFuncionPlpgsqlReferenciaObjetosInexistentes",
+      "resultado": "APROBADA",
+      "segundos": 0.079
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#tieneRolActorSoloAceptaEnumEspanolYRechazaElPuenteAnterior",
+      "resultado": "APROBADA",
+      "segundos": 0.014
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#cierreNoAdmiteInglesNiAmpliaLosPermisosDeFuncionesInternas",
+      "resultado": "APROBADA",
+      "segundos": 0.095
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#inventarioEnInglesCoincideConLaLineaBase",
+      "resultado": "APROBADA",
+      "segundos": 0.076
+    },
+    {
+      "id": "EsquemaEspanolIntegrationTest#diccionarioRechazaCodigosDesconocidosDejaPasarNullYNoSeLeeDirecto",
+      "resultado": "APROBADA",
+      "segundos": 0.039
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#recomputeStoresVersionedEstimatesInSpanishFromObservationsAndInitialValues",
+      "resultado": "APROBADA",
+      "segundos": 0.158
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#theAttendanceForAnAppointmentFallsBackFromDoctorToSpecialtyToArea",
+      "resultado": "APROBADA",
+      "segundos": 0.081
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#theReinforcedReminderIsOnlyVisibleWhileItsAppointmentIsStillScheduledForThatDay",
+      "resultado": "APROBADA",
+      "segundos": 0.074
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#estimationFunctionsOnlyReadAgendaAndCalendarTables",
+      "resultado": "APROBADA",
+      "segundos": 0.02
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#lowEstimatedAttendanceAddsAReinforcedReminderOnTheDayRespectingPreferences",
+      "resultado": "APROBADA",
+      "segundos": 0.265
+    },
+    {
+      "id": "EstimacionAgendaIntegrationTest#theRuntimeOnlyUsesTheFunctionsAndInvalidBatchesKeepThePreviousEstimates",
+      "resultado": "APROBADA",
+      "segundos": 0.109
+    },
+    {
+      "id": "MetricasAgendaIntegrationTest#anEmptyPeriodHasNullRatesAndInvalidRequestsAreRejected",
+      "resultado": "APROBADA",
+      "segundos": 0.111
+    },
+    {
+      "id": "MetricasAgendaIntegrationTest#metricsCountIdlePlacesWaitOverloadSuggestionsNoticesAndEvaluateTheForecasts",
+      "resultado": "APROBADA",
+      "segundos": 0.397
+    },
+    {
+      "id": "NotificacionIntegrationTest#reprogramacionesSinCambiarEstadoActualizanElMismoAvisoYReabrenSuLectura",
+      "resultado": "APROBADA",
+      "segundos": 0.141
+    },
+    {
+      "id": "NotificacionIntegrationTest#cancelacionYAusenciaGeneranAvisosSinFiltrarMotivosYLaLlegadaNoDuplica",
+      "resultado": "APROBADA",
+      "segundos": 0.143
+    },
+    {
+      "id": "NotificacionIntegrationTest#pacienteSinCuentaPuedeAgendarseYLosInsertHistoricosNoGeneranAsignaciones",
+      "resultado": "APROBADA",
+      "segundos": 0.089
+    },
+    {
+      "id": "NotificacionIntegrationTest#migracionNoReescribeAgendaNiGeneraAvisosRetroactivos",
+      "resultado": "APROBADA",
+      "segundos": 0.045
+    },
+    {
+      "id": "NotificacionIntegrationTest#falloPosteriorAlInsertDeCitaRevierteAvisoCitaSolicitudYCupo",
+      "resultado": "APROBADA",
+      "segundos": 0.085
+    },
+    {
+      "id": "NotificacionIntegrationTest#asignacionCreaUnSoloAvisoInclusoConReintentosConcurrentesYRespetaRls",
+      "resultado": "APROBADA",
+      "segundos": 0.176
+    },
+    {
+      "id": "NotificationApiIntegrationTest#deliveredCursorPreservesMicrosecondsAndStablePagesWhileNewNoticesArrive",
+      "resultado": "APROBADA",
+      "segundos": 0.119
+    },
+    {
+      "id": "NotificationApiIntegrationTest#reprogrammingReusesItsReadNoticeAndMakesItUnreadAndNewestAgain",
+      "resultado": "APROBADA",
+      "segundos": 0.078
+    },
+    {
+      "id": "NotificationApiIntegrationTest#writeFailureRollsBackReadStateAndReturnsSanitized500",
+      "resultado": "APROBADA",
+      "segundos": 0.078
+    },
+    {
+      "id": "NotificationApiIntegrationTest#preferenceDefaultsDoNotWriteAndPutOnlyPersistsOwnOptionsWithAudit",
+      "resultado": "APROBADA",
+      "segundos": 0.075
+    },
+    {
+      "id": "NotificationApiIntegrationTest#ownListAndForeignReadAreIsolatedEvenForAdministrationAndWithoutIdentityFilters",
+      "resultado": "APROBADA",
+      "segundos": 0.127
+    },
+    {
+      "id": "NotificationApiIntegrationTest#markingReadIsIdempotentAndQueuesOrFutureDeliveriesStayInvisible",
+      "resultado": "APROBADA",
+      "segundos": 0.104
+    },
+    {
+      "id": "ObservacionJornadaIntegrationTest#theRuntimeOnlyRunsTheRecentDaysEntryAndCannotReadTheObservations",
+      "resultado": "APROBADA",
+      "segundos": 0.1
+    },
+    {
+      "id": "ObservacionJornadaIntegrationTest#closingADayCountsEachDoctorAndSpecialtyWithItsPeriodAndIsIdempotent",
+      "resultado": "APROBADA",
+      "segundos": 0.507
+    },
+    {
+      "id": "ObservacionJornadaIntegrationTest#theCloseOnlyDependsOnAgendaAndCalendarColumnsAndNeverMentionsClinicalTables",
+      "resultado": "APROBADA",
+      "segundos": 0.023
+    },
+    {
+      "id": "ObservacionJornadaIntegrationTest#todayAndFutureDaysAreNeverClosed",
+      "resultado": "APROBADA",
+      "segundos": 0.059
+    },
+    {
+      "id": "ObservacionJornadaIntegrationTest#everyRequestCarriesItsSpecialtyExceptTheInitialReview",
+      "resultado": "APROBADA",
+      "segundos": 0.039
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#concurrentWorkersDoNotCreateDuplicates",
+      "resultado": "APROBADA",
+      "segundos": 0.424
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#batchFailureRollsBackAllRemindersAndTheNextAttemptCanRecover",
+      "resultado": "APROBADA",
+      "segundos": 0.157
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#tomorrowUsesBoliviaMidnightAndAHalfOpenRangeRegardlessOfSessionTimezone",
+      "resultado": "APROBADA",
+      "segundos": 0.388
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#repeatedRunsKeepTheSameIdAndReadState",
+      "resultado": "APROBADA",
+      "segundos": 0.077
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#runtimeOnlyHasTheBoundedJobEntryAndNewTypeIsVisibleThroughTheOwnInbox",
+      "resultado": "APROBADA",
+      "segundos": 0.133
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#preferencesDefaultToEnabledAndReinforcedOptOutDoesNotDisableOrdinaryReminders",
+      "resultado": "APROBADA",
+      "segundos": 0.178
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#reminderIsHiddenWhileItsAppointmentIsNotScheduledForThatDayAndReturnsWhenItIs",
+      "resultado": "APROBADA",
+      "segundos": 0.211
+    },
+    {
+      "id": "RecordatorioCitaIntegrationTest#changesToTimeOrTargetDateRefreshTheExistingNoticeInsteadOfDuplicatingIt",
+      "resultado": "APROBADA",
+      "segundos": 0.111
+    },
+    {
+      "id": "ReprogramacionBloqueoIntegrationTest#withoutAppointmentsTheBlockIsAppliedAtOnceAndWithoutASlotTheAdminPicksOne",
+      "resultado": "APROBADA",
+      "segundos": 0.269
+    },
+    {
+      "id": "ReprogramacionBloqueoIntegrationTest#aRejectedRescheduleKeepsTheProposalPendingUntilTheDayIsFree",
+      "resultado": "APROBADA",
+      "segundos": 0.179
+    },
+    {
+      "id": "ReprogramacionBloqueoIntegrationTest#proposalsAreRejectedWhenUnsafeAndTheDoctorsOwnBlockIsUnchanged",
+      "resultado": "APROBADA",
+      "segundos": 0.369
+    },
+    {
+      "id": "ReprogramacionBloqueoIntegrationTest#pv76BlockingADayWithThreeAppointmentsReschedulesEachOneAndThenBlocks",
+      "resultado": "APROBADA",
+      "segundos": 0.414
+    },
+    {
+      "id": "SchedulingSetupApiIntegrationTest#administrationRegistersNonOverlappingPeriodsWithApiCodesAndAudit",
+      "resultado": "APROBADA",
+      "segundos": 0.109
+    },
+    {
+      "id": "SchedulingSetupApiIntegrationTest#onlyAdministrationReachesTheEndpointsAndTheRuntimeCannotTouchTheTables",
+      "resultado": "APROBADA",
+      "segundos": 0.085
+    },
+    {
+      "id": "SchedulingSetupApiIntegrationTest#initialValuesStartWithDv10DefaultsAndSaveAtomicallyWithAudit",
+      "resultado": "APROBADA",
+      "segundos": 0.119
+    },
+    {
+      "id": "SugerenciasAgendaIntegrationTest#generatorInputsOnlyReadAgendaCalendarAndEstimates",
+      "resultado": "APROBADA",
+      "segundos": 0.048
+    },
+    {
+      "id": "SugerenciasAgendaIntegrationTest#pv74LowAttendanceSuggestsOverbookingOnTheLatestSlotAndRegeneratesIdempotently",
+      "resultado": "APROBADA",
+      "segundos": 1.959
+    },
+    {
+      "id": "SugerenciasAgendaIntegrationTest#capacityAlertsCompareProjectedDemandWithFreePublishedPlaces",
+      "resultado": "APROBADA",
+      "segundos": 0.791
+    },
+    {
+      "id": "SugerenciasAgendaIntegrationTest#onlyAdministrationReadsSuggestionsAndTheRuntimeCannotTouchTheTables",
+      "resultado": "APROBADA",
+      "segundos": 0.145
+    },
+    {
+      "id": "SugerenciasAgendaIntegrationTest#aDecidedOverbookingFreezesItsDayAndExpiredSuggestionsShowAsExpired",
+      "resultado": "APROBADA",
+      "segundos": 2.23
+    },
+    {
+      "id": "SecurityConfigTest#authenticatedBusinessRequestIsStillDenied",
+      "resultado": "APROBADA",
+      "segundos": 0.095
+    },
+    {
+      "id": "SecurityConfigTest#anonymousBusinessRequestRequiresAuthentication",
+      "resultado": "APROBADA",
+      "segundos": 0.021
+    },
+    {
+      "id": "SecurityConfigTest#writesRequireCsrfAndRemainDeniedWithToken",
+      "resultado": "APROBADA",
+      "segundos": 0.041
+    },
+    {
+      "id": "SecurityConfigTest#healthIsPublic",
+      "resultado": "APROBADA",
+      "segundos": 0.031
+    },
+    {
+      "id": "VaccinationControllerMvcTest#administrativeActorRegistersDoseWithCharacterizedContract",
+      "resultado": "APROBADA",
+      "segundos": 0.264
+    },
+    {
+      "id": "VaccinationControllerMvcTest#contextRequiresPatientAndAuthorizedRole",
+      "resultado": "APROBADA",
+      "segundos": 0.015
+    },
+    {
+      "id": "VaccinationControllerMvcTest#specialistCannotRegisterDose",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "VaccinationControllerMvcTest#rejectsIncompleteDoseBeforePersistence",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "VaccinationControllerMvcTest#distinguishesDoseRejectionsSoTheScreenCanRecover",
+      "resultado": "APROBADA",
+      "segundos": 0.029
+    },
+    {
+      "id": "VaccinationQueryControllerMvcTest#administrativeCardRequiresPatientAndCoverageKeepsContract",
+      "resultado": "APROBADA",
+      "segundos": 0.021
+    },
+    {
+      "id": "VaccinationQueryControllerMvcTest#unauthorizedRolesCannotReadCardOrCoverage",
+      "resultado": "APROBADA",
+      "segundos": 0.006
+    },
+    {
+      "id": "VaccinationQueryControllerMvcTest#studentCanReadOwnVaccinationCardContract",
+      "resultado": "APROBADA",
+      "segundos": 0.007
+    },
+    {
+      "id": "VaccineControllerMvcTest#updateSendsExpectedSchemaVersionAndDistinguishesConflicts",
+      "resultado": "APROBADA",
+      "segundos": 0.029
+    },
+    {
+      "id": "VaccineControllerMvcTest#reportingOfficerReadsCatalogButCannotWriteIt",
+      "resultado": "APROBADA",
+      "segundos": 0.011
+    },
+    {
+      "id": "VaccineControllerMvcTest#rejectsIncompleteScheduleBeforePersistence",
+      "resultado": "APROBADA",
+      "segundos": 0.005
+    },
+    {
+      "id": "VaccineControllerMvcTest#nonAdministrativeActorCannotWriteVaccineCatalog",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    },
+    {
+      "id": "VaccineControllerMvcTest#administrativeActorCreatesVaccineSchedule",
+      "resultado": "APROBADA",
+      "segundos": 0.004
+    }
+  ]
+}

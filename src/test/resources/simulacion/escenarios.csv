@@ -1,15 +1,35 @@
-# O-09: escenarios de la simulación. VALORES DE EJEMPLO: reemplazarlos por los que informe el personal (valor_inicial_agenda).
-# Cada fila es un tramo de semanas seguidas de una especialidad; el orden de las filas es el calendario.
-# demanda_diaria, asistencia_esperada y peso_citas son los valores iniciales que recibe el modelo.
-# asistencia_real es la que se usa para sortear quién llega: si difiere de la esperada, el modelo tiene algo que aprender.
-# temporada (ALTA, NORMAL, BAJA) solo decide qué criterio del cuadro 3.70 se evalúa en el tramo.
-# Ojo: RN-35 permite hasta ⌊C × 1,10⌋ citas; con menos de 10 lugares por jornada no hay sobrecupo posible.
-especialidad,medicos,capacidad_jornada,tipo_periodo,temporada,semanas,demanda_diaria,asistencia_esperada,peso_citas,asistencia_real
-Odontología,2,12,SEMESTER_START,ALTA,3,28,0.80,10,0.75
-Odontología,2,12,CLASSES,NORMAL,8,20,0.80,10,0.75
-Odontología,2,12,EXAMS,NORMAL,3,16,0.80,10,0.75
-Odontología,2,12,VACATIONS,BAJA,4,8,0.70,10,0.65
-Psicología,1,10,SEMESTER_START,NORMAL,3,9,0.85,10,0.85
-Psicología,1,10,CLASSES,NORMAL,8,8,0.85,10,0.85
-Psicología,1,10,EXAMS,ALTA,3,13,0.85,10,0.80
-Psicología,1,10,VACATIONS,BAJA,4,3,0.75,10,0.70
+# VALORES INFORMADOS POR EL CENTRO (no medidos), 27/10/2026: revisión normal hasta 60/día y días de alta demanda de 100 a 150; especialistas de 5 a 15/día.
+# La asignación por especialidad, demanda exacta, capacidad, perfil semanal, asistencia, peso y duración son supuestos; no son mediciones.
+# Calendario provisional 2027: clases hasta el 2 de julio y exámenes hasta el 30 de julio; confirmar con el área.
+# Se excluye el pico de campaña de 200. La distribución Poisson no impone un techo rígido a cada día generado.
+especialidad,medicos,capacidad_jornada,tipo_periodo,temporada,semanas,demanda_diaria,asistencia_esperada,peso_citas,asistencia_real,perfil_semana
+Revisión médica,3,12,SEMESTER_START,NORMAL,3,35,0.8,10,0.75,1.7;1.2;1.0;0.6;0.3
+Revisión médica,3,12,CLASSES,NORMAL,12,35,0.8,10,0.75,1.7;1.2;1.0;0.6;0.3
+Revisión médica,3,12,CLASSES,ALTA,5,80,0.8,10,0.75,1.7;1.2;1.0;0.6;0.3
+Revisión médica,3,12,EXAMS,ALTA,4,80,0.8,10,0.75,1.7;1.2;1.0;0.6;0.3
+Revisión médica,3,12,VACATION,BAJA,4,12,0.7,10,0.65,1.7;1.2;1.0;0.6;0.3
+Ginecología,1,15,SEMESTER_START,NORMAL,3,12,0.82,10,0.78,
+Ginecología,1,15,CLASSES,NORMAL,12,12,0.82,10,0.78,
+Ginecología,1,15,CLASSES,ALTA,5,12,0.82,10,0.78,
+Ginecología,1,15,EXAMS,ALTA,4,12,0.82,10,0.78,
+Ginecología,1,15,VACATION,BAJA,4,5,0.82,10,0.78,
+Medicina interna,1,15,SEMESTER_START,NORMAL,3,12,0.8,10,0.75,
+Medicina interna,1,15,CLASSES,NORMAL,12,12,0.8,10,0.75,
+Medicina interna,1,15,CLASSES,ALTA,5,12,0.8,10,0.75,
+Medicina interna,1,15,EXAMS,ALTA,4,12,0.8,10,0.75,
+Medicina interna,1,15,VACATION,BAJA,4,5,0.8,10,0.75,
+Urología,1,5,SEMESTER_START,NORMAL,3,5,0.8,10,0.75,
+Urología,1,5,CLASSES,NORMAL,12,5,0.8,10,0.75,
+Urología,1,5,CLASSES,ALTA,5,5,0.8,10,0.75,
+Urología,1,5,EXAMS,ALTA,4,5,0.8,10,0.75,
+Urología,1,5,VACATION,BAJA,4,5,0.8,10,0.75,
+Oftalmología,1,5,SEMESTER_START,NORMAL,3,5,0.82,10,0.78,
+Oftalmología,1,5,CLASSES,NORMAL,12,5,0.82,10,0.78,
+Oftalmología,1,5,CLASSES,ALTA,5,5,0.82,10,0.78,
+Oftalmología,1,5,EXAMS,ALTA,4,5,0.82,10,0.78,
+Oftalmología,1,5,VACATION,BAJA,4,5,0.82,10,0.78,
+Dermatología,1,5,SEMESTER_START,NORMAL,3,5,0.8,10,0.75,
+Dermatología,1,5,CLASSES,NORMAL,12,5,0.8,10,0.75,
+Dermatología,1,5,CLASSES,ALTA,5,5,0.8,10,0.75,
+Dermatología,1,5,EXAMS,ALTA,4,5,0.8,10,0.75,
+Dermatología,1,5,VACATION,BAJA,4,5,0.8,10,0.75,

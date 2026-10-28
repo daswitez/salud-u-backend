@@ -21,6 +21,11 @@ public class ConsentController {
 
     public ConsentController(ConsentService consents) { this.consents = consents; }
 
+    @GetMapping("/api/consent-texts") @PreAuthorize("hasRole('ADMINISTRATIVE')")
+    public ResponseEntity<LegacyAvailabilityResponse<Object>> currentTexts(@AuthenticationPrincipal SessionPrincipal principal) {
+        return response(consents.currentTexts(principal));
+    }
+
     @GetMapping("/api/me/consents") @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<LegacyAvailabilityResponse<Object>> mine(@AuthenticationPrincipal SessionPrincipal principal) {
         return response(consents.mine(principal));
